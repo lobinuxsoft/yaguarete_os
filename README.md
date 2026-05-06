@@ -41,7 +41,18 @@ Justfile                  task runner (build, test, run-vm, clean, etc.)
 sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:latest
 ```
 
-(Image is not yet published — coming once CI is green.)
+## Verifying image signatures
+
+All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository.
+
+```bash
+# Verify the latest image
+cosign verify \
+  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub \
+  ghcr.io/lobinuxsoft/yaguarete_os:latest
+```
+
+A successful verification means the image was built and signed by the official YaguareteOS CI pipeline. If verification fails, do not rebase to that image.
 
 ## License
 
