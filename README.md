@@ -13,6 +13,27 @@ YaguareteOS combines:
 
 Early scaffolding. Project pivoted from Archiso to Universal Blue / bootc on 2026-05-06.
 
+## Lineage and upstream attribution
+
+YaguareteOS does not hide its lineage. We derive from [Bazzite](https://bazzite.gg/) (Apache 2.0), which itself derives from [Universal Blue](https://universal-blue.org/) on top of Fedora Atomic, and we keep upstream references explicit throughout this repository.
+
+**Why we attribute openly.** Digital sovereignty is about controlling the *pipeline* — signing keys, build infrastructure, distribution registry, governance, branding — not about hiding technical inheritance. Nation-grade derivatives such as Astra Linux (Debian), Pardus (Debian) and Kylin (Ubuntu) all attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add.
+
+**What is sovereign in YaguareteOS:**
+
+- The build pipeline (our CI, our runners, our policies).
+- The signing keypair (`cosign.pub` in this repo, private key offline).
+- The distribution registry (`ghcr.io/lobinuxsoft/yaguarete_os`).
+- Branding, locale, theming and curated software layer.
+- Project governance, roadmap, and release cadence.
+
+**What is inherited and credited:**
+
+- Base image: Bazzite stable.
+- Build system and project layout: Universal Blue `image-template`.
+- Atomic update model: `bootc`, Fedora Atomic.
+- Gaming stack: Steam, Proton-GE, GameMode, gamescope, MangoHud, Mesa.
+
 ## Build locally
 
 Requires `just`, `podman` and a bootc-capable host (Bazzite, Bluefin, Aurora, or Fedora Atomic).
