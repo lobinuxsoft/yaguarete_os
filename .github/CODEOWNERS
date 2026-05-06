@@ -1,0 +1,10 @@
+# YaguareteOS code ownership
+#
+# Every path is owned by @lobinuxsoft until additional maintainers are
+# added. This guarantees that every PR opened against this repository
+# automatically requests review from the project owner.
+#
+# Syntax reference:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+*       @lobinuxsoft
