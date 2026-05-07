@@ -89,19 +89,85 @@ Justfile                  task runner (build, test, run-vm, clean, etc.)
 
 ## Rebase from an existing bootc system
 
+If you already run a `bootc`-based system (Bazzite, Bluefin, Aurora, or any Fedora Atomic image), you can rebase to YaguareteOS without reinstalling.
+
+> **Phase 0 caveat.** The image today is functionally Bazzite with our pipeline, signing key and registry. Argentine branding (logo, Plymouth, theme, locale defaults) lands in Phase 1. If you rebase now, expect a Bazzite-looking desktop until those issues close.
+
+### Prerequisites
+
+- A working `bootc` system (run `sudo bootc status` to confirm).
+- Root access on the target host.
+- Network access to `ghcr.io` and `raw.githubusercontent.com`.
+- `cosign` available (`rpm-ostree install cosign` if missing, then reboot).
+
+### Tag selection
+
+| Tag        | When to use                                                                 |
+|------------|------------------------------------------------------------------------------|
+| `:stable`  | **Recommended.** Latest signed release (currently `v0.1.0`). What you want for daily use. |
+| `:latest`  | Rolling tip of `main`. Opt-in for testers and contributors. May break.       |
+| `:vX.Y.Z`  | Pin to a specific signed release.                                            |
+
+The examples below use `:stable`. Substitute the tag you prefer.
+
+### Step 1 — Verify the image signature *before* switching
+
+Never switch to an unverified image. Pull the public key from `main` and verify the target tag:
+
 ```bash
-sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:latest
+cosign verify \
+  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub \
+  ghcr.io/lobinuxsoft/yaguarete_os:stable
 ```
+
+A successful verification prints the signed claims (issuer, subject, digest). If it fails, **stop**: do not rebase.
+
+### Step 2 — Switch
+
+```bash
+sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable
+```
+
+`bootc switch` stages the new image as the next boot entry. Your current system stays untouched on disk until you reboot.
+
+### Step 3 — Reboot
+
+```bash
+sudo systemctl reboot
+```
+
+### Step 4 — Confirm the rebase
+
+After login, verify you booted into YaguareteOS:
+
+```bash
+sudo bootc status
+```
+
+The `Booted image` should be `ghcr.io/lobinuxsoft/yaguarete_os:stable` with the digest from Step 1.
+
+### Rolling back
+
+`bootc` keeps the previous deployment as a rollback target. If anything is wrong:
+
+```bash
+sudo bootc rollback
+sudo systemctl reboot
+```
+
+This swaps the boot order back to your previous image (e.g. Bazzite). The YaguareteOS deployment is preserved on disk and can be re-promoted with `bootc rollback` again.
+
+To pin yourself permanently back to the source image, run `bootc switch` against its registry URL (e.g. `ghcr.io/ublue-os/bazzite:stable`) and reboot.
 
 ## Verifying image signatures
 
-All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository.
+All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository, and is also reachable at `https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub`.
 
 ```bash
-# Verify the latest image
+# Verify any tag
 cosign verify \
   --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub \
-  ghcr.io/lobinuxsoft/yaguarete_os:latest
+  ghcr.io/lobinuxsoft/yaguarete_os:stable
 ```
 
 A successful verification means the image was built and signed by the official YaguareteOS CI pipeline. If verification fails, do not rebase to that image.
