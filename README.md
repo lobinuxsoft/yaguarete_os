@@ -53,6 +53,7 @@ build_files/build.sh      package installs and systemd unit enables (runs inside
 system_files/             overlay copied verbatim into the image rootfs (wallpapers, configs)
 disk_config/              bootc-image-builder TOMLs for ISO / qcow2 / raw outputs
 .github/workflows/        CI: build container + build disk images
+docs/adr/                 Architecture Decision Records (the *why* behind major choices)
 Justfile                  task runner (build, test, run-vm, clean, etc.)
 ```
 
@@ -74,6 +75,10 @@ cosign verify \
 ```
 
 A successful verification means the image was built and signed by the official YaguareteOS CI pipeline. If verification fails, do not rebase to that image.
+
+## Architecture decisions
+
+Significant choices about the project — base image, design philosophy, image variants — are documented as Architecture Decision Records under [`docs/adr/`](docs/adr/). Start with the [ADR index](docs/adr/README.md) for the catalog and the rationale behind each entry.
 
 ## License
 
