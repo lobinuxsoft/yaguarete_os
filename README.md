@@ -38,12 +38,42 @@ YaguareteOS does not hide its lineage. We derive from [Bazzite](https://bazzite.
 
 Requires `just`, `podman` and a bootc-capable host (Bazzite, Bluefin, Aurora, or Fedora Atomic).
 
+### Host pre-requisites
+
+Verified on **Bazzite Stable F43**. Other bootc hosts should work but are untested.
+
+- `just` >= 1.47
+- `podman` >= 5.8
+- Sudo access — the `bootc-image-builder` step writes its output as root inside a `--privileged` container
+- ~17 GB free disk — ~12 GB for the OCI image (in podman storage) and ~5 GB for the qcow2 (sparse; peaks higher mid-build)
+- Storage on a real POSIX filesystem (btrfs / ext4 / xfs). NTFS via `fuseblk` is **not** supported — qcow2 generation requires real ownership, sparse files and extended attributes
+- A graphical session (X11 or Wayland) for `run-vm-qcow2` — it opens a QEMU window
+
+### Workflow
+
 ```bash
-just build           # build the container image locally
-just run-vm-qcow2    # boot the image in a VM via bootc-image-builder
+just build           # build OCI image  -> localhost/yaguarete_os:latest
+just build-qcow2     # build VM disk    -> output/qcow2/disk.qcow2
+just run-vm-qcow2    # boot the qcow2 in a QEMU VM
 ```
 
-See `Justfile` for the full task list.
+`just build-qcow2` pulls `quay.io/centos-bootc/bootc-image-builder:latest` (~500 MB) on first run. Subsequent builds reuse the cached builder.
+
+Total time on a Ryzen-class workstation with NVMe: ~6 min for `build`, ~5 min for `build-qcow2`.
+
+See `Justfile` for the full task list (ISO, raw, rebuild variants, `spawn-vm` via systemd-vmspawn for headless hosts).
+
+### Troubleshooting
+
+**Sudo password prompt at the end of `build-qcow2`.** Expected. The `_build-bib` recipe ends with `sudo mv -f` to relocate root-owned output from the privileged container into `output/`. Enter your password when prompted.
+
+**`just clean` aborts with `find: '_build-bib.…': No existe el fichero o el directorio`.** Known bug in the recipe (the `find` self-destructs when matching tmpdirs are present). Workaround:
+
+```bash
+rm -rf output/ _build _build-bib.* previous.manifest.json changelog.md output.env
+```
+
+**`run-vm-qcow2` fails to open a window over SSH.** No graphical session attached. Use `just spawn-vm` (systemd-vmspawn) for headless boot, or run from a local TTY with `$DISPLAY` / `$WAYLAND_DISPLAY` set.
 
 ## Structure
 
