@@ -29,7 +29,7 @@ Trivial choices (file naming, library imports, one-shot scripts) do not need an 
 | ID | Title | Status | Date |
 |----|-------|--------|------|
 | [0001](0001-bootc-over-arch.md) | Use Bazzite / Universal Blue / bootc as the base, not Arch | Accepted | 2026-05-06 |
-| [0002](0002-omakase-philosophy.md) | Omakase design — opinionated defaults, no user-facing toggles | Accepted | 2026-05-06 |
+| [0002](0002-omakase-philosophy.md) | Omakase design — editorial stance on what the image ships | Accepted | 2026-05-07 |
 | [0003](0003-single-image-first.md) | Ship a single image first; defer multi-flavor splits to Phase 4 | Accepted | 2026-05-06 |
 
 ## Process
