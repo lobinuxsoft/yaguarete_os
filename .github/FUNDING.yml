@@ -1,0 +1,14 @@
+# YaguareteOS funding configuration
+#
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+#
+# Adds a Sponsor button to the repository UI. The maintainer accepts
+# support primarily via GitHub Sponsors. Additional channels can be
+# enabled by uncommenting the relevant fields below.
+
+github: [lobinuxsoft]
+
+# Uncomment and fill in if/when these channels are activated:
+# ko_fi: lobinuxsoft
+# liberapay: lobinuxsoft
+# custom: ["https://example.org/donate"]

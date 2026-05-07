@@ -22,3 +22,7 @@ dnf5 install -y tmux
 #### Example for enabling a System Unit File
 
 systemctl enable podman.socket
+
+### Branding: default wallpaper
+# Symlink the rescued YaguareteOS wallpaper as the system default.
+ln -sf /usr/share/backgrounds/yaguarete/yaguarete_selva_oscura.png /usr/share/backgrounds/default.png
