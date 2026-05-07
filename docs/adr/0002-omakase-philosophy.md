@@ -1,67 +1,83 @@
-# 0002. Omakase design — opinionated defaults, no user-facing toggles
+# 0002. Omakase design — editorial stance on what the image ships
 
 - **Status:** Accepted
-- **Date:** 2026-05-06
+- **Date:** 2026-05-07
 - **Decided by:** lobinuxsoft
 - **Supersedes:** none
 - **Related:** ADR-0001, ADR-0003, issue #29, issue #30
 
 ## Context
 
-A national distribution can take two postures toward its users:
+In a **mutable distribution** (Arch, Ubuntu) "omakase" is a *defensive* posture: the maintainer picks defaults knowing the user can mutate the system arbitrarily with `pacman -S`, `apt install`, AUR helpers, or third-party PPAs. The chosen defaults are a *starting point*, not the product. Hiding toggles is a way to nudge new users toward the intended experience while accepting they will eventually leave the rails.
 
-1. **Configurability-first** — expose every choice as a toggle in System Settings or `ujust` so users can tailor everything. This is the implicit norm in many community distros: `theme picker`, `compositor switch`, `gaming-mode toggle`, `kernel selector`, etc.
-2. **Opinionated defaults** — pick the right defaults, ship them, and treat configuration as the exception, not the rule.
+YaguareteOS, however, is built on **bootc / Fedora Atomic** (ADR-0001). The constraints there are different:
 
-The first posture is friendly to power users but corrosive for project identity, testing surface, and onboarding. The second is the **omakase** principle (Japanese: *I leave it to you, chef*) popularized in software by DHH (Rails) and recently adopted by **Omarchy** (DHH's Hyprland distro) as an explicit design pillar.
+- `/usr` is **immutable**. Users cannot mutate the base image without `bootc switch` (whole-image rebase) or `rpm-ostree` layering (explicit, requires reboot).
+- Personalisation lives in `~/`, Flatpak, and ujust.
+- The image **is** the defaults. There is no "base + your config" — there is only "the image we shipped".
+- `bootc switch` to a different image is a **first-class feature**, not an escape hatch.
 
-Constraints relevant to the choice:
+So the question "should we be omakase?" has to be split into two: omakase about *what we put in the image* (still meaningful, very much our job), and omakase about *restricting what users can change at runtime* (largely answered for us by the bootc model).
 
-- YaguareteOS is maintained by a very small team (initially one person).
-- Identity matters: the distro must feel like *YaguareteOS* and not like Bazzite-with-Argentine-wallpapers.
-- Testing matrix grows multiplicatively with toggles — every combination is a potential bug source.
-- Onboarding cost: new users who face a wall of switches lose confidence; users who get a working OS that "just looks right" trust the project.
-
-Issue #29 captured the principle as a manifesto/charter. This ADR formalizes the architectural commitment.
+Issue #29 captured the principle as a manifesto. This ADR formalises the architectural commitment in the form that actually applies to an immutable image.
 
 ## Decision
 
-YaguareteOS ships **opinionated defaults** for branding, theming, locale, fonts, wallpapers, gaming stack, security posture, and curated software. **No user-facing toggles** are added to surface these choices through GUI settings panels or branded CLI commands.
+YaguareteOS treats the image as an **edited product**, not a configuration substrate. The maintainer's job is curation, not configurability. Concretely:
 
-Power users who need to deviate have two escape hatches, **both of which are acceptable and documented**:
+**What we curate (omakase applies):**
 
-1. **`bootc switch`** to vanilla Bazzite (or any other compatible image) if they want a different opinionated stack.
-2. **Fork the repository** and customize their own derivative — sovereignty cuts both ways.
+- The set of system packages installed in the image.
+- The default configuration files shipped under `/etc` (theme, locale, login manager, gamescope-session config, etc.).
+- The set of `ujust yaguarete-*` commands — a *small, reviewed* catalogue of one-shot tasks (install Steam beta, run a hardware diagnostic). Adding a `ujust` is a curation decision.
+- The default Flatpak set we suggest at first boot, if any.
+- Branding everywhere it appears (Plymouth, login greeter, wallpaper, theme palette, fonts).
 
-Toggles for **transient runtime state** (volume, brightness, network, etc.) are obviously not affected by this rule — only choices that define the project's identity.
+**What we deliberately do not add (omakase guards against):**
+
+- `gnome-tweaks`-style "tweaks" tools whose only purpose is to surface configurability that contradicts our defaults.
+- Custom GUI panels with toggles for our identity choices (theme picker, accent picker, "gaming mode" switch, etc.).
+- Hidden environment-variable knobs that flip behaviour from our intended path.
+- Branded "settings" surfaces that duplicate or override the upstream KDE / GNOME ones.
+
+**What we leave alone (omakase does not apply):**
+
+- KDE / GNOME upstream Settings panels. Removing them would break the desktop environment and is not our fight.
+- `bootc switch` to a different image — first-class user freedom, by design.
+- `rpm-ostree install <pkg>` layering — first-class user freedom, by design.
+- Flatpak install of any application — userland is the user's space.
+- Anything under `~/` — out of scope for a system image.
 
 ## Alternatives considered
 
-- **System Settings panel with toggles for everything.** The Universal Blue and KDE/GNOME defaults give us this for free. Rejected because it conflicts with identity and multiplies the test matrix; YaguareteOS would become a configurability layer over Bazzite rather than its own thing.
-- **`ujust yaguarete-*` commands for fine-tuning.** A middle ground: power users opt in via CLI, casual users see opinionated defaults. Partially accepted in spirit (issue #26 plans `ujust` commands) but only for *one-shot tasks* (e.g. install a Steam beta), not for *flipping identity defaults*.
-- **Per-flavor opinions (gaming/desktop/handheld variants each with different defaults).** Closer to the multi-image strategy. Deferred — see ADR-0003.
+- **Aggressive omakase ("strip everything that lets users deviate").** Remove tweaks tools, hide upstream settings panels, restrict layering through `bootc` configuration. Rejected: fights with KDE / GNOME upstream and with the bootc model itself. The cost in upstream divergence is higher than the gain in identity coherence.
+- **Configurability-first ("expose every default as a toggle for power users").** Add custom Settings panels and `ujust` commands for every identity choice. Rejected: dilutes identity, multiplies test surface, and produces the *Bazzite-with-Argentine-wallpapers* outcome that Issue #29 was created to prevent.
+- **Per-flavor opinions (different identity per variant).** Gaming variant, hardened variant, handheld variant each with their own opinionated defaults. Deferred — see ADR-0003. The *flavor axis* is the only sanctioned way to deviate from the single-image opinion.
+- **MANIFESTO.md instead of an ADR.** A separate proclamation document. Rejected: ADRs are auditable, indexed, supersede-able. A manifesto would duplicate this content with less rigour.
 
 ## Consequences
 
 **Positive:**
 - Project identity stays coherent across releases. Users describe YaguareteOS in terms of *what it is*, not *what we let them tweak*.
-- Test surface is bounded. We test one configuration, not 2^N.
+- Test surface is bounded. We test one curated image per flavor, not 2ⁿ toggle combinations.
 - Onboarding is faster: install, log in, things work the way we intended.
-- The omakase posture is a **design constraint that disciplines PR review** — every proposal that adds a toggle must justify itself against this ADR.
+- The omakase posture is a **design constraint that disciplines PR review.** Every proposal that adds a tweak tool, a custom toggle panel, or a "configure X" `ujust` must justify itself against this ADR.
+- Compatible with bootc culture: we do not fight `bootc switch` or layering — we trust the platform's escape hatches and curate within them.
 
 **Negative:**
-- **Power users churn out.** Some will rebase to vanilla Bazzite or fork. We accept this; it is the cost of identity.
-- **PR review cost** — contributors will inevitably propose toggles in good faith and need to be redirected to the escape hatches above. Issue/PR templates already mention this constraint.
-- **Cultural cost** — the Linux community defaults to "configurability is good"; we will need to defend the omakase choice publicly when criticized.
+- **PR review cost.** Contributors will propose toggles in good faith ("Steam users want gaming-mode switch"). They need to be redirected toward either *changing the default* or *opening a flavor split* (ADR-0003). Issue / PR templates already flag this expectation.
+- **Cultural friction.** The Linux community defaults to "configurability is good"; we will sometimes need to defend the omakase choice publicly.
+- **Risk of stale defaults.** Without toggles, a wrong default hurts everyone equally. We mitigate this by treating "many users want X" as a signal to *change the default*, not to add a toggle.
 
 **Neutral / to monitor:**
-- If a toggle gets proposed often enough, that is a signal the default is wrong, not that the omakase principle is wrong. The fix is to **change the default**, not to add the toggle.
-- ADR-0003's eventual multi-flavor split partially relaxes this constraint along the *flavor* axis (gaming vs hardened can have different opinions). The flavor axis is a *small finite set*, not a per-user toggle.
+- The flavor axis (ADR-0003) is the explicit pressure valve. If demand for divergent identity is strong enough to justify a maintenance multiplier, the answer is a new flavor, not a runtime toggle.
+- `ujust yaguarete-*` is a curation surface, not a configuration surface. The line is: ujust commands perform *actions* (install Steam beta, diagnose audio); they do not *flip identity defaults* (theme, branding, locale).
 
 ## References
 
 - DHH on Omakase (Rails): <https://dhh.dk/2012/rails-is-omakase.html>
-- [Omarchy](https://omarchy.org/)
+- [Omarchy](https://omarchy.org/) — adopted omakase as an explicit design pillar
+- [bootc documentation](https://docs.fedoraproject.org/en-US/bootc/) — defines the immutable-image platform we curate within
 - Issue #29 — Establish omakase design principle
-- ADR-0001 (base choice)
-- ADR-0003 (single-image first; flavor splits as the only allowed deviation axis)
+- ADR-0001 — base choice (defines the immutable platform)
+- ADR-0003 — single-image first (flavor splits as the only sanctioned deviation axis)
