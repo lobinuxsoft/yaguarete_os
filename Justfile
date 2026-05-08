@@ -36,13 +36,10 @@ fix:
 [group('Utility')]
 clean:
     #!/usr/bin/bash
-    set -eoux pipefail
-    touch _build
-    find *_build* -exec rm -rf {} \;
-    rm -f previous.manifest.json
-    rm -f changelog.md
-    rm -f output.env
-    rm -rf output/
+    set -euo pipefail
+    shopt -s nullglob
+    rm -rf _build _build-bib.* _build-iso.* _build-raw.* output/
+    rm -f previous.manifest.json changelog.md output.env
 
 # Sudo Clean Repo
 [group('Utility')]
