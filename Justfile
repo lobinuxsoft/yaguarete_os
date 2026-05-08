@@ -1,4 +1,4 @@
-export image_name := env("IMAGE_NAME", "yaguarete_os") # output image name, usually same as repo name, change as needed
+export image_name := env("IMAGE_NAME", "yaguarete_os")
 export default_tag := env("DEFAULT_TAG", "latest")
 export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 
@@ -36,13 +36,10 @@ fix:
 [group('Utility')]
 clean:
     #!/usr/bin/bash
-    set -eoux pipefail
-    touch _build
-    find *_build* -exec rm -rf {} \;
-    rm -f previous.manifest.json
-    rm -f changelog.md
-    rm -f output.env
-    rm -rf output/
+    set -euo pipefail
+    shopt -s nullglob
+    rm -rf _build _build-bib.* _build-iso.* _build-raw.* _build_podman_scp.* output/
+    rm -f previous.manifest.json changelog.md output.env
 
 # Sudo Clean Repo
 [group('Utility')]
@@ -292,7 +289,6 @@ spawn-vm rebuild="0" type="qcow2" ram="6G":
       --network-user-mode \
       --vsock=false --pass-ssh-key=false \
       -i ./output/**/*.{{ type }}
-
 
 # Runs shell check on all Bash scripts
 lint:

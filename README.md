@@ -67,12 +67,6 @@ See `Justfile` for the full task list (ISO, raw, rebuild variants, `spawn-vm` vi
 
 **Sudo password prompt at the end of `build-qcow2`.** Expected. The `_build-bib` recipe ends with `sudo mv -f` to relocate root-owned output from the privileged container into `output/`. Enter your password when prompted.
 
-**`just clean` aborts with `find: '_build-bib.…': No existe el fichero o el directorio`.** Known bug in the recipe (the `find` self-destructs when matching tmpdirs are present). Workaround:
-
-```bash
-rm -rf output/ _build _build-bib.* previous.manifest.json changelog.md output.env
-```
-
 **`run-vm-qcow2` fails to open a window over SSH.** No graphical session attached. Use `just spawn-vm` (systemd-vmspawn) for headless boot, or run from a local TTY with `$DISPLAY` / `$WAYLAND_DISPLAY` set.
 
 ## Structure
