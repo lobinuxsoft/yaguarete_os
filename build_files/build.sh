@@ -31,3 +31,8 @@ ln -sf /usr/share/backgrounds/yaguarete/yaguarete_selva_oscura.png /usr/share/ba
 # Covers all es_* locales (es_AR, es_ES, es_MX, ...). LANG is set via
 # system_files/etc/locale.conf and timezone via system_files/etc/localtime.
 dnf5 install -y glibc-langpack-es
+
+# glibc-langpack-es %post may rewrite /etc/locale.conf to its primary
+# locale (es_ES.UTF-8); reassert es_AR after the package install so the
+# image overlay value wins.
+echo 'LANG=es_AR.UTF-8' >/etc/locale.conf
