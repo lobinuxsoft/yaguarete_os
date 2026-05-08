@@ -38,7 +38,7 @@ clean:
     #!/usr/bin/bash
     set -euo pipefail
     shopt -s nullglob
-    rm -rf _build _build-bib.* _build-iso.* _build-raw.* output/
+    rm -rf _build _build-bib.* _build-iso.* _build-raw.* _build_podman_scp.* output/
     rm -f previous.manifest.json changelog.md output.env
 
 # Sudo Clean Repo
