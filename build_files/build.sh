@@ -26,3 +26,8 @@ systemctl enable podman.socket
 ### Branding: default wallpaper
 # Symlink the rescued YaguareteOS wallpaper as the system default.
 ln -sf /usr/share/backgrounds/yaguarete/yaguarete_selva_oscura.png /usr/share/backgrounds/default.png
+
+### Localization: install Spanish langpack
+# Covers all es_* locales (es_AR, es_ES, es_MX, ...). LANG is set via
+# system_files/etc/locale.conf and timezone via system_files/etc/localtime.
+dnf5 install -y glibc-langpack-es
