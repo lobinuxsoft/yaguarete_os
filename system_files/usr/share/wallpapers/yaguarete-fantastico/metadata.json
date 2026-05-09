@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete-fantastico",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Fantastico",
+        "Name[es]": "Fantastico"
+    }
+}

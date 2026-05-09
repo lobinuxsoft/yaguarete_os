@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete-colored",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Colored",
+        "Name[es]": "Colorido"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete-future-funk",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Future Funk",
+        "Name[es]": "Future Funk"
+    }
+}
