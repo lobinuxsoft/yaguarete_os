@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete-amanecer-00",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Amanecer 00",
+        "Name[es]": "Amanecer 00"
+    }
+}

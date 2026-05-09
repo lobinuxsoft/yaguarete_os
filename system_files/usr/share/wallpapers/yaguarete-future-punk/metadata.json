@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete-future-punk",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Future Punk",
+        "Name[es]": "Future Punk"
+    }
+}

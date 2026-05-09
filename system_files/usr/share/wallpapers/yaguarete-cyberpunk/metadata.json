@@ -1,0 +1,13 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete-cyberpunk",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Cyberpunk",
+        "Name[es]": "Cyberpunk"
+    }
+}
