@@ -1,0 +1,11 @@
+{
+  "image-name": "yaguarete_os",
+  "image-vendor": "lobinuxsoft",
+  "image-ref": "ostree-image-signed:docker://ghcr.io/lobinuxsoft/yaguarete_os",
+  "image-tag": "stable",
+  "image-branch": "stable",
+  "base-image-name": "kinoite",
+  "fedora-version": "44",
+  "version": "44.20260508",
+  "version-pretty": "Stable (F44.20260508)"
+}
