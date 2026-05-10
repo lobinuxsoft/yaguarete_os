@@ -202,9 +202,11 @@ build-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_bui
 [group('Build Virtal Machine Image')]
 build-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "raw" "disk_config/disk.toml")
 
-# Build an ISO virtual machine image
-[group('Build Virtal Machine Image')]
-build-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "iso" "disk_config/iso-kde.toml")
+# ISO builds use titanoboa (via GitHub Actions workflow build-iso.yml).
+# bib does not support external lorax templates and lacks Fedora 44 def files,
+# so local ISO builds via this Justfile are unsupported. Trigger an ISO build by:
+#   gh workflow run build-iso.yml --ref <branch>
+# then download the artifact and use just run-vm-iso-local <iso-path> to smoke test.
 
 # Rebuild a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
@@ -214,10 +216,6 @@ rebuild-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_r
 [group('Build Virtal Machine Image')]
 rebuild-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "raw" "disk_config/disk.toml")
 
-# Rebuild an ISO virtual machine image
-[group('Build Virtal Machine Image')]
-rebuild-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "iso" "disk_config/iso-kde.toml")
-
 # Run a virtual machine with the specified image type and configuration
 _run-vm $target_image $tag $type $config:
     #!/usr/bin/bash
@@ -225,9 +223,6 @@ _run-vm $target_image $tag $type $config:
 
     # Determine the image file based on the type
     image_file="output/${type}/disk.${type}"
-    if [[ $type == iso ]]; then
-        image_file="output/bootiso/install.iso"
-    fi
 
     # Build the image if it does not exist
     if [[ ! -f "${image_file}" ]]; then
@@ -268,9 +263,39 @@ run-vm-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_ru
 [group('Run Virtal Machine')]
 run-vm-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-vm target_image tag "raw" "disk_config/disk.toml")
 
-# Run a virtual machine from an ISO
+# Run a virtual machine from a local ISO file (downloaded from the build-iso GH Actions artifact)
 [group('Run Virtal Machine')]
-run-vm-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_run-vm target_image tag "iso" "disk_config/iso-kde.toml")
+run-vm-iso-local iso_path:
+    #!/usr/bin/bash
+    set -eoux pipefail
+
+    if [[ ! -f "{{ iso_path }}" ]]; then
+        echo "ISO not found at {{ iso_path }}. Download it from the GH Actions 'Build Live ISO' workflow artifact."
+        exit 1
+    fi
+
+    port=8006
+    while grep -q :${port} <<< $(ss -tunalp); do
+        port=$(( port + 1 ))
+    done
+    echo "Using Port: ${port}"
+    echo "Connect to http://localhost:${port}"
+
+    run_args=()
+    run_args+=(--rm --privileged)
+    run_args+=(--pull=newer)
+    run_args+=(--publish "127.0.0.1:${port}:8006")
+    run_args+=(--env "CPU_CORES=4")
+    run_args+=(--env "RAM_SIZE=8G")
+    run_args+=(--env "DISK_SIZE=64G")
+    run_args+=(--env "TPM=Y")
+    run_args+=(--env "GPU=Y")
+    run_args+=(--device=/dev/kvm)
+    run_args+=(--volume "$(realpath {{ iso_path }})":"/boot.iso")
+    run_args+=(docker.io/qemux/qemu)
+
+    (sleep 30 && xdg-open http://localhost:"$port") &
+    podman run "${run_args[@]}"
 
 # Run a virtual machine using systemd-vmspawn
 [group('Run Virtal Machine')]
