@@ -91,7 +91,7 @@ jobs:
             -t localhost/payload:latest installer/
 
       - name: Build ISO
-        uses: ublue-os/titanoboa@main
+        uses: Zeglius/titanoboa@revamp-pr
         id: build
         with:
           image-ref: localhost/payload:latest
