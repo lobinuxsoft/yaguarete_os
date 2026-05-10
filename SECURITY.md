@@ -74,6 +74,27 @@ If we suspect the cosign private key has been compromised, the rotation procedur
 
 Users should re-pin their verification step to the new public key from `main` after each rotation announcement.
 
+## Default install credentials
+
+The live ISO installer ships with a default user account created by Anaconda:
+
+- **Username:** `yaguarete`
+- **Password:** `yaguarete`
+- **Groups:** `wheel` (sudo)
+
+This is a **public, documented placeholder** — the same pattern upstream Bazzite uses (`bazzite/bazzite`) and many installer-driven distributions follow. It is **not a secret credential**:
+
+- The kickstart directive that sets it is committed to the repository at `installer/titanoboa_hook_postrootfs.sh` so anyone can inspect the install flow.
+- The password is documented here in `SECURITY.md` as a known default.
+- Users are expected to change the password on first login. The KDE Plasma session prompts for password change on first use when the default is detected.
+- Root is locked (`rootpw --lock`) — there is no root-password attack surface.
+
+Secret-scanning tools (GitGuardian, gitleaks, etc.) may flag the directive as a "Hardcoded Password". This is a **false positive** for the reasons above; we silence the alert for `installer/titanoboa_hook_postrootfs.sh` via `.gitguardian.yaml`.
+
+Future work tracked in issue #61 (out of scope): replace the static default with either (a) an Anaconda firstboot prompt asking the user to set a password, or (b) build-time secret injection from a CI-managed secret. Either approach removes the placeholder entirely and is preferable in the long term.
+
+If you boot the live ISO on shared hardware, **change the password immediately after first login** or use the live session in private.
+
 ## Disclosure track record
 
 No advisories published yet (project initiated 2026-05-06).
