@@ -37,6 +37,15 @@ echo "YaguareteOS release $VERSION_ID ($VERSION_CODENAME)" >/etc/system-release
 # Default Kickstart
 cat <<EOF >>/usr/share/anaconda/interactive-defaults.ks
 
+# Default user, locale, keyboard, timezone (skip Anaconda spokes).
+# rootpw --lock is atomic-friendly: root is locked, satisfies Anaconda
+# without prompting (PasswordSpoke is also hidden via yaguarete.conf).
+user --name=yaguarete --password=yaguarete --plaintext --groups=wheel
+lang es_AR.UTF-8
+keyboard --xlayouts=latam --vckeymap=la-latin1
+timezone America/Argentina/Buenos_Aires --utc
+rootpw --lock
+
 # Create log directory
 %pre
 mkdir -p /tmp/anacoda_custom_logs
