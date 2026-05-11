@@ -1,0 +1,5 @@
+[General]
+LogoPath=/usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg
+Name=YaguareteOS
+Website=https://github.com/lobinuxsoft/yaguarete_os
+Variant=Desktop Edition
