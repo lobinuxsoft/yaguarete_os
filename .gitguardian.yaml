@@ -1,0 +1,7 @@
+version: 2
+
+secret:
+  # Files containing intentional placeholder credentials that are not real
+  # secrets. See SECURITY.md "Default install credentials" for the rationale.
+  ignored-paths:
+    - installer/titanoboa_hook_postrootfs.sh
