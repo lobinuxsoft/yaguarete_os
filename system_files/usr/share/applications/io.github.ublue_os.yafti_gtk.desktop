@@ -1,0 +1,23 @@
+[Desktop Entry]
+Name=Portal YaguareteOS
+Name[cs]=Portál YaguareteOS
+Name[de]=Portal YaguareteOS
+Name[el]=Πύλη YaguareteOS
+Name[es]=Portal Yaguareté
+Name[fr]=Portail YaguareteOS
+Name[it]=Portale YaguareteOS
+Name[ru]=Портал YaguareteOS
+Comment=Helps you setup YaguareteOS
+Comment[cs]=Pomůže vám nastavit YaguareteOS
+Comment[de]=Hilft bei der Einrichtung von YaguareteOS
+Comment[el]=Σας βοηθά να ρυθμίσετε το YaguareteOS
+Comment[es]=Te ayuda a configurar YaguareteOS
+Comment[fr]=Vous aide à configurer YaguareteOS
+Comment[it]=Ti aiuta a configurare YaguareteOS
+Comment[ru]=Помогает вам настроить YaguareteOS
+Exec=yafti_gtk.py /usr/share/yafti/yafti.yml
+Icon=yaguarete-logo-icon
+Terminal=false
+Type=Application
+Categories=System;Settings;
+Keywords=yaguarete;setup;configuration;
