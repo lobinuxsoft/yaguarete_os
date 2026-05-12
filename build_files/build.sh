@@ -83,3 +83,10 @@ sed -i 's|^restore-bazzite-breeze-gtk-theme:|_restore-bazzite-breeze-gtk-theme:|
     /usr/share/ublue-os/just/90-bazzite-de.just
 sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION="":|' \
     /usr/share/ublue-os/just/91-bazzite-decky.just
+
+### Branding: yafti_gtk.py hardcodes APP_TITLE = 'Bazzite Portal' at line 18.
+# It is used both for the window title (Gtk.Window) and the
+# --title flag passed to the embedded webview. Patch in place so the
+# YaguareteOS rebrand reaches the window decoration.
+sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
+    /usr/bin/yafti_gtk.py
