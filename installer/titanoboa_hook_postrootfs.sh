@@ -20,6 +20,33 @@ dnf install -qy --enable-repo=fedora-cisco-openh264 --allowerasing firefox anaco
 
 mkdir -p /var/lib/rpm-state # Needed for Anaconda Web UI
 
+# Rebrand the live "Install" desktop launcher to YaguareteOS.
+# anaconda-live ships /etc/skel/Desktop/liveinst.desktop (and sometimes
+# /usr/share/applications/liveinst.desktop) with Icon=fedora-logo-icon
+# and Name="Install to Hard Drive". Override both with YaguareteOS branding.
+for liveinst_path in /etc/skel/Desktop/liveinst.desktop /usr/share/applications/liveinst.desktop; do
+    if [[ -f $liveinst_path ]]; then
+        cat <<'EOF' >"$liveinst_path"
+[Desktop Entry]
+Name=Instalar YaguareteOS
+Name[en]=Install YaguareteOS
+Name[es]=Instalar YaguareteOS
+Name[fr]=Installer YaguareteOS
+Name[pt]=Instalar YaguareteOS
+Name[it]=Installa YaguareteOS
+Comment=Instalar el sistema YaguareteOS en el disco duro
+Comment[en]=Install the YaguareteOS system to the hard drive
+Comment[es]=Instalar el sistema YaguareteOS en el disco duro
+GenericName=Instalador del sistema
+Icon=yaguarete-logo-icon
+Type=Application
+Exec=liveinst
+Categories=System;
+EOF
+        chmod 0755 "$liveinst_path"
+    fi
+done
+
 # Dialog utilities for the Bitlocker prompt
 dnf install -qy --setopt=install_weak_deps=0 qrencode yad
 
