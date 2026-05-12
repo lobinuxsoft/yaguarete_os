@@ -22,14 +22,14 @@ screens:
         title: "Decky YaguareteOS Buddy"
         description: "A Decky plugin that lets you see system changelogs in Game Mode."
         default: false
-        status_script: "ujust get-decky-bazzite-buddy status"
+        status_script: "ujust get-decky-yaguarete-buddy status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust get-decky-bazzite-buddy install"
+            script: "ujust get-decky-yaguarete-buddy install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust get-decky-bazzite-buddy uninstall"
+            script: "ujust get-decky-yaguarete-buddy uninstall"
       - id: "decky-framegen"
         title: "Decky Framegen"
         description: "A Decky plugin that sets up OptiScaler for any Steam game."
@@ -305,10 +305,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && ujust bazzite-cli enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && ujust yaguarete-cli enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
           - id: "disable"
             label: "Disable"
-            script: 'ujust bazzite-cli disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: 'ujust yaguarete-cli disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "asus"
         title: "asusctl and ROG Control Center"
         description: "Install asusctl and ROG Control Center, ASUS ROG hardware managing tools."
