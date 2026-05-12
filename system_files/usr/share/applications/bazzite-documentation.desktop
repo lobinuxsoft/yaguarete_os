@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+NoDisplay=false
+Terminal=false
+Exec=xdg-open https://github.com/lobinuxsoft/yaguarete_os
+Icon=yaguarete-logo-icon
+Name=Documentation
+Name[cs]=Dokumentace
+Name[el]=Τεκμηρίωση
+Name[es]=Documentación
+Name[fr]=Documentation
+Name[it]=Documentazione
+Name[ru]=Документация
+Comment=View YaguareteOS Documentation
+Comment[cs]=Zobrazit dokumentaci YaguareteOS
+Comment[el]=Προβολή τεκμηρίωσης YaguareteOS
+Comment[es]=Ver documentación de YaguareteOS
+Comment[fr]=Voir la documentation de YaguareteOS
+Comment[it]=Visualizza la documentazione di YaguareteOS
+Comment[ru]=Посмотреть документацию YaguareteOS
+Categories=Utility;

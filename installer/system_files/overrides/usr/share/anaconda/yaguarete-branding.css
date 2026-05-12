@@ -1,0 +1,17 @@
+/* YaguareteOS branding overrides for Anaconda WebUI.
+ * Replaces Fedora/Bazzite default logo references with yaguarete-logo. */
+
+.pf-c-page__header-brand img,
+img.product-logo,
+.anaconda-logo,
+.anaconda-page-header img {
+    content: url('/usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png');
+    max-height: 48px;
+}
+
+.pf-c-page__sidebar .pf-c-page__sidebar-body {
+    background-image: url('/usr/share/icons/hicolor/512x512/apps/yaguarete-logo-icon.png');
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: 200px;
+}
