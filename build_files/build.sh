@@ -90,3 +90,16 @@ sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION=""
 # YaguareteOS rebrand reaches the window decoration.
 sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
     /usr/bin/yafti_gtk.py
+
+### Branding: yafti registers its window icon via APP_ID
+# 'io.github.ublue_os.yafti_gtk', which Gtk resolves through hicolor.
+# Replace that SVG with the YaguareteOS logo so the taskbar / window
+# decoration shows our jaguar.
+ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg \
+    /usr/share/icons/hicolor/scalable/apps/io.github.ublue_os.yafti_gtk.svg
+
+### Branding: refresh the hicolor icon cache so all the new symlinks
+# (yafti_gtk, bazzite-logo-icon, /usr/share/ublue-os/bazzite/*.svg)
+# and added launchers (Instalar YaguareteOS, etc.) resolve correctly
+# in KDE / GTK lookups.
+gtk-update-icon-cache -f -t /usr/share/icons/hicolor
