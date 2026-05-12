@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Name=System Update
+Name[cs]=Aktualizace systému
+Name[el]=Ενημέρωση συστήματος
+Name[es]=Actualización del sistema
+Name[fr]=Mises à jour
+Name[it]=Aggiornamento di sistema
+Name[ru]=Обновление системы
+Comment=Update YaguareteOS, Flatpaks, and more
+Comment[cs]=Aktualizace YaguareteOS, Flatpaků a dalších
+Comment[el]=Ενημερώνει το YaguareteOS, τα Flatpaks και άλλα
+Comment[es]=Actualizar YaguareteOS, Flatpaks y más
+Comment[fr]=Met à jour YaguareteOS, les applications et plus encore
+Comment[it]=Aggiorna YaguareteOS, i Flatpak e altro
+Comment[ru]=Обновить YaguareteOS, Flatpak и многое другое
+Icon=yaguarete-logo-icon
+Categories=ConsoleOnly;System;
+Terminal=true
+Exec=/usr/bin/ujust update
