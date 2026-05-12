@@ -72,3 +72,14 @@ done
 # symlink to the YaguareteOS-named file. Reason: /usr/libexec/ublue-motd
 # hardcodes the bazzite.md path; renaming the file alone breaks login MOTD.
 ln -sf yaguarete.md /usr/share/ublue-os/motd/bazzite.md
+
+### Branding: privatize Bazzite-named ujust recipes so they no longer
+# appear in `ujust --list`. The YaguareteOS-named wrappers in
+# /usr/share/ublue-os/just/99-yaguarete-rename.just delegate to these
+# private originals (just convention: leading underscore = private).
+sed -i 's|^bazzite-cli ACTION="":|_bazzite-cli ACTION="":|' \
+    /usr/share/ublue-os/just/80-bazzite.just
+sed -i 's|^restore-bazzite-breeze-gtk-theme:|_restore-bazzite-breeze-gtk-theme:|' \
+    /usr/share/ublue-os/just/90-bazzite-de.just
+sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION="":|' \
+    /usr/share/ublue-os/just/91-bazzite-decky.just
