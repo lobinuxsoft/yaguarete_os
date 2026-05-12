@@ -67,3 +67,8 @@ for variant in bazzite-logo.svg bazzite-logo-white.svg bazzite-logo-le.svg; do
     ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg \
         "/usr/share/icons/hicolor/scalable/places/$variant"
 done
+
+### Branding: keep /usr/share/ublue-os/motd/bazzite.md path alive as a
+# symlink to the YaguareteOS-named file. Reason: /usr/libexec/ublue-motd
+# hardcodes the bazzite.md path; renaming the file alone breaks login MOTD.
+ln -sf yaguarete.md /usr/share/ublue-os/motd/bazzite.md
