@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+NoDisplay=false
+Terminal=false
+Exec=xdg-open https://github.com/lobinuxsoft/yaguarete_os/discussions
+Icon=yaguarete-logo-icon
+Name=YaguareteOS Discussions
+Name[cs]=Diskuse YaguareteOS
+Name[el]=Συζητήσεις YaguareteOS
+Name[es]=Discusiones YaguareteOS
+Name[fr]=Discussions YaguareteOS
+Name[it]=Discussioni YaguareteOS
+Name[ru]=Обсуждения YaguareteOS
+Comment=YaguareteOS community forum
+Comment[cs]=Komunitní fórum YaguareteOS
+Comment[el]=Φόρουμ κοινότητας YaguareteOS
+Comment[es]=Foro de la comunidad YaguareteOS
+Comment[fr]=Forum communautaire YaguareteOS
+Comment[it]=Forum della comunità YaguareteOS
+Comment[ru]=Форум сообщества YaguareteOS
+Categories=Utility;
