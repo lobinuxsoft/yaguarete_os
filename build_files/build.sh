@@ -52,3 +52,18 @@ for svg_asset in portal.svg logo.svg update.svg discourse.svg docs.svg; do
 done
 ln -sf /usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png \
     /usr/share/ublue-os/bazzite/updatelogo.png
+
+### Branding: repoint Bazzite's hicolor icon entries to yaguarete-logo.
+# Preserves filenames (third-party code may hard-reference them) but the
+# rendered glyph is YaguareteOS.
+for size in 16x16 22x22 24x24 32x32 36x36 48x48 96x96 256x256; do
+    bazzite_png="/usr/share/icons/hicolor/$size/bazzite-logo-icon.png"
+    yaguarete_png="/usr/share/icons/hicolor/$size/apps/yaguarete-logo-icon.png"
+    if [[ -f $yaguarete_png ]]; then
+        ln -sf "$yaguarete_png" "$bazzite_png"
+    fi
+done
+for variant in bazzite-logo.svg bazzite-logo-white.svg bazzite-logo-le.svg; do
+    ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg \
+        "/usr/share/icons/hicolor/scalable/places/$variant"
+done
