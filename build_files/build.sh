@@ -32,3 +32,12 @@ dnf5 install -y glibc-langpack-es
 # locale (es_ES.UTF-8); reassert es_AR after the package install so the
 # image overlay value wins.
 echo 'LANG=es_AR.UTF-8' >/etc/locale.conf
+
+### Branding: prune upstream Bazzite/Fedora/UBlue wallpapers from the
+# Plasma wallpaper switcher. Keep KDE defaults (Altai, Cascade, ...) and
+# Steam Deck Logo set (useful for handheld variants).
+rm -rf \
+    /usr/share/wallpapers/bazzite \
+    /usr/share/wallpapers/F44 \
+    /usr/share/wallpapers/Fedora
+rm -f /usr/share/wallpapers/ublue.png
