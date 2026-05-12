@@ -47,6 +47,22 @@ EOF
     fi
 done
 
+# Override Anaconda variant pixmap sidebar logos with yaguarete-logo.
+# Anaconda's WebUI/GTK falls back to these pixmaps when no custom asset
+# is wired in the profile. Preserves expected filenames so Anaconda code
+# paths keep working.
+for pixmap_dir in /usr/share/anaconda/pixmaps \
+                  /usr/share/anaconda/pixmaps/atomic \
+                  /usr/share/anaconda/pixmaps/cloud \
+                  /usr/share/anaconda/pixmaps/server \
+                  /usr/share/anaconda/pixmaps/silverblue \
+                  /usr/share/anaconda/pixmaps/workstation; do
+    if [[ -d $pixmap_dir ]]; then
+        cp -f /usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png \
+            "$pixmap_dir/sidebar-logo.png" 2>/dev/null || :
+    fi
+done
+
 # Dialog utilities for the Bitlocker prompt
 dnf install -qy --setopt=install_weak_deps=0 qrencode yad
 
