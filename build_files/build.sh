@@ -41,3 +41,14 @@ rm -rf \
     /usr/share/wallpapers/F44 \
     /usr/share/wallpapers/Fedora
 rm -f /usr/share/wallpapers/ublue.png
+
+### Branding: replace /usr/share/ublue-os/bazzite/ visual assets that
+# yafti and the System Update launcher reference. Preserve filenames
+# (referenced by yafti_gtk.py / .desktop Icon paths) and repoint to
+# yaguarete-logo via symlinks.
+for svg_asset in portal.svg logo.svg update.svg discourse.svg docs.svg; do
+    ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg \
+        "/usr/share/ublue-os/bazzite/$svg_asset"
+done
+ln -sf /usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png \
+    /usr/share/ublue-os/bazzite/updatelogo.png
