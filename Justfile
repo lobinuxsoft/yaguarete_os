@@ -286,7 +286,7 @@ run-vm-iso-local iso_path:
     run_args+=(--pull=newer)
     run_args+=(--publish "127.0.0.1:${port}:8006")
     run_args+=(--env "CPU_CORES=4")
-    run_args+=(--env "RAM_SIZE=8G")
+    run_args+=(--env "RAM_SIZE=16G")
     run_args+=(--env "DISK_SIZE=64G")
     run_args+=(--env "TPM=Y")
     run_args+=(--env "GPU=Y")
