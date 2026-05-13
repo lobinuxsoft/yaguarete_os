@@ -101,6 +101,34 @@ sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
 ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-portal.svg \
     /usr/share/icons/hicolor/scalable/apps/io.github.ublue_os.yafti_gtk.svg
 
+### Branding: plasmalogin (Plasma 6 display manager) greeter wallpaper.
+# Bazzite pattern: do not override /usr/lib/plasmalogin/defaults.conf
+# (upstream Fedora ships it referencing file:///usr/share/backgrounds/
+# default.jxl). Instead, swap the destination of that path so the
+# upstream default resolution lands on the YaguareteOS wallpaper.
+# Bazzite redirects to convergence.jxl this same way; we redirect to
+# yaguarete_02 (the W2 lockscreen slot from Phase 3).
+# Extension stays .jxl even though the target is .jpg — Plasma 6 / Qt 6
+# decodes by magic bytes, not by extension. Same trade-off applied to
+# the bazzite-logo.svg → yaguarete-logo.svg redirect block above.
+ln -sf /usr/share/wallpapers/yaguarete/yaguarete_02.jpg \
+    /usr/share/backgrounds/default.jxl
+ln -sf /usr/share/wallpapers/yaguarete/yaguarete_02.jpg \
+    /usr/share/backgrounds/default-dark.jxl
+
+### Branding: pre-flatten the 256x256 yaguarete logo onto solid black so
+# fastfetch's sixel renderer outputs the glyph without an opaque-black
+# ribbon around the silhouette. libsixel does not honour the source PNG
+# alpha channel; pre-multiplying onto the terminal background colour
+# (Konsole Vapor profile = solid black) makes the transparent regions
+# match the terminal background, so the logo looks "transparent" in
+# practice. Keep the alpha-carrying logo in hicolor for KDE/GTK
+# consumers; only the fastfetch source is the flattened variant.
+mkdir -p /usr/share/yaguarete/branding/fastfetch
+magick /usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png \
+    -background black -flatten \
+    /usr/share/yaguarete/branding/fastfetch/yaguarete-logo-flat-256.png
+
 ### Branding: refresh the hicolor icon cache so all the new symlinks
 # (yafti_gtk, bazzite-logo-icon, /usr/share/ublue-os/bazzite/*.svg)
 # and added launchers (Instalar YaguareteOS, etc.) resolve correctly
