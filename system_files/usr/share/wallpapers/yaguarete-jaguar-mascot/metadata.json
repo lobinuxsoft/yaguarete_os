@@ -1,13 +1,11 @@
 {
+    "KPackageStructure": "Plasma/Wallpaper",
     "KPlugin": {
-        "Authors": [
-            {
-                "Name": "lobinuxsoft"
-            }
-        ],
+        "Authors": [{"Name": "lobinuxsoft"}],
         "Id": "yaguarete-jaguar-mascot",
         "License": "CC-BY-SA-4.0",
-        "Name": "Jaguar Mascot",
-        "Name[es]": "Jaguar Mascot"
-    }
+        "Name": "Yaguareté Jaguar Mascot",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
 }
