@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete_water_color",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Yaguareté Water Color",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
+}
