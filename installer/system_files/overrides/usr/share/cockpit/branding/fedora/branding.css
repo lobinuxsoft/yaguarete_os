@@ -9,10 +9,14 @@
 }
 
 .anaconda {
-    /* Brand palette — YaguareteOS Phase 1 identity (#11) */
-    --brand-default-light: #ff6633;
-    --brand-default: #ff4500;
-    --brand-default-dark: #cc3700;
+    /* Brand palette — forest green matching os-release ANSI_COLOR
+     * (RGB 46,125,50 = #2e7d32). Light + dark tones tuned around it
+     * so hovered/active surfaces stay in the same hue family. The
+     * orange palette from #79 was too saturated for the Anaconda
+     * full-bleed header — #80 follow-up. */
+    --brand-default-light: #4caf50;
+    --brand-default: #2e7d32;
+    --brand-default-dark: #1b5e20;
 
     .logo {
         background-image: url("logo.png");
