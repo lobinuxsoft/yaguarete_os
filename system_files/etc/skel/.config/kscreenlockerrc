@@ -1,4 +1,7 @@
+[Greeter]
+WallpaperPlugin=org.kde.image
+
 [Greeter][Wallpaper][org.kde.image][General]
-Image=/usr/share/wallpapers/yaguarete-02/
+Image=/usr/share/wallpapers/yaguarete/yaguarete_02/
 FillMode=2
-PreviewImage=/usr/share/backgrounds/yaguarete/yaguarete_02.jpg
+PreviewImage=/usr/share/wallpapers/yaguarete/yaguarete_02.jpg

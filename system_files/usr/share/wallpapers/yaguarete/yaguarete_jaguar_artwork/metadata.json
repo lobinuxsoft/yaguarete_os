@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete_jaguar_artwork",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Yaguareté Jaguar Artwork",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
+}

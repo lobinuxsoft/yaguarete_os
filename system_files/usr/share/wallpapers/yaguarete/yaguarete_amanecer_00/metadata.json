@@ -1,0 +1,15 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "lobinuxsoft"
+            }
+        ],
+        "Id": "yaguarete_amanecer_00",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Yaguareté Amanecer 00",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
+}
