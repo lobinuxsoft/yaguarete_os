@@ -38,7 +38,7 @@ Comment=Instalar el sistema YaguareteOS en el disco duro
 Comment[en]=Install the YaguareteOS system to the hard drive
 Comment[es]=Instalar el sistema YaguareteOS en el disco duro
 GenericName=Instalador del sistema
-Icon=yaguarete-install
+Icon=/usr/share/yaguarete/branding/yaguarete_os_vector_03.svg
 Type=Application
 Exec=liveinst
 Categories=System;
@@ -46,6 +46,15 @@ EOF
         chmod 0755 "$liveinst_path"
     fi
 done
+
+# Refresh the hicolor icon cache: the container build's gtk-update-icon-cache
+# pass ran *before* the installer overlay added /usr/share/yaguarete/branding/
+# to the live rootfs (issue #84 bug B). Without a refresh here, name-based
+# Icon= lookups for the launcher fall through to the generic text/plain glyph.
+# Absolute Icon= path above already bypasses the cache, but keep this so any
+# downstream consumer using bare icon names (yaguarete-install/portal/update)
+# resolves correctly in the live session.
+gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || :
 
 # Override Anaconda variant pixmap sidebar logos with yaguarete-logo.
 # Anaconda's WebUI/GTK falls back to these pixmaps when no custom asset
