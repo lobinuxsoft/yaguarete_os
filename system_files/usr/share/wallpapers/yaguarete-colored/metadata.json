@@ -1,13 +1,11 @@
 {
+    "KPackageStructure": "Plasma/Wallpaper",
     "KPlugin": {
-        "Authors": [
-            {
-                "Name": "lobinuxsoft"
-            }
-        ],
+        "Authors": [{"Name": "lobinuxsoft"}],
         "Id": "yaguarete-colored",
         "License": "CC-BY-SA-4.0",
-        "Name": "Colored",
-        "Name[es]": "Colorido"
-    }
+        "Name": "Yaguareté Colored",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
 }

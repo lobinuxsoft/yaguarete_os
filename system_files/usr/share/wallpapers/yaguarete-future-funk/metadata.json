@@ -1,13 +1,11 @@
 {
+    "KPackageStructure": "Plasma/Wallpaper",
     "KPlugin": {
-        "Authors": [
-            {
-                "Name": "lobinuxsoft"
-            }
-        ],
+        "Authors": [{"Name": "lobinuxsoft"}],
         "Id": "yaguarete-future-funk",
         "License": "CC-BY-SA-4.0",
-        "Name": "Future Funk",
-        "Name[es]": "Future Funk"
-    }
+        "Name": "Yaguareté Future Funk",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
 }

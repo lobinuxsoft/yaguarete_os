@@ -9,14 +9,15 @@
 }
 
 .anaconda {
-    /* Brand palette — forest green matching os-release ANSI_COLOR
-     * (RGB 46,125,50 = #2e7d32). Light + dark tones tuned around it
-     * so hovered/active surfaces stay in the same hue family. The
-     * orange palette from #79 was too saturated for the Anaconda
-     * full-bleed header — #80 follow-up. */
-    --brand-default-light: #4caf50;
-    --brand-default: #2e7d32;
-    --brand-default-dark: #1b5e20;
+    /* Brand palette — jungle night. Low saturation, very low
+     * luminance so the dorado yaguareté icon on the header reads
+     * with maximum contrast. The forest #2e7d32 from #81 was still
+     * too luminous and competed with the icon's gold — #82 follow-up.
+     * Light/dark tones stay in the same hue family for hover/active
+     * surfaces. */
+    --brand-default-light: #1a3a25;
+    --brand-default: #0d2818;
+    --brand-default-dark: #050f0b;
 
     .logo {
         background-image: url("logo.png");

@@ -1,13 +1,11 @@
 {
+    "KPackageStructure": "Plasma/Wallpaper",
     "KPlugin": {
-        "Authors": [
-            {
-                "Name": "lobinuxsoft"
-            }
-        ],
+        "Authors": [{"Name": "lobinuxsoft"}],
         "Id": "yaguarete-selva-oscura",
         "License": "CC-BY-SA-4.0",
-        "Name": "Selva Oscura",
-        "Name[es]": "Selva Oscura"
-    }
+        "Name": "Yaguareté Selva Oscura",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
 }

@@ -93,9 +93,11 @@ sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
 
 ### Branding: yafti registers its window icon via APP_ID
 # 'io.github.ublue_os.yafti_gtk', which Gtk resolves through hicolor.
-# Replace that SVG with the YaguareteOS logo so the taskbar / window
-# decoration shows our jaguar.
-ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg \
+# Repoint that SVG to yaguarete-portal so Portal's window decoration
+# uses variant _02 (its dedicated icon) and stays visually distinct
+# from the desktop launcher / Kickoff button / kcm_about-distro,
+# which all resolve to the catch-all yaguarete-logo (_01).
+ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-portal.svg \
     /usr/share/icons/hicolor/scalable/apps/io.github.ublue_os.yafti_gtk.svg
 
 ### Branding: refresh the hicolor icon cache so all the new symlinks

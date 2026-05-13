@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [{"Name": "lobinuxsoft"}],
+        "Id": "yaguarete-walking-in-water",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Yaguareté Walking In Water",
+        "Version": "1.0"
+    },
+    "X-Plasma-DefaultFillMode": "ScaledAndCropped"
+}
