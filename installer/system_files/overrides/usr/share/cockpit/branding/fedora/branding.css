@@ -1,0 +1,29 @@
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
+#badge {
+    inline-size: 225px;
+    block-size: 80px;
+    background-image: url("logo.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.anaconda {
+    /* Brand palette — YaguareteOS Phase 1 identity (#11) */
+    --brand-default-light: #ff6633;
+    --brand-default: #ff4500;
+    --brand-default-dark: #cc3700;
+
+    .logo {
+        background-image: url("logo.png");
+        filter: unset;
+    }
+
+    /* Hide the whole section with "Enable root account". Inherits Bazzite's
+     * defensive override until Anaconda exposes a proper flag.
+     * https://bugzilla.redhat.com/show_bug.cgi?id=2464088
+     */
+    .pf-v6-c-form__section:has(#anaconda-screen-accounts-root-account-enable-root-account) {
+        display: none;
+    }
+}
