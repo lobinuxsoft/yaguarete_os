@@ -63,7 +63,8 @@ for size in 16x16 22x22 24x24 32x32 36x36 48x48 96x96 256x256; do
         ln -sf "$yaguarete_png" "$bazzite_png"
     fi
 done
-for variant in bazzite-logo.svg bazzite-logo-white.svg bazzite-logo-le.svg; do
+for variant in bazzite-logo.svg bazzite-logo-white.svg bazzite-logo-le.svg \
+               distributor-logo.svg distributor-logo-white.svg distributor-logo-steamdeck.svg; do
     ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-logo.svg \
         "/usr/share/icons/hicolor/scalable/places/$variant"
 done
