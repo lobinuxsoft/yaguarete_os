@@ -67,7 +67,7 @@ jobs:
           # Bazzite tag model: push to `unstable` → :unstable (rolling testing),
           # push to `testing` → :stable (validated release channel). PRs get a
           # sha and a pr-N tag so the build is reachable for smoke without
-          # contaminating either main channel.
+          # contaminating either long-lived channel.
           tags: |
             type=raw,value=unstable,enable=${{ github.ref == 'refs/heads/unstable' }}
             type=raw,value=unstable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' }}
