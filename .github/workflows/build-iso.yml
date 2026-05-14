@@ -1,4 +1,17 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+#
+# Two ways this workflow runs:
+#
+#  1. As a reusable workflow chained off `build.yml`. After every variant
+#     in the build matrix successfully pushes its container, `build.yml`
+#     calls this with `workflow_call` so the ISO build sees the freshly
+#     pushed `:unstable` / `:testing` digest. This eliminates the prior
+#     race where build-iso pulled `:unstable` while build.yml was still
+#     pushing it.
+#
+#  2. Directly on installer-only changes (e.g. tweaks under installer/
+#     that do not invalidate the container image itself). In that case
+#     the trigger fires standalone — no container rebuild needed.
 name: Build Live ISO
 
 on:

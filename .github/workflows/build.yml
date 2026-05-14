@@ -15,6 +15,7 @@ on:
       - unstable
     paths-ignore:
       - '**/README.md'
+      - 'installer/**'
   workflow_dispatch:
 
 env:
@@ -265,3 +266,19 @@ jobs:
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           COSIGN_PASSWORD: ""
+
+  # Chain build-iso after every variant in the matrix successfully pushes.
+  # This eliminates the race where build-iso pulled `:unstable` while
+  # build.yml was still pushing it. Runs only for branch pushes (PRs and
+  # cron-skipped variants do not produce ISOs).
+  call_iso:
+    name: Trigger ISO build
+    needs: [build_push]
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
+    uses: ./.github/workflows/build-iso.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    secrets: inherit
