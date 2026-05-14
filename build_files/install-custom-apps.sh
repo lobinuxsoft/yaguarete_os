@@ -99,3 +99,18 @@ install_appimage_from_release \
     "$YRYVU_APPIMAGE_SHA256" \
     "yryvu" \
     "Yryvu"
+
+# ============================================================================
+# CapyDeploy Agent — Hub-side agent for the LAN game deploy pipeline,
+# maintained by lobinuxsoft. Only the Agent is shipped here; the Hub is a
+# separate AppImage that runs on the dev machine.
+# https://github.com/lobinuxsoft/capydeploy
+# ============================================================================
+CAPYDEPLOY_VERSION="1.2.1"
+CAPYDEPLOY_AGENT_SHA256="d1e209fcd02834c6428bcc0a6b7f85c82b0694ce1b48f9fe9249ead8b4669a67"
+
+install_appimage_from_release \
+    "https://github.com/lobinuxsoft/capydeploy/releases/download/v${CAPYDEPLOY_VERSION}/CapyDeploy_Agent.AppImage" \
+    "$CAPYDEPLOY_AGENT_SHA256" \
+    "capydeploy-agent" \
+    "CapyDeploy Agent"
