@@ -17,17 +17,30 @@ on:
 
 env:
   REPO_OWNER: ${{ github.repository_owner }}
-  IMAGE_NAME: yaguarete_os
 
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-iso
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ matrix.image_name || 'iso' }}
   cancel-in-progress: true
 
 jobs:
   build-iso:
+    name: ISO ${{ matrix.image_name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: yaguarete_os
+            variant_label: desktop
+          - image_name: yaguarete_os-nvidia
+            variant_label: nvidia
+          - image_name: yaguarete_os-nvidia-open
+            variant_label: nvidia-open
+          - image_name: yaguarete_os-deck
+            variant_label: deck
+
     permissions:
       contents: read
       packages: write
@@ -66,18 +79,18 @@ jobs:
         id: repo_owner_case
         run: echo "lowercase=${REPO_OWNER,,}" >> "$GITHUB_OUTPUT"
 
-      - name: Resolve channel + dated tag
+      - name: Resolve channel + dated tag for ${{ matrix.image_name }}
         id: generate-tag
         shell: bash
         env:
           OWNER: ${{ steps.repo_owner_case.outputs.lowercase }}
-          IMAGE: ${{ env.IMAGE_NAME }}
+          IMAGE: ${{ matrix.image_name }}
         run: |
           set -eo pipefail
           # Channel selection mirrors build.yml: testing → stable, anything
-          # else (notably unstable) → unstable. The rolling pointer feeds the
-          # ISO build; the resolved dated tag is reused for the filename so
-          # the ISO carries the YaguareteOS/Fedora date in its name.
+          # else (notably unstable) → unstable. ISO pulls the rolling pointer
+          # and reuses the resolved dated tag for the filename so the artifact
+          # carries the upstream Fedora/date trail.
           CHANNEL="unstable"
           if [[ "${{ github.ref_name }}" == "testing" ]]; then
             CHANNEL="stable"
@@ -88,8 +101,6 @@ jobs:
               | jq -er '.Labels["org.opencontainers.image.version"]'); then
             DATED="${CHANNEL}-${UPSTREAM_TAG}"
           fi
-          # Filename suffix: prefer the dated tag for traceability; fall back
-          # to the channel pointer on first build (no :stable / :unstable yet).
           FILENAME_TAG="${DATED:-$CHANNEL}"
           {
             echo "tag=${CHANNEL}"
@@ -99,7 +110,7 @@ jobs:
 
       - name: Build Payload Container
         run: |
-          BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ steps.generate-tag.outputs.tag }}"
+          BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ matrix.image_name }}:${{ steps.generate-tag.outputs.tag }}"
           INSTALL_IMAGE_PAYLOAD="$BASE_IMAGE"
           FLATPAK_DIR_SHORTNAME="kde_flatpaks"
 
@@ -116,7 +127,7 @@ jobs:
         id: build
         with:
           image-ref: localhost/payload:latest
-          iso-dest: ${{ env.IMAGE_NAME }}-${{ steps.generate-tag.outputs.filename_tag }}-live-amd64.iso
+          iso-dest: ${{ matrix.image_name }}-${{ steps.generate-tag.outputs.filename_tag }}-live-amd64.iso
 
       - name: Move ISO to Upload Directory
         id: upload-directory
@@ -141,20 +152,22 @@ jobs:
         env:
           ISO_UPLOAD_DIR: ${{ steps.upload-directory.outputs.iso-upload-dir }}
           ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
+          VARIANT_LABEL: ${{ matrix.variant_label }}
         run: |
           for iso in ${ISO_UPLOAD_DIR}/*.iso; do
             iso_name=$(basename "$iso")
             jq -n \
               --arg iso "$iso_name" \
               --arg url "$ATTESTATION_URL" \
+              --arg variant "$VARIANT_LABEL" \
               --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-              '{iso: $iso, attestation_url: $url, build_date: $date}' > "${iso}.json"
+              '{iso: $iso, variant: $variant, attestation_url: $url, build_date: $date}' > "${iso}.json"
           done
 
       - name: Upload ISO and Checksum to Job Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ${{ env.IMAGE_NAME }}-${{ steps.generate-tag.outputs.filename_tag }}-iso
+          name: ${{ matrix.image_name }}-${{ steps.generate-tag.outputs.filename_tag }}-iso
           path: ${{ steps.upload-directory.outputs.iso-upload-dir }}
           if-no-files-found: error
           retention-days: 7
