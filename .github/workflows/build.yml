@@ -286,7 +286,9 @@ jobs:
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
     uses: ./.github/workflows/build-iso.yml
     permissions:
-      contents: read
+      # contents: write so build-iso can publish to the rolling-unstable
+      # GitHub Release.
+      contents: write
       packages: write
       id-token: write
       attestations: write
