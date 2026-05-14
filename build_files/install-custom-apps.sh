@@ -1,0 +1,153 @@
+#!/bin/bash
+#
+# Install YaguareteOS-maintained custom apps (and adopted upstream ones)
+# from their GitHub Releases. Runs inside the container build under
+# `build.sh`, so everything ends up baked into /usr/.
+#
+# Version + checksum are pinned per app. Bumping is a manual edit here
+# followed by a `chore(apps): bump <app> X → Y` commit. Until an app
+# matures to its own COPR / Flatpak (tracked in #16), this is the
+# distribution path.
+#
+# Layout produced per AppImage:
+#   /usr/lib/yaguarete/<app>/{AppRun,*.desktop,usr/...}
+#   /usr/bin/<app>                            -> AppRun symlink
+#   /usr/share/applications/<app>.desktop     (rewritten to use plain Exec)
+#   /usr/share/icons/hicolor/<size>/apps/<app>.png  (when AppImage ships one)
+
+set -ouex pipefail
+
+YAGUARETE_LIB=/usr/lib/yaguarete
+mkdir -p "$YAGUARETE_LIB"
+
+# ----------------------------------------------------------------------------
+# install_appimage_from_release
+#
+#   $1 — release URL of the .AppImage asset
+#   $2 — expected SHA256 of the asset
+#   $3 — short app name (becomes /usr/bin/<name>, /usr/lib/yaguarete/<name>/)
+#   $4 — pretty name for the .desktop fallback (only used if the AppImage
+#        does not ship one of its own)
+# ----------------------------------------------------------------------------
+install_appimage_from_release() {
+    local url="$1"
+    local expected_sha="$2"
+    local name="$3"
+    local pretty="$4"
+
+    local tmp="/tmp/${name}.AppImage"
+    local dest="${YAGUARETE_LIB}/${name}"
+
+    curl -fsSL "$url" -o "$tmp"
+    echo "${expected_sha}  ${tmp}" | sha256sum --check --strict
+
+    chmod +x "$tmp"
+    mkdir -p "$dest"
+
+    # --appimage-extract dumps everything under ./squashfs-root/ wherever
+    # we run it. Run from $dest so we can move contents up afterwards.
+    (cd "$dest" && "$tmp" --appimage-extract >/dev/null)
+    rm -f "$tmp"
+    shopt -s dotglob
+    mv "${dest}/squashfs-root/"* "${dest}/"
+    shopt -u dotglob
+    rmdir "${dest}/squashfs-root"
+
+    ln -sf "${dest}/AppRun" "/usr/bin/${name}"
+
+    # Re-publish the embedded .desktop so the launcher menu picks it up,
+    # rewriting Exec to the symlink we just created (the embedded Exec
+    # usually points at a relative AppRun path).
+    local src_desktop
+    src_desktop=$(find "$dest" -maxdepth 2 -name '*.desktop' -type f | head -1 || true)
+    if [[ -n "$src_desktop" ]]; then
+        install -Dm0644 "$src_desktop" "/usr/share/applications/${name}.desktop"
+        sed -i "s|^Exec=.*|Exec=${name} %U|" "/usr/share/applications/${name}.desktop"
+    else
+        cat > "/usr/share/applications/${name}.desktop" <<EOF
+[Desktop Entry]
+Name=${pretty}
+Exec=${name}
+Icon=${name}
+Type=Application
+Categories=Utility;
+EOF
+    fi
+
+    # Adopt the AppImage's own icon if any (.DirIcon is the canonical
+    # AppImage app icon). Drop it into hicolor scalable so KDE/GTK find it.
+    if [[ -L "${dest}/.DirIcon" || -f "${dest}/.DirIcon" ]]; then
+        local icon_target
+        icon_target=$(readlink -f "${dest}/.DirIcon")
+        if [[ -f "$icon_target" ]]; then
+            local ext="${icon_target##*.}"
+            install -Dm0644 "$icon_target" \
+                "/usr/share/icons/hicolor/scalable/apps/${name}.${ext}"
+        fi
+    fi
+}
+
+# ============================================================================
+# Yryvu — Git client (Tauri/SolidJS), maintained by lobinuxsoft
+# https://github.com/lobinuxsoft/yryvu
+# ============================================================================
+YRYVU_VERSION="0.1.2"
+YRYVU_APPIMAGE_SHA256="a46558765553dade7889709bbc7244c93e8652630d0667327b53305fc1eede2f"
+
+install_appimage_from_release \
+    "https://github.com/lobinuxsoft/yryvu/releases/download/yryvu-v${YRYVU_VERSION}/Yryvu_${YRYVU_VERSION}_amd64.AppImage" \
+    "$YRYVU_APPIMAGE_SHA256" \
+    "yryvu" \
+    "Yryvu"
+
+# ============================================================================
+# CapyDeploy Agent — Hub-side agent for the LAN game deploy pipeline,
+# maintained by lobinuxsoft. Only the Agent is shipped here; the Hub is a
+# separate AppImage that runs on the dev machine.
+# https://github.com/lobinuxsoft/capydeploy
+# ============================================================================
+CAPYDEPLOY_VERSION="1.2.1"
+CAPYDEPLOY_AGENT_SHA256="d1e209fcd02834c6428bcc0a6b7f85c82b0694ce1b48f9fe9249ead8b4669a67"
+
+install_appimage_from_release \
+    "https://github.com/lobinuxsoft/capydeploy/releases/download/v${CAPYDEPLOY_VERSION}/CapyDeploy_Agent.AppImage" \
+    "$CAPYDEPLOY_AGENT_SHA256" \
+    "capydeploy-agent" \
+    "CapyDeploy Agent"
+
+# ============================================================================
+# Godots — Godot Project Manager (MakovWait, upstream — not maintained here)
+# https://github.com/MakovWait/godots
+#
+# Upstream ships a single Godot-exported binary inside LinuxX11.zip, signed
+# with SHA512 (not SHA256). No bundled .desktop or icon, so we synthesise
+# them.
+# ============================================================================
+GODOTS_VERSION="1.4.1.stable"
+GODOTS_ZIP_SHA512="3528a844f5355679bdf40df9186b0af885a213fdf99c996925e844c6179f7380d0adedce5a61d65e9360e9691a5782a9bd2571288539df00c77845675709bfec"
+
+godots_tmp="/tmp/godots.zip"
+godots_dest="${YAGUARETE_LIB}/godots"
+curl -fsSL "https://github.com/MakovWait/godots/releases/download/v${GODOTS_VERSION}/LinuxX11.zip" \
+    -o "$godots_tmp"
+echo "${GODOTS_ZIP_SHA512}  ${godots_tmp}" | sha512sum --check --strict
+mkdir -p "$godots_dest"
+unzip -q "$godots_tmp" -d "$godots_dest"
+rm -f "$godots_tmp"
+chmod +x "${godots_dest}/Godots.x86_64"
+ln -sf "${godots_dest}/Godots.x86_64" /usr/bin/godots
+
+cat > /usr/share/applications/godots.desktop <<'DESKTOP'
+[Desktop Entry]
+Name=Godots
+GenericName=Godot Project Manager
+Comment=Manage Godot Engine versions and projects
+Exec=godots %U
+Icon=godots
+Type=Application
+Terminal=false
+Categories=Development;IDE;
+StartupNotify=true
+DESKTOP
+
+unset godots_tmp godots_dest
