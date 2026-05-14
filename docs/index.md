@@ -16,16 +16,23 @@ YaguareteOS es una distribución Linux atómica construida sobre **[Bazzite](htt
 Tu sistema vive como una **imagen firmada**. Eso quiere decir actualizaciones atómicas (todo o nada), rollback con un comando si algo se rompe, y verificación criptográfica del build cada vez que se actualiza.
 
 <p class="cta-row">
-  <a class="btn-primary" href="#probala-ya">⬇️ Bajá la ISO</a>
-  <a class="btn-secondary" href="#rebase-desde-otra-distro">↻ Rebase desde otra bootc</a>
+  <a class="btn-primary" href="#probala-ya">↻ Rebase desde otra bootc</a>
   <a class="btn-secondary" href="https://github.com/lobinuxsoft/yaguarete_os">📦 Repo en GitHub</a>
+  <a class="btn-secondary" href="https://github.com/lobinuxsoft/yaguarete_os/discussions">💬 Discusiones</a>
 </p>
+
+<blockquote class="status-callout">
+
+📦 **Hoy:** YaguareteOS se instala vía `bootc switch` desde otro sistema bootc (Bazzite, Bluefin, Aurora, Fedora Atomic).
+📀 **Pronto:** ISO instalable offline para cuando promovamos el primer `:stable` — la subimos a Internet Archive y aparece linkeada acá.
+
+</blockquote>
 
 ---
 
 ## Probala ya
 
-Hay **cuatro versiones** según tu hardware. Elegí la tuya, bajá la ISO, flasheala con [Ventoy](https://www.ventoy.net/) / [Rufus](https://rufus.ie/) / `dd`, y booteá. Live mode te deja probar sin tocar el disco.
+Si ya corrés un sistema bootc, podés cambiarte a YaguareteOS sin reinstalar. Elegí tu variant según el hardware y ejecutá el comando — el sistema actual queda intacto en disco hasta que reinicies.
 
 <div class="variant-grid" markdown="0">
 
@@ -33,61 +40,51 @@ Hay **cuatro versiones** según tu hardware. Elegí la tuya, bajá la ISO, flash
     <div class="variant-icon">🖥️</div>
     <h3>Desktop AMD / Intel</h3>
     <p>Para PCs y laptops con tarjeta gráfica AMD o Intel. La opción por defecto si no sabés cuál elegir y tu GPU no es NVIDIA.</p>
-    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/download/rolling-unstable/yaguarete_os-rolling-unstable-amd64.iso">Descargar ISO</a>
-    <details>
-      <summary>Comando para rebase</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable</code></pre>
-    </details>
+    <pre><code>sudo bootc switch \
+  ghcr.io/lobinuxsoft/yaguarete_os:unstable</code></pre>
   </div>
 
   <div class="variant-card">
     <div class="variant-icon">🎮</div>
     <h3>Desktop NVIDIA</h3>
     <p>Tarjetas NVIDIA con driver propietario. La opción más segura si tu GPU es NVIDIA y no te interesa el módulo abierto.</p>
-    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/download/rolling-unstable/yaguarete_os-nvidia-rolling-unstable-amd64.iso">Descargar ISO</a>
-    <details>
-      <summary>Comando para rebase</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:stable</code></pre>
-    </details>
+    <pre><code>sudo bootc switch \
+  ghcr.io/lobinuxsoft/yaguarete_os-nvidia:unstable</code></pre>
   </div>
 
   <div class="variant-card">
     <div class="variant-icon">🔓</div>
     <h3>Desktop NVIDIA (open)</h3>
     <p>NVIDIA con el módulo kernel abierto (mantenido por NVIDIA, no es nouveau). Recomendado para RTX 20xx o más nuevo.</p>
-    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/download/rolling-unstable/yaguarete_os-nvidia-open-rolling-unstable-amd64.iso">Descargar ISO</a>
-    <details>
-      <summary>Comando para rebase</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:stable</code></pre>
-    </details>
+    <pre><code>sudo bootc switch \
+  ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:unstable</code></pre>
   </div>
 
   <div class="variant-card">
     <div class="variant-icon">🕹️</div>
     <h3>Handheld</h3>
     <p>Steam Deck, OneXFly, ROG Ally y compañía. Arranca directo en gamescope-session (modo juego), igual que SteamOS.</p>
-    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/download/rolling-unstable/yaguarete_os-deck-rolling-unstable-amd64.iso">Descargar ISO</a>
-    <details>
-      <summary>Comando para rebase</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:stable</code></pre>
-    </details>
+    <pre><code>sudo bootc switch \
+  ghcr.io/lobinuxsoft/yaguarete_os-deck:unstable</code></pre>
   </div>
 
 </div>
 
-> **¿Qué es esto de "rolling-unstable"?** Las ISOs de arriba se reconstruyen automáticamente cuando hay cambios en el código. Son la versión más fresca, pero puede romperse. Cuando saquemos el primer release `:stable`, va a haber otra sección acá con ese link. Por ahora, asumí que es **versión de desarrollo**.
+> Estás rebaseando a **`:unstable`** — la versión rolling de desarrollo. Cuando saquemos el primer `:stable` validado, los comandos van a apuntar a `:stable` por default. Mientras tanto, `bootc rollback` te lleva al sistema anterior con un comando si algo rompe.
 
 ---
 
-## Cómo se instala
+## ¿No corro bootc todavía?
 
-1. **Bajás la ISO** del botón de arriba que corresponda a tu HW.
-2. **La flasheás a un USB** con Ventoy (la mejor opción), Rufus o `dd`.
-3. **Booteás del USB** (BIOS / UEFI menu, suele ser F12 / F11 / F2).
-4. **Probás en live mode** sin instalar — el sistema corre desde la RAM.
-5. **Si te gusta**, doble-click en "Instalar YaguareteOS" del escritorio y seguís el wizard.
+Si arrancás de cero (Windows / otra distro tradicional), necesitás **primero instalar un sistema bootc** y después rebasear a YaguareteOS. Las opciones recomendadas:
 
-Después del primer boot, el sistema se va a auto-actualizar cuando haya imagen nueva — vos podés ver el estado con `bootc status` y volver a la versión anterior con `bootc rollback`.
+- **[Bazzite](https://bazzite.gg/)** — el upstream directo nuestro. Mismo stack gaming. Bajá su ISO, instalala, después rebaseá a YaguareteOS con uno de los comandos de arriba.
+- **[Bluefin](https://projectbluefin.io/)** o **[Aurora](https://getaurora.dev/)** — sibling forks de Universal Blue (Bluefin = workstation dev, Aurora = KDE general).
+- **Fedora Atomic Kinoite** directo — la base mínima.
+
+Después del rebase: `bootc status` confirma la imagen activa, `bootc rollback` vuelve a la versión anterior, y `rpm-ostree upgrade` aplica las actualizaciones que llegan via cron diario del CI.
+
+> 📀 **Cuando promovamos el primer `:stable`**, vamos a publicar una ISO instalable offline (sin necesidad de Bazzite previo) en Internet Archive. El link va a aparecer en esta página + en el Release de GitHub correspondiente. Hasta entonces, la ruta es bootc-encima-de-bootc.
 
 ---
 
