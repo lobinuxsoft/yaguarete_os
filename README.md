@@ -7,7 +7,7 @@ YaguareteOS combines:
 - **Gaming-ready base** — inherits Steam, Proton-GE, GameMode, gamescope, MangoHud and the latest AMD/Mesa drivers from Bazzite.
 - **Image-based atomic updates** — built on `bootc`. Rebase, rollback, and reproducible builds out of the box.
 - **Sovereign supply chain** — built and signed in our own CI; rebase URL points to our own OCI registry (`ghcr.io/lobinuxsoft/yaguarete_os`).
-- **Argentine identity** — branding, wallpapers, locale `es-AR` and (eventually) regional packages.
+- **Argentine cultural identity** — Guaraní naming (Yaguareté, Yryvu), Spanish-first defaults, `es-AR` locale, native wallpapers. *Cultural*, not governmental: no state-identity / fiscal / control tooling is bundled.
 
 ## Status
 
@@ -17,7 +17,7 @@ Early scaffolding. Project pivoted from Archiso to Universal Blue / bootc on 202
 
 YaguareteOS does not hide its lineage. We derive from [Bazzite](https://bazzite.gg/) (Apache 2.0), which itself derives from [Universal Blue](https://universal-blue.org/) on top of Fedora Atomic, and we keep upstream references explicit throughout this repository.
 
-**Why we attribute openly.** Digital sovereignty is about controlling the *pipeline* — signing keys, build infrastructure, distribution registry, governance, branding — not about hiding technical inheritance. Nation-grade derivatives such as Astra Linux (Debian), Pardus (Debian) and Kylin (Ubuntu) all attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add.
+**Why we attribute openly.** Digital sovereignty here means controlling the *pipeline* — signing keys, build infrastructure, distribution registry, project governance, branding — not hiding technical inheritance. Sibling Universal Blue derivatives such as [Bluefin](https://projectbluefin.io/) and [Aurora](https://getaurora.dev/) attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add.
 
 **What is sovereign in YaguareteOS:**
 
@@ -33,6 +33,19 @@ YaguareteOS does not hide its lineage. We derive from [Bazzite](https://bazzite.
 - Build system and project layout: Universal Blue `image-template`.
 - Atomic update model: `bootc`, Fedora Atomic.
 - Gaming stack: Steam, Proton-GE, GameMode, gamescope, MangoHud, Mesa.
+
+## Scope: what YaguareteOS is and is not
+
+**Is** a free, image-based, gaming-and-development-first KDE distribution with Argentine cultural identity at the surface. Optimised for desktop and handheld play, dev tooling, and privacy-respecting defaults. Argentine because the maintainer is Argentine — Guaraní project naming, Spanish-first UI, AR locale, native wallpapers.
+
+**Is not** a state-aligned platform. YaguareteOS deliberately does **not** ship:
+
+- Government-issued root certificates or trust-store extensions (ONTI, etc.).
+- Pre-installed shortcuts or apps tied to state identity, fiscal control, social registries or surveillance pipelines (AFIP, ANSES, Mi Argentina, billetera estatal, etc.).
+- Mirrors hosted on state infrastructure as the canonical pull path.
+- Compliance tooling that requires user identification to use the OS.
+
+Privacy and freedom take precedence over locale compliance. If you want those integrations, fork — the model exists for exactly that. The maintainer's roadmap stays on dev + gaming + privacy, with a hardened variant ([#25](https://github.com/lobinuxsoft/yaguarete_os/issues/25)) as the natural escalation for security-conscious users.
 
 ## Build locally
 

@@ -1,10 +1,10 @@
 # 0001. Use Bazzite / Universal Blue / bootc as the base, not Arch
 
-- **Status:** Accepted
+- **Status:** Accepted (base-choice rationale still holds). Note (2026-05-14): the "nation-grade derivative" framing used as a precedent below (Astra Linux, Pardus, Kylin) no longer applies — YaguareteOS does not pursue state-aligned scope. See README "Scope" section and #99 for the realigned framing. The technical rationale for picking bootc over Arch is unchanged.
 - **Date:** 2026-05-06
 - **Decided by:** lobinuxsoft
 - **Supersedes:** none
-- **Related:** ADR-0002, ADR-0003, issue #30
+- **Related:** ADR-0002, ADR-0003, issue #30, #99
 
 ## Context
 
