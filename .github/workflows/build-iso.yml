@@ -33,14 +33,15 @@ env:
 
 permissions: {}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ matrix.image_name || 'iso' }}
-  cancel-in-progress: true
-
 jobs:
   build-iso:
     name: ISO ${{ matrix.image_name }}
     runs-on: ubuntu-latest
+    # Per-variant concurrency lives on the job: workflow-level concurrency
+    # cannot reference `matrix.*` (matrix context only exists inside jobs).
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ matrix.image_name }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
