@@ -1,0 +1,56 @@
+{
+  "policies": {
+    "Bookmarks": [
+      {
+        "Title": "YaguareteOS — Inicio",
+        "URL": "https://github.com/lobinuxsoft/yaguarete_os",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": ""
+      },
+      {
+        "Title": "Documentación",
+        "URL": "https://github.com/lobinuxsoft/yaguarete_os/wiki",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": ""
+      },
+      {
+        "Title": "Issues",
+        "URL": "https://github.com/lobinuxsoft/yaguarete_os/issues",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": ""
+      },
+      {
+        "Title": "Discusiones",
+        "URL": "https://github.com/lobinuxsoft/yaguarete_os/discussions",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": ""
+      },
+      {
+        "Title": "Bazzite",
+        "URL": "https://bazzite.gg/",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": "Upstream"
+      },
+      {
+        "Title": "Universal Blue",
+        "URL": "https://universal-blue.org/",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": "Upstream"
+      },
+      {
+        "Title": "Fedora Project",
+        "URL": "https://fedoraproject.org/",
+        "Favicon": "",
+        "Placement": "toolbar",
+        "Folder": "Upstream"
+      }
+    ],
+    "DisplayBookmarksToolbar": "always"
+  }
+}

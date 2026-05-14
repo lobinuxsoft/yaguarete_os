@@ -1,0 +1,22 @@
+[General]
+AccentColor=255,69,0
+ColorScheme=YaguareteOS
+Name=YaguareteOS
+fixed=JetBrainsMono Nerd Font,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+font=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+menuFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+smallestReadableFont=Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+toolBarFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+
+[KDE]
+LookAndFeelPackage=org.kde.breezedark.desktop
+contrast=4
+widgetStyle=Breeze
+
+[WM]
+activeBackground=26,26,26
+activeBlend=255,69,0
+activeForeground=255,255,255
+inactiveBackground=35,35,35
+inactiveBlend=45,45,45
+inactiveForeground=128,128,128
