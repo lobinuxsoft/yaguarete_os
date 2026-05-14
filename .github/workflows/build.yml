@@ -76,6 +76,11 @@ jobs:
             type=raw,value={{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing' }}
             type=sha,enable=${{ github.event_name == 'pull_request' }}
             type=ref,event=pr
+            # Fallback so workflow_dispatch from feature branches (e.g. while
+            # validating workflow edits) still produces a buildable tag. Without
+            # this the metadata-action emits zero tags and buildah dies on
+            # `yaguarete_os:` (empty reference).
+            type=ref,event=branch,enable=${{ github.event_name == 'workflow_dispatch' }}
           labels: |
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/${{ github.sha }}/README.md
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
