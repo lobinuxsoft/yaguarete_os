@@ -297,6 +297,74 @@ run-vm-iso-local iso_path:
     (sleep 30 && xdg-open http://localhost:"$port") &
     podman run "${run_args[@]}"
 
+# Run a virtual machine from a local ISO file using host qemu-system-x86_64 directly.
+# Avoids the qemux/qemu Docker wrapper splash that prepends a "QEMU for Docker"
+# screen before GRUB. Requires qemu + edk2-ovmf installed on the host
+# (`rpm-ostree install qemu-system-x86 edk2-ovmf` on Fedora Atomic / Bazzite,
+# reboot after).
+[group('Run Virtal Machine')]
+run-vm-iso-bare iso_path disk_size="64G" ram="16G" cpus="4":
+    #!/usr/bin/bash
+    set -eoux pipefail
+
+    if [[ ! -f "{{ iso_path }}" ]]; then
+        echo "ISO not found at {{ iso_path }}. Download it from the GH Actions 'Build Live ISO' workflow artifact."
+        exit 1
+    fi
+
+    if ! command -v qemu-system-x86_64 >/dev/null; then
+        echo "qemu-system-x86_64 not found. Install with 'rpm-ostree install qemu-system-x86' (Fedora Atomic) and reboot."
+        exit 1
+    fi
+
+    iso_abs="$(realpath {{ iso_path }})"
+    iso_name="$(basename {{ iso_path }} .iso)"
+    disk="${TMPDIR:-/tmp}/yaguarete-bare-${iso_name}.qcow2"
+
+    if [[ ! -f "$disk" ]]; then
+        echo "Creating persistent disk at $disk ({{ disk_size }})"
+        qemu-img create -f qcow2 "$disk" "{{ disk_size }}"
+    fi
+
+    # OVMF firmware path varies by distro and qemu version. Try Fedora,
+    # Debian/Ubuntu and the bundled edk2 layout in that order.
+    ovmf_code=""
+    for candidate in \
+        /usr/share/edk2/ovmf/OVMF_CODE.fd \
+        /usr/share/edk2/ovmf/OVMF_CODE_4M.qcow2 \
+        /usr/share/OVMF/OVMF_CODE.fd \
+        /usr/share/qemu/edk2-x86_64-code.fd; do
+        if [[ -f "$candidate" ]]; then
+            ovmf_code="$candidate"
+            break
+        fi
+    done
+
+    if [[ -z "$ovmf_code" ]]; then
+        echo "OVMF firmware not found. Install with 'rpm-ostree install edk2-ovmf' (Fedora Atomic) and reboot."
+        exit 1
+    fi
+
+    # KVM + virtio everywhere. The persistent qcow2 means a second run will
+    # boot off the installed system, not the live ISO — match what real
+    # hardware does after the first install reboot.
+    qemu-system-x86_64 \
+        -enable-kvm \
+        -machine q35,smm=on,accel=kvm \
+        -cpu host \
+        -smp "{{ cpus }}" \
+        -m "{{ ram }}" \
+        -drive if=pflash,format=raw,readonly=on,file="$ovmf_code" \
+        -drive file="$disk",format=qcow2,if=virtio \
+        -cdrom "$iso_abs" \
+        -boot order=d,menu=on \
+        -vga virtio \
+        -display gtk,gl=on \
+        -device virtio-net,netdev=net0 \
+        -netdev user,id=net0 \
+        -device virtio-rng-pci \
+        -name "YaguareteOS smoke ($(basename {{ iso_path }}))"
+
 # Run a virtual machine using systemd-vmspawn
 [group('Run Virtal Machine')]
 spawn-vm rebuild="0" type="qcow2" ram="6G":
