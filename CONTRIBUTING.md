@@ -103,6 +103,22 @@ GHCR is cleaned weekly by [`clean.yml`](.github/workflows/clean.yml) (Sundays 00
 
 Conventional Commits (`feat:`, `fix:`, `chore:`, etc.) are kept for readability and grep-ability of history, but no longer drive automatic version bumps — release-please has been removed (Bazzite does not use it).
 
+### Bumping custom apps (Yryvu, CapyDeploy, Godots, ...)
+
+Custom apps that are not yet packaged as RPMs or Flatpaks are pulled from GitHub Releases during the container build by [`build_files/install-custom-apps.sh`](build_files/install-custom-apps.sh). Each one has its version and asset checksum hardcoded.
+
+To bump one of them:
+
+1. Find the new release on the upstream repo (e.g. `gh release view --repo lobinuxsoft/yryvu`).
+2. Note the version tag and the checksum line for the Linux asset (each upstream publishes `checksums-sha256.txt` or `SHA512-SUMS.txt` alongside its assets).
+3. Edit `build_files/install-custom-apps.sh`: update the matching `<APP>_VERSION` and `<APP>_..._SHA256` (or `SHA512`) constants.
+4. Commit as `chore(apps): bump <app> <old> -> <new>`. One bump per commit, even when several apps move at once.
+5. Push to a `feat/` or `chore/` branch and open the PR against `unstable` like any other change.
+
+Wrong checksum = build fails fast at the `sha256sum --check --strict` line. Never disable the strict flag to "make it pass"; if the asset moved or was re-uploaded, investigate before bumping.
+
+This procedure is interim. Apps that stabilise should migrate to a proper RPM in the future `yaguarete-os` COPR (tracked in #16) or to Flatpak — both update independently of the system image and remove the manual bump step.
+
 ### Anti-patterns rejected
 
 - Force-pushing to shared branches.
