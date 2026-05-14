@@ -43,10 +43,41 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 
 ### Channels and promotion (Bazzite model)
 
-Two long-running branches, two GHCR tags:
+Two long-running branches, three GHCR channels:
 
-- `unstable` → `:unstable` — rolling testing channel. Every PR merge here triggers a container + ISO build.
-- `testing` → `:stable` — validated release channel. Promotion is a manual PR `testing ← unstable` opened when a build has been smoke-validated. Merging that PR rebuilds `:stable` and emits an ISO release.
+- `unstable` → `:unstable` — rolling integration channel. Every PR merge triggers a container + ISO build.
+- `testing` → `:testing` — pre-release channel. Manual PR `testing ← unstable` opened when a smoke build is ready.
+- (promoted) → `:stable` / `:latest` — validated release channel. **Never built**, only promoted by digest from a chosen `:testing` tag via [`retag.yml`](.github/workflows/retag.yml).
+
+#### Tag format (Bazzite-literal)
+
+`<channel>-<fedora>.<YYYYMMDD>[.N]`
+
+The `<fedora>.<YYYYMMDD>` suffix is **not invented locally** — it is read from the `org.opencontainers.image.version` label of `ghcr.io/ublue-os/bazzite:stable` at build time, so YaguareteOS stays in lockstep with Bazzite's actual Fedora cadence. The `.N` collision suffix only appears when rebuilding the same upstream tag on the same day.
+
+Rolling pointers always exist alongside the dated tags:
+
+- `:unstable`, `:unstable-<fedora>` — newest unstable build of that Fedora major.
+- `:testing`, `:testing-<fedora>` — newest testing build.
+- `:stable`, `:stable-<fedora>`, `:latest` — current promoted stable.
+
+#### Cadence
+
+- **`:unstable`** — pushes to `unstable` always rebuild. A daily cron (`0 5 * * *` UTC) also runs but the [`check_upstream`](.github/workflows/build.yml) gate skips the build when Bazzite's `:stable` digest has not changed since our last unstable build. Worst-case latency vs upstream: ~24h.
+- **`:testing`** — pushes to `testing` rebuild on demand. No cron — `testing` is only updated by a maintainer-opened promotion PR.
+- **`:stable`** — manual two-step promotion:
+  1. Run [`retag.yml`](.github/workflows/retag.yml) with the `:testing-<fedora>.<YYYYMMDD>` tag to promote. This re-points the digest to `:stable`, `:stable-<fedora>`, `:stable-<fedora>.<YYYYMMDD>` and `:latest` without rebuilding.
+  2. Run [`generate_release.yml`](.github/workflows/generate_release.yml) to publish the matching git tag + GitHub Release with auto-generated notes.
+
+There is no auto-promotion cron. Stable always requires a human button-press, by design.
+
+#### Retention
+
+GHCR is cleaned weekly by [`clean.yml`](.github/workflows/clean.yml) (Sundays 00:15 UTC): tags older than 90 days are deleted, keeping the most recent 7 tagged and 7 untagged manifests regardless of age.
+
+#### Client auto-update default
+
+`/etc/rpm-ostreed.conf` keeps `AutomaticUpdatePolicy=check` (the upstream Bazzite default). The bootc layer is notified of new images but the user decides when to deploy. Not changing this without an explicit decision tracked in an issue.
 
 Conventional Commits (`feat:`, `fix:`, `chore:`, etc.) are kept for readability and grep-ability of history, but no longer drive automatic version bumps — release-please has been removed (Bazzite does not use it).
 

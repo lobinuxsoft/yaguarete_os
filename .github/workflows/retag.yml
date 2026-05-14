@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+#
+# Manual digest promotion testing → stable (Bazzite `retag.yml` analogue).
+#
+# Takes an existing `:testing-<fedora>.<YYYYMMDD>[.N]` tag in GHCR and
+# re-points it (by digest, no rebuild) to:
+#   - :stable-<fedora>.<YYYYMMDD>[.N]   permanent dated
+#   - :stable                            rolling pointer
+#   - :latest                            rolling pointer
+#   - :stable-<fedora>                   fedora-major pointer
+#
+# Pair with generate_release.yml after this completes to publish the
+# matching git tag + GitHub Release.
+name: Retag image (testing → stable)
+
+on:
+  workflow_dispatch:
+    inputs:
+      old_tag:
+        description: "Existing :testing tag to promote (e.g. testing-44.20260514 or testing-44.20260514.1)"
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  safeguard-timer:
+    runs-on: ubuntu-latest
+    if: inputs.old_tag != ''
+    steps:
+      - name: Safeguard wait
+        env:
+          SLEEP_TIME: "30"
+        run: |
+          echo "About to retag '${{ inputs.old_tag }}' → :stable / :latest."
+          echo "You have $SLEEP_TIME seconds to cancel the workflow if this is wrong."
+          sleep $SLEEP_TIME
+
+  retag-image:
+    runs-on: ubuntu-latest
+    needs: [safeguard-timer]
+    if: inputs.old_tag != ''
+    permissions:
+      packages: write
+    steps:
+      - name: Lowercase owner and image
+        id: case
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ github.event.repository.name }}
+        run: |
+          echo "owner=${OWNER,,}" >> $GITHUB_OUTPUT
+          echo "image=${IMAGE,,}" >> $GITHUB_OUTPUT
+
+      - name: Parse testing tag
+        id: parse
+        env:
+          OLD_TAG: ${{ inputs.old_tag }}
+        run: |
+          set -eo pipefail
+          if [[ ! "$OLD_TAG" =~ ^testing-([0-9]+)\.([0-9]+)(\.[0-9]+)?$ ]]; then
+            echo "::error::old_tag '$OLD_TAG' does not match testing-<fedora>.<YYYYMMDD>[.N]"
+            exit 1
+          fi
+          FEDORA="${BASH_REMATCH[1]}"
+          DATE_PART="${BASH_REMATCH[2]}${BASH_REMATCH[3]:-}"
+          {
+            echo "fedora=$FEDORA"
+            echo "stable_dated=stable-${FEDORA}.${DATE_PART}"
+            echo "stable_fedora=stable-${FEDORA}"
+          } >> $GITHUB_OUTPUT
+
+      - uses: Zeglius/ghcr-oci-retagger@1e08f1dac27d25efe1377d9a35f133731bf3d986
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          PREFIX: ghcr.io/${{ steps.case.outputs.owner }}/
+          TAG_MAPPINGS: |-
+            ${{ steps.case.outputs.image }}:${{ inputs.old_tag }} => ${{ steps.case.outputs.image }}:${{ steps.parse.outputs.stable_dated }},${{ steps.case.outputs.image }}:stable,${{ steps.case.outputs.image }}:latest,${{ steps.case.outputs.image }}:${{ steps.parse.outputs.stable_fedora }}
