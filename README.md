@@ -96,21 +96,21 @@ If you already run a `bootc`-based system (Bazzite, Bluefin, Aurora, or any Fedo
 
 ### Tag selection
 
-| Tag        | When to use                                                                 |
-|------------|------------------------------------------------------------------------------|
-| `:stable`  | **Recommended.** Latest signed release (currently `v0.1.0`). What you want for daily use. |
-| `:latest`  | Rolling tip of `main`. Opt-in for testers and contributors. May break.       |
-| `:vX.Y.Z`  | Pin to a specific signed release.                                            |
+| Tag         | When to use                                                                                |
+|-------------|--------------------------------------------------------------------------------------------|
+| `:stable`   | **Recommended.** Latest validated build from the `testing` branch. What you want for daily use. |
+| `:unstable` | Rolling tip of `unstable`. Opt-in for testers and contributors. May break.                 |
+| `:<date>`   | Pin to a specific build (e.g. `:stable.20260513`).                                         |
 
 The examples below use `:stable`. Substitute the tag you prefer.
 
 ### Step 1 — Verify the image signature *before* switching
 
-Never switch to an unverified image. Pull the public key from `main` and verify the target tag:
+Never switch to an unverified image. Pull the public key from `testing` and verify the target tag:
 
 ```bash
 cosign verify \
-  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub \
+  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub \
   ghcr.io/lobinuxsoft/yaguarete_os:stable
 ```
 
@@ -155,12 +155,12 @@ To pin yourself permanently back to the source image, run `bootc switch` against
 
 ## Verifying image signatures
 
-All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository, and is also reachable at `https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub`.
+All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository, and is also reachable at `https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub`.
 
 ```bash
 # Verify any tag
 cosign verify \
-  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub \
+  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub \
   ghcr.io/lobinuxsoft/yaguarete_os:stable
 ```
 

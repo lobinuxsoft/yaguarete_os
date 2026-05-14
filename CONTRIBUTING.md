@@ -17,9 +17,9 @@ We will open the door wider once the project has stable governance, a public roa
 The branch model is strict and non-negotiable:
 
 ```
-main          ← release branch (image cuts, signed builds)
-  ↑ PR
-development   ← integration branch (all feature work merges here)
+testing       ← stable channel (image cuts, signed builds, :stable tag)
+  ↑ promotion PR (manual, post smoke-validation)
+unstable      ← rolling integration branch (all feature work merges here, :unstable tag)
   ↑ PR
 feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 ```
@@ -27,9 +27,9 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 ### Step-by-step
 
 1. **Open an issue first.** Describe the problem, the proposed change, and the acceptance criteria. Wait for a maintainer ack.
-2. **Create a branch from `development`** using `gh issue develop <NUM> --base development --checkout`. Do not branch from `main`.
+2. **Create a branch from `unstable`** using `gh issue develop <NUM> --base unstable --checkout`. Do not branch from `testing`.
 3. **One PR per issue.** Keep PRs scoped — split unrelated changes.
-4. **Target `development`**, never `main`. Promotions to `main` happen via internal sync PRs.
+4. **Target `unstable`**, never `testing`. Promotions to `testing` happen via maintainer-opened PRs after the build is smoke-validated.
 5. **Open the PR with `Closes #<NUM>`** in the body so the issue links correctly.
 6. **Stop after PR creation.** Do not continue to the next issue while a PR is open.
 7. **Maintainers handle merges.** Never merge your own PR unless explicitly told to.
@@ -41,15 +41,14 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 - **Short imperative subject** (≤72 chars), wrapped body explaining the *why*.
 - **One logical change per commit** when feasible. Subtask checklists in issues map cleanly to one commit per subtask.
 
-### SemVer impact (release-please)
+### Channels and promotion (Bazzite model)
 
-Only three prefixes affect version bumps on `main`:
+Two long-running branches, two GHCR tags:
 
-- `feat:` → MINOR bump.
-- `fix:` → PATCH bump.
-- Any commit with `BREAKING CHANGE:` footer → MAJOR bump.
+- `unstable` → `:unstable` — rolling testing channel. Every PR merge here triggers a container + ISO build.
+- `testing` → `:stable` — validated release channel. Promotion is a manual PR `testing ← unstable` opened when a build has been smoke-validated. Merging that PR rebuilds `:stable` and emits an ISO release.
 
-Other prefixes (`docs:`, `chore:`, `refactor:`, etc.) are recorded in history but do not trigger a release.
+Conventional Commits (`feat:`, `fix:`, `chore:`, etc.) are kept for readability and grep-ability of history, but no longer drive automatic version bumps — release-please has been removed (Bazzite does not use it).
 
 ### Anti-patterns rejected
 

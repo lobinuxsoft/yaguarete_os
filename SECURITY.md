@@ -51,8 +51,8 @@ Every image published to `ghcr.io/lobinuxsoft/yaguarete_os` is signed with [`cos
 
 ```bash
 cosign verify \
-  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/main/cosign.pub \
-  ghcr.io/lobinuxsoft/yaguarete_os:latest
+  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub \
+  ghcr.io/lobinuxsoft/yaguarete_os:stable
 ```
 
 A successful verification means:
@@ -68,11 +68,11 @@ A successful verification means:
 If we suspect the cosign private key has been compromised, the rotation procedure is:
 
 1. Generate a new keypair offline.
-2. Publish the new `cosign.pub` to `main` in a clearly-marked commit.
+2. Publish the new `cosign.pub` to `testing` in a clearly-marked commit.
 3. Issue a Security Advisory announcing the rotation, the date, and the last image signed by the old key.
 4. Sign all subsequent builds with the new key.
 
-Users should re-pin their verification step to the new public key from `main` after each rotation announcement.
+Users should re-pin their verification step to the new public key from `testing` after each rotation announcement.
 
 ## Default install credentials
 
