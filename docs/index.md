@@ -2,7 +2,12 @@
 layout: default
 title: YaguareteOS
 description: Distribución bootc Linux para gaming, desarrollo y privacidad. Identidad cultural argentina. Construida sobre Bazzite.
+image: /assets/img/banner.png
 ---
+
+<p align="center">
+  <img src="assets/img/yaguarete-logo.svg" alt="YaguareteOS" width="180" />
+</p>
 
 # YaguareteOS
 
