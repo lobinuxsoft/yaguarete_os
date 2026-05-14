@@ -114,3 +114,40 @@ install_appimage_from_release \
     "$CAPYDEPLOY_AGENT_SHA256" \
     "capydeploy-agent" \
     "CapyDeploy Agent"
+
+# ============================================================================
+# Godots — Godot Project Manager (MakovWait, upstream — not maintained here)
+# https://github.com/MakovWait/godots
+#
+# Upstream ships a single Godot-exported binary inside LinuxX11.zip, signed
+# with SHA512 (not SHA256). No bundled .desktop or icon, so we synthesise
+# them.
+# ============================================================================
+GODOTS_VERSION="1.4.1.stable"
+GODOTS_ZIP_SHA512="3528a844f5355679bdf40df9186b0af885a213fdf99c996925e844c6179f7380d0adedce5a61d65e9360e9691a5782a9bd2571288539df00c77845675709bfec"
+
+godots_tmp="/tmp/godots.zip"
+godots_dest="${YAGUARETE_LIB}/godots"
+curl -fsSL "https://github.com/MakovWait/godots/releases/download/v${GODOTS_VERSION}/LinuxX11.zip" \
+    -o "$godots_tmp"
+echo "${GODOTS_ZIP_SHA512}  ${godots_tmp}" | sha512sum --check --strict
+mkdir -p "$godots_dest"
+unzip -q "$godots_tmp" -d "$godots_dest"
+rm -f "$godots_tmp"
+chmod +x "${godots_dest}/Godots.x86_64"
+ln -sf "${godots_dest}/Godots.x86_64" /usr/bin/godots
+
+cat > /usr/share/applications/godots.desktop <<'DESKTOP'
+[Desktop Entry]
+Name=Godots
+GenericName=Godot Project Manager
+Comment=Manage Godot Engine versions and projects
+Exec=godots %U
+Icon=godots
+Type=Application
+Terminal=false
+Categories=Development;IDE;
+StartupNotify=true
+DESKTOP
+
+unset godots_tmp godots_dest
