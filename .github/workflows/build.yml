@@ -3,14 +3,12 @@ name: Build container image
 on:
   pull_request:
     branches:
-      - main
-      - development
+      - testing
+      - unstable
   push:
     branches:
-      - main
-      - development
-    tags:
-      - 'v*'
+      - testing
+      - unstable
     paths-ignore:
       - '**/README.md'
   workflow_dispatch:
@@ -21,7 +19,6 @@ env:
   IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4"  # Put your own image here for a fancy profile on https://artifacthub.io/!
   IMAGE_NAME: "${{ github.event.repository.name }}"  # output image name, usually same as repo name
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
-  DEFAULT_TAG: "latest"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name}}-${{ inputs.stream_name }}
@@ -67,17 +64,18 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         id: metadata
         with:
-          # This generates all the tags for your image, you can add custom tags here too!
-          # Default tags are "$DEFAULT_TAG" and "$DEFAULT_TAG.$date".
+          # Bazzite tag model: push to `unstable` → :unstable (rolling testing),
+          # push to `testing` → :stable (validated release channel). PRs get a
+          # sha and a pr-N tag so the build is reachable for smoke without
+          # contaminating either main channel.
           tags: |
-            type=raw,value=${{ env.DEFAULT_TAG }},enable=${{ github.ref == 'refs/heads/development' }}
-            type=raw,value=${{ env.DEFAULT_TAG }}.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/development' }}
-            type=raw,value={{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/development' }}
+            type=raw,value=unstable,enable=${{ github.ref == 'refs/heads/unstable' }}
+            type=raw,value=unstable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' }}
+            type=raw,value=stable,enable=${{ github.ref == 'refs/heads/testing' }}
+            type=raw,value=stable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/testing' }}
+            type=raw,value={{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing' }}
             type=sha,enable=${{ github.event_name == 'pull_request' }}
             type=ref,event=pr
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
-            type=raw,value=stable,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
           labels: |
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/${{ github.sha }}/README.md
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
@@ -87,7 +85,7 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/tree/${{ github.sha }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.version=${{ env.DEFAULT_TAG }}.{{date 'YYYYMMDD'}}
+            org.opencontainers.image.version={{date 'YYYYMMDD'}}
             io.artifacthub.package.deprecated=false
             io.artifacthub.package.keywords=${{ env.IMAGE_KEYWORDS }}
             io.artifacthub.package.license=Apache-2.0
@@ -134,10 +132,11 @@ jobs:
       #       podman tag $IMAGE ${{ env.IMAGE_NAME }}:$tag
       #     done
 
-      # These `if` statements skip publish for PRs and restrict pushes to `development` (`:latest`) and `v*` tags (`:stable`).
+      # Publish only for branch pushes (PRs stay in cache, never published).
+      # `unstable` → :unstable; `testing` → :stable.
       - name: Login to GitHub Container Registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/development' || startsWith(github.ref, 'refs/tags/v'))
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -145,7 +144,7 @@ jobs:
 
       - name: Push To GHCR
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/development' || startsWith(github.ref, 'refs/tags/v'))
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         id: push
         env:
           REGISTRY_USER: ${{ github.actor }}
@@ -163,12 +162,12 @@ jobs:
       # to consume. For more details, review the image signing section of the README.
       - name: Install Cosign
         uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/development' || startsWith(github.ref, 'refs/tags/v'))
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         with:
           cosign-release: 'v2.6.1'
 
       - name: Sign container image
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/development' || startsWith(github.ref, 'refs/tags/v'))
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         run: |
           if [ -z "${COSIGN_PRIVATE_KEY}" ]; then
             echo "::warning::SIGNING_SECRET is not set; skipping image signing. Tracked by #17."
