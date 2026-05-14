@@ -35,7 +35,8 @@ Please read CONTRIBUTING.md before opening a PR. The TL;DR:
 
 ## Related
 
-<!-- Use `Closes #N` to auto-close on merge to main. For PRs targeting
-     development, the issue must be closed manually after merge. -->
+<!-- Use `Closes #N` to auto-close on merge. For PRs targeting `unstable`
+     (the default base), GitHub does not auto-close issues — close them
+     manually after merge with `gh issue close`. -->
 
 Closes #

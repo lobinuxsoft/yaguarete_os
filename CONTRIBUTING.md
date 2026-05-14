@@ -17,9 +17,9 @@ We will open the door wider once the project has stable governance, a public roa
 The branch model is strict and non-negotiable:
 
 ```
-main          ← release branch (image cuts, signed builds)
-  ↑ PR
-development   ← integration branch (all feature work merges here)
+testing       ← stable channel (image cuts, signed builds, :stable tag)
+  ↑ promotion PR (manual, post smoke-validation)
+unstable      ← rolling integration branch (all feature work merges here, :unstable tag)
   ↑ PR
 feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 ```
@@ -27,9 +27,9 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 ### Step-by-step
 
 1. **Open an issue first.** Describe the problem, the proposed change, and the acceptance criteria. Wait for a maintainer ack.
-2. **Create a branch from `development`** using `gh issue develop <NUM> --base development --checkout`. Do not branch from `main`.
+2. **Create a branch from `unstable`** using `gh issue develop <NUM> --base unstable --checkout`. Do not branch from `testing`.
 3. **One PR per issue.** Keep PRs scoped — split unrelated changes.
-4. **Target `development`**, never `main`. Promotions to `main` happen via internal sync PRs.
+4. **Target `unstable`**, never `testing`. Promotions to `testing` happen via maintainer-opened PRs after the build is smoke-validated.
 5. **Open the PR with `Closes #<NUM>`** in the body so the issue links correctly.
 6. **Stop after PR creation.** Do not continue to the next issue while a PR is open.
 7. **Maintainers handle merges.** Never merge your own PR unless explicitly told to.
