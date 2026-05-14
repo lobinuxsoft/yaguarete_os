@@ -1,25 +1,31 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 #
-# Manual digest promotion testing → stable (Bazzite `retag.yml` analogue).
+# Manual digest promotion testing → stable for all 4 KDE variants.
 #
-# Takes an existing `:testing-<fedora>.<YYYYMMDD>[.N]` tag in GHCR and
-# re-points it (by digest, no rebuild) to:
-#   - :stable-<fedora>.<YYYYMMDD>[.N]   permanent dated
-#   - :stable                            rolling pointer
-#   - :latest                            rolling pointer
-#   - :stable-<fedora>                   fedora-major pointer
+# For every variant in the matrix, this workflow:
+#   1. Inspects `:testing` in GHCR to read its digest + upstream label.
+#   2. Promotes that digest (no rebuild) to:
+#         :stable-<fedora>.<YYYYMMDD>
+#         :stable
+#         :stable-<fedora>
+#         :latest
 #
-# Pair with generate_release.yml after this completes to publish the
-# matching git tag + GitHub Release.
-name: Retag image (testing → stable)
+# Variants are promoted independently — `bazzite-deck:stable` typically
+# lags one Fedora major behind desktop, so `yaguarete_os-deck` may land
+# on `stable-43.<date>` while the others land on `stable-44.<date>`.
+# That divergence is correct and intentional.
+#
+# Pair with generate_release.yml afterwards to publish the matching git
+# tag + GitHub Release.
+name: Retag images (testing → stable)
 
 on:
   workflow_dispatch:
     inputs:
-      old_tag:
-        description: "Existing :testing tag to promote (e.g. testing-44.20260514 or testing-44.20260514.1)"
-        required: true
-        type: string
+      include_variants:
+        description: 'Comma-separated variant suffixes to promote ("" = base, "nvidia,nvidia-open,deck", or "all"). Use to skip a broken variant.'
+        required: false
+        default: 'all'
 
 permissions: {}
 
@@ -30,53 +36,113 @@ concurrency:
 jobs:
   safeguard-timer:
     runs-on: ubuntu-latest
-    if: inputs.old_tag != ''
     steps:
       - name: Safeguard wait
         env:
           SLEEP_TIME: "30"
+          SELECTION: ${{ inputs.include_variants }}
         run: |
-          echo "About to retag '${{ inputs.old_tag }}' → :stable / :latest."
+          echo "About to promote :testing → :stable for variants: ${SELECTION}"
           echo "You have $SLEEP_TIME seconds to cancel the workflow if this is wrong."
           sleep $SLEEP_TIME
 
-  retag-image:
-    runs-on: ubuntu-latest
+  retag:
     needs: [safeguard-timer]
-    if: inputs.old_tag != ''
+    runs-on: ubuntu-latest
     permissions:
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: yaguarete_os
+            variant_label: desktop
+            suffix: ''
+          - image_name: yaguarete_os-nvidia
+            variant_label: nvidia
+            suffix: 'nvidia'
+          - image_name: yaguarete_os-nvidia-open
+            variant_label: nvidia-open
+            suffix: 'nvidia-open'
+          - image_name: yaguarete_os-deck
+            variant_label: deck
+            suffix: 'deck'
     steps:
-      - name: Lowercase owner and image
+      - name: Check variant selection
+        id: gate
+        env:
+          SELECTION: ${{ inputs.include_variants }}
+          SUFFIX: ${{ matrix.suffix }}
+        run: |
+          set -eo pipefail
+          if [ "$SELECTION" = "all" ] || [ -z "$SELECTION" ]; then
+            echo "include=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          # Comma-separated list. Empty entry "" matches the base variant.
+          IFS=',' read -ra picked <<< "$SELECTION"
+          for entry in "${picked[@]}"; do
+            entry="${entry# }"
+            entry="${entry% }"
+            if [ "$entry" = "$SUFFIX" ]; then
+              echo "include=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          done
+          echo "include=false" >> $GITHUB_OUTPUT
+          echo "::notice::variant ${{ matrix.variant_label }} skipped (not in selection)"
+
+      - name: Lowercase owner
+        if: steps.gate.outputs.include == 'true'
         id: case
         env:
           OWNER: ${{ github.repository_owner }}
-          IMAGE: ${{ github.event.repository.name }}
-        run: |
-          echo "owner=${OWNER,,}" >> $GITHUB_OUTPUT
-          echo "image=${IMAGE,,}" >> $GITHUB_OUTPUT
+        run: echo "owner=${OWNER,,}" >> $GITHUB_OUTPUT
 
-      - name: Parse testing tag
-        id: parse
+      - name: Resolve testing digest + upstream tag
+        if: steps.gate.outputs.include == 'true'
+        id: resolve
         env:
-          OLD_TAG: ${{ inputs.old_tag }}
+          OWNER: ${{ steps.case.outputs.owner }}
+          IMAGE: ${{ matrix.image_name }}
         run: |
           set -eo pipefail
-          if [[ ! "$OLD_TAG" =~ ^testing-([0-9]+)\.([0-9]+)(\.[0-9]+)?$ ]]; then
-            echo "::error::old_tag '$OLD_TAG' does not match testing-<fedora>.<YYYYMMDD>[.N]"
+          REGISTRY_IMAGE="ghcr.io/${OWNER}/${IMAGE}"
+          skopeo inspect "docker://${REGISTRY_IMAGE}:testing" > testing.json
+          DIGEST=$(jq -r '.Digest' testing.json)
+          UPSTREAM_TAG=$(jq -r '.Labels["org.opencontainers.image.version"]' testing.json)
+          if [ -z "$UPSTREAM_TAG" ] || [ "$UPSTREAM_TAG" = "null" ]; then
+            echo "::error:::testing of ${IMAGE} lacks org.opencontainers.image.version label"
             exit 1
           fi
-          FEDORA="${BASH_REMATCH[1]}"
-          DATE_PART="${BASH_REMATCH[2]}${BASH_REMATCH[3]:-}"
+          FEDORA="${UPSTREAM_TAG%%.*}"
           {
+            echo "registry_image=$REGISTRY_IMAGE"
+            echo "digest=$DIGEST"
+            echo "upstream_tag=$UPSTREAM_TAG"
             echo "fedora=$FEDORA"
-            echo "stable_dated=stable-${FEDORA}.${DATE_PART}"
-            echo "stable_fedora=stable-${FEDORA}"
           } >> $GITHUB_OUTPUT
+          echo "::notice::will retag ${IMAGE}@${DIGEST:0:19}... → stable-${UPSTREAM_TAG}, stable, stable-${FEDORA}, latest"
 
-      - uses: Zeglius/ghcr-oci-retagger@1e08f1dac27d25efe1377d9a35f133731bf3d986
+      - name: Login to GHCR
+        if: steps.gate.outputs.include == 'true'
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
-          GITHUB_TOKEN: ${{ github.token }}
-          PREFIX: ghcr.io/${{ steps.case.outputs.owner }}/
-          TAG_MAPPINGS: |-
-            ${{ steps.case.outputs.image }}:${{ inputs.old_tag }} => ${{ steps.case.outputs.image }}:${{ steps.parse.outputs.stable_dated }},${{ steps.case.outputs.image }}:stable,${{ steps.case.outputs.image }}:latest,${{ steps.case.outputs.image }}:${{ steps.parse.outputs.stable_fedora }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote digest to stable tags
+        if: steps.gate.outputs.include == 'true'
+        env:
+          REGISTRY_IMAGE: ${{ steps.resolve.outputs.registry_image }}
+          DIGEST: ${{ steps.resolve.outputs.digest }}
+          UPSTREAM_TAG: ${{ steps.resolve.outputs.upstream_tag }}
+          FEDORA: ${{ steps.resolve.outputs.fedora }}
+        run: |
+          set -eo pipefail
+          SRC="docker://${REGISTRY_IMAGE}@${DIGEST}"
+          for tag in "stable-${UPSTREAM_TAG}" "stable" "stable-${FEDORA}" "latest"; do
+            echo ":: ${REGISTRY_IMAGE}:${tag}"
+            skopeo copy --multi-arch all "$SRC" "docker://${REGISTRY_IMAGE}:${tag}"
+          done

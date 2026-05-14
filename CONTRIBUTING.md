@@ -41,13 +41,35 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 - **Short imperative subject** (≤72 chars), wrapped body explaining the *why*.
 - **One logical change per commit** when feasible. Subtask checklists in issues map cleanly to one commit per subtask.
 
+### Variants (Bazzite-derived, KDE-only)
+
+Four images are built from a single parameterised `Containerfile`, one per upstream base:
+
+| Image                       | Base upstream               | Fedora target                  | HW                                  |
+|-----------------------------|-----------------------------|--------------------------------|-------------------------------------|
+| `yaguarete_os`              | `bazzite:stable`            | latest (F44 today)             | AMD / Intel desktop                 |
+| `yaguarete_os-nvidia`       | `bazzite-nvidia:stable`     | latest (F44 today)             | NVIDIA proprietary                  |
+| `yaguarete_os-nvidia-open`  | `bazzite-nvidia-open:stable`| latest (F44 today)             | NVIDIA open kernel module           |
+| `yaguarete_os-deck`         | `bazzite-deck:stable`       | lockstep upstream (F43 today)  | Steam Deck / OneXFly / ROG Ally     |
+
+Overlay (`system_files/`, `build_files/`) is shared across all four — every branding / app / config change lands in all variants at once. Only the `FROM` differs.
+
+Maintainer smoke-test coverage:
+
+- ✅ Desktop AMD (`yaguarete_os`)
+- ✅ Handheld AMD (`yaguarete_os-deck`)
+- ✅ Desktop NVIDIA proprietary (`yaguarete_os-nvidia`) — covered by the same HW as `-nvidia-open`
+- ⚠️ `yaguarete_os-nvidia-open` — built and validated by `nvidia` HW; minimal cross-coverage
+
+GNOME / Budgie / Surface / Ally-budgie variants are intentionally excluded.
+
 ### Channels and promotion (Bazzite model)
 
-Two long-running branches, three GHCR channels:
+Two long-running branches, three GHCR channels — applied per variant:
 
-- `unstable` → `:unstable` — rolling integration channel. Every PR merge triggers a container + ISO build.
+- `unstable` → `:unstable` — rolling integration channel. Every PR merge triggers container + ISO builds for all 4 variants in matrix.
 - `testing` → `:testing` — pre-release channel. Manual PR `testing ← unstable` opened when a smoke build is ready.
-- (promoted) → `:stable` / `:latest` — validated release channel. **Never built**, only promoted by digest from a chosen `:testing` tag via [`retag.yml`](.github/workflows/retag.yml).
+- (promoted) → `:stable` / `:latest` — validated release channel. **Never built**, only promoted by digest from a chosen `:testing` tag via [`retag.yml`](.github/workflows/retag.yml). Each variant promotes independently — `yaguarete_os-deck` typically lands on a different Fedora major than the desktop variants.
 
 #### Tag format (Bazzite-literal)
 
