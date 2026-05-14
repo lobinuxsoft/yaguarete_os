@@ -9,12 +9,19 @@ on:
     branches:
       - testing
       - unstable
+    # Mirror the `push` ignore-list so docs-only PRs do not pay the
+    # 4-variant matrix cost. Composes with the batch-CI-runs preference.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'installer/**'
   push:
     branches:
       - testing
       - unstable
     paths-ignore:
-      - '**/README.md'
+      - '**.md'
+      - 'docs/**'
       - 'installer/**'
   workflow_dispatch:
 
