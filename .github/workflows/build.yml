@@ -1,6 +1,11 @@
 ---
 name: Build container image
 on:
+  # Daily mirror of upstream Bazzite stable. The `check_upstream` job
+  # short-circuits when its digest has not changed, so most days this
+  # is a no-op skopeo inspect against GHCR.
+  schedule:
+    - cron: '0 5 * * *'
   pull_request:
     branches:
       - testing
@@ -25,9 +30,57 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Cheap digest gate: on scheduled runs, only proceed if upstream
+  # `bazzite:stable` has a different manifest digest than the one labeled
+  # in our latest `:unstable`. Push / PR / workflow_dispatch always build.
+  check_upstream:
+    name: Check upstream digest
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+    outputs:
+      should_build: ${{ steps.compare.outputs.should_build }}
+      reason: ${{ steps.compare.outputs.reason }}
+    steps:
+      - name: Compare upstream digest
+        id: compare
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ github.event.repository.name }}
+        run: |
+          set -eo pipefail
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=event=${{ github.event_name }} (always build)" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          OWNER_LC="${OWNER,,}"
+          IMAGE_LC="${IMAGE,,}"
+          UPSTREAM_DIGEST=$(skopeo inspect docker://ghcr.io/ublue-os/bazzite:stable 2>/dev/null | jq -r '.Digest')
+          if [ -z "$UPSTREAM_DIGEST" ] || [ "$UPSTREAM_DIGEST" = "null" ]; then
+            echo "::error::could not read upstream digest"
+            exit 1
+          fi
+          OURS_DIGEST=$(skopeo inspect "docker://ghcr.io/${OWNER_LC}/${IMAGE_LC}:unstable" 2>/dev/null \
+            | jq -r '.Labels["dev.yaguarete.base.digest"] // empty' 2>/dev/null || true)
+          if [ -z "$OURS_DIGEST" ] || [ "$UPSTREAM_DIGEST" != "$OURS_DIGEST" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=upstream changed (${OURS_DIGEST:-none} -> ${UPSTREAM_DIGEST})" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "reason=upstream digest unchanged (${UPSTREAM_DIGEST})" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report decision
+        run: |
+          echo "should_build=${{ steps.compare.outputs.should_build }}"
+          echo "reason=${{ steps.compare.outputs.reason }}"
+
   build_push:
     name: Build and push image
     runs-on: ubuntu-24.04
+    needs: [check_upstream]
+    if: needs.check_upstream.outputs.should_build == 'true'
 
     permissions:
       contents: read
