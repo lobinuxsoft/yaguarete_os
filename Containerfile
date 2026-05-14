@@ -1,7 +1,3 @@
-# Allow build scripts to be referenced without being copied into the final image
-FROM scratch AS ctx
-COPY build_files /
-
 # Base image is parameterised so the same Containerfile feeds every variant
 # in the build matrix:
 #   - ghcr.io/ublue-os/bazzite:stable             — AMD/Intel desktop (KDE)
@@ -10,7 +6,17 @@ COPY build_files /
 #   - ghcr.io/ublue-os/bazzite-deck:stable        — handheld (KDE + gamescope-session)
 # Default keeps `podman build .` (without --build-arg) reproducible to the
 # desktop AMD base — the most common local dev path.
+#
+# IMPORTANT: this `ARG` MUST be declared *before* the first `FROM` so it has
+# global scope and is visible to every subsequent `FROM`. Declaring it after
+# the first FROM scopes it to that stage only and the second FROM resolves
+# to an empty string ("no FROM statement found").
 ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite:stable
+
+# Allow build scripts to be referenced without being copied into the final image
+FROM scratch AS ctx
+COPY build_files /
+
 FROM ${BASE_IMAGE}
 
 # Overlay system_files/ into rootfs (wallpapers, branding, configs)
