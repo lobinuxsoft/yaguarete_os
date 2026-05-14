@@ -145,6 +145,51 @@ magick /usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png \
     -background black -flatten \
     /usr/share/yaguarete/branding/fastfetch/yaguarete-logo-flat-256.png
 
+### Identity: rewrite YaguareteOS-specific fields on the inherited
+# /usr/lib/os-release in place (Bazzite/Fedora keeps every version /
+# date field up to date for us, so we only own the identity fields).
+# Done with `sed -i` so version-related lines pass through untouched.
+#
+# Closes the systemd-boot loader entries gap (#57) as a side-effect:
+# bootupd reads BOOTLOADER_NAME from this file when populating the
+# entry titles, so rewriting the value here propagates to the boot
+# menu at next image deploy.
+sed -i \
+    -e 's|^NAME=.*|NAME="YaguareteOS"|' \
+    -e 's|^ID=.*|ID=yaguarete|' \
+    -e 's|^ID_LIKE=.*|ID_LIKE="bazzite fedora"|' \
+    -e 's|^PRETTY_NAME=.*|PRETTY_NAME="YaguareteOS"|' \
+    -e 's|^VARIANT_ID=.*|VARIANT_ID=yaguarete|' \
+    -e 's|^LOGO=.*|LOGO=yaguarete-logo-icon|' \
+    -e 's|^DEFAULT_HOSTNAME=.*|DEFAULT_HOSTNAME="yaguarete"|' \
+    -e 's|^HOME_URL=.*|HOME_URL="https://github.com/lobinuxsoft/yaguarete_os"|' \
+    -e 's|^DOCUMENTATION_URL=.*|DOCUMENTATION_URL="https://github.com/lobinuxsoft/yaguarete_os/wiki"|' \
+    -e 's|^SUPPORT_URL=.*|SUPPORT_URL="https://github.com/lobinuxsoft/yaguarete_os/discussions"|' \
+    -e 's|^BUG_REPORT_URL=.*|BUG_REPORT_URL="https://github.com/lobinuxsoft/yaguarete_os/issues"|' \
+    -e 's|^VENDOR_NAME=.*|VENDOR_NAME="YaguareteOS"|' \
+    -e 's|^VENDOR_URL=.*|VENDOR_URL="https://github.com/lobinuxsoft/yaguarete_os"|' \
+    -e '/^CPE_NAME=/s|:bazzite:|:yaguarete:|' \
+    -e '/^BOOTLOADER_NAME=/s|Bazzite|YaguareteOS|g' \
+    -e '/^IMAGE_ID=/s|bazzite|yaguarete|g' \
+    -e '/^BUILD_ID=/s|Bazzite|YaguareteOS|g' \
+    /usr/lib/os-release
+
+### Identity: rewrite the four identity fields of image-info.json. The
+# numeric version / date fields stay verbatim from the inherited file
+# so ublue-motd and other consumers keep reading accurate Fedora-level
+# version data without us having to re-stamp it on every build.
+INHERITED_IMAGE_INFO=/usr/share/ublue-os/image-info.json
+TMP_IMAGE_INFO=$(mktemp)
+jq \
+    --arg name "${YAGUARETE_IMAGE_NAME:-yaguarete_os}" \
+    --arg ref "ostree-image-signed:docker://ghcr.io/lobinuxsoft/${YAGUARETE_IMAGE_NAME:-yaguarete_os}" \
+    '.["image-name"] = $name
+     | .["image-vendor"] = "lobinuxsoft"
+     | .["image-ref"] = $ref' \
+    "$INHERITED_IMAGE_INFO" > "$TMP_IMAGE_INFO"
+install -m 0644 "$TMP_IMAGE_INFO" "$INHERITED_IMAGE_INFO"
+rm -f "$TMP_IMAGE_INFO"
+
 ### Branding: refresh the hicolor icon cache so all the new symlinks
 # (yafti_gtk, bazzite-logo-icon, /usr/share/ublue-os/bazzite/*.svg)
 # and added launchers (Instalar YaguareteOS, etc.) resolve correctly

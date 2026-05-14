@@ -13,11 +13,20 @@
 # to an empty string ("no FROM statement found").
 ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite:stable
 
+# Image name is also parameterised so build.sh can stamp it into
+# /usr/share/ublue-os/image-info.json without hardcoding the variant.
+# Default matches the desktop base; matrix entries override it.
+ARG IMAGE_NAME=yaguarete_os
+
 # Allow build scripts to be referenced without being copied into the final image
 FROM scratch AS ctx
 COPY build_files /
 
 FROM ${BASE_IMAGE}
+
+# Persist the build-time image name so /ctx/build.sh can read it.
+ARG IMAGE_NAME
+ENV YAGUARETE_IMAGE_NAME=${IMAGE_NAME}
 
 # Overlay system_files/ into rootfs (wallpapers, branding, configs)
 COPY system_files/ /

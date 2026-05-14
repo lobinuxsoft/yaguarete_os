@@ -222,6 +222,7 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE }}
+            IMAGE_NAME=${{ env.IMAGE_NAME }}
           oci: false
 
       - name: Login to GitHub Container Registry
