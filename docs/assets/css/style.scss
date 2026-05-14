@@ -3,64 +3,91 @@
 //
 // Cayman theme override for YaguareteOS.
 //
-// Strategy: import the upstream theme, then layer the brand palette on top.
-// Variables defined here cannot reach into the imported Cayman source, so we
-// override the rendered selectors directly (this is the Cayman-customising
-// pattern documented by pages-themes/cayman).
+// Strategy: import the upstream theme, layer brand palette and add the
+// custom components (variant cards, CTA row) the landing uses.
 //
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
 @import "{{ site.theme }}";
 
 // --- Brand palette (matches /usr/share/color-schemes/YaguareteOS.colors) ---
-$ya-bg:           #1A1A1A;
-$ya-bg-alt:       #232323;
-$ya-bg-elev:      #2D2D2D;
+$ya-bg:           #0F0F0F;
+$ya-bg-alt:       #1A1A1A;
+$ya-bg-elev:      #232323;
 $ya-fg:           #FFFFFF;
 $ya-fg-muted:     #B0B0B0;
 $ya-accent:       #FF4500;
 $ya-accent-soft:  rgba(255, 69, 0, 0.15);
 $ya-accent-hover: #FF6600;
+$ya-jungle:       #0B1F0F; // deep jungle green for shadow tinting
 
 body {
   background: $ya-bg;
   color: $ya-fg;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
 }
 
-// Header: black → orange gradient with a desaturated jungle overlay.
-// background-blend-mode keeps the photo readable behind the gradient instead
-// of blowing it out.
+// --- Hero --------------------------------------------------------------------
+// Lower the gradient opacity so the jungle photo actually shows through. Logo
+// sits inside the hero (rendered by the `hero-logo` paragraph wrapper in
+// index.md) and the H1 sits below it on the same dark backdrop.
 .page-header {
   background-color: $ya-bg;
   background-image:
-    linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(45,15,0,0.85) 55%, rgba(255,69,0,0.75) 100%),
+    linear-gradient(180deg, rgba(15,15,15,0.55) 0%, rgba(15,15,15,0.85) 100%),
     url('../img/banner.png');
-  background-size: cover, cover;
-  background-position: center, center;
-  background-blend-mode: multiply;
-  padding: 4rem 1rem 3rem;
+  background-size: cover;
+  background-position: center 35%;
+  padding: 6rem 1rem 4rem;
+  text-align: center;
+  border-bottom: 2px solid $ya-accent;
 
   .project-name {
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
-    letter-spacing: 0.02em;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: 3rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
   }
 
   .project-tagline {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.92);
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
     opacity: 1;
+    font-size: 1.2rem;
   }
 }
 
+.hero-logo {
+  margin: 0 auto;
+  text-align: center;
+
+  img {
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+  }
+}
+
+// --- Main content ------------------------------------------------------------
 .main-content {
   color: $ya-fg;
   background: $ya-bg;
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
     color: $ya-accent;
     border-bottom-color: rgba(255, 69, 0, 0.25);
+    letter-spacing: -0.01em;
   }
 
-  // Restore readable body copy contrast on the dark bg.
-  p, ul, ol, dl {
+  h1 { font-size: 2.4rem; font-weight: 800; }
+  h2 { font-size: 1.8rem; font-weight: 700; margin-top: 3rem; }
+  h3 { font-size: 1.3rem; font-weight: 700; }
+
+  p, ul, ol, dl, li {
     color: $ya-fg;
   }
 
@@ -82,6 +109,7 @@ body {
       background: $ya-accent-soft;
       color: $ya-accent;
       border-color: rgba(255, 69, 0, 0.3);
+      font-family: 'Outfit', sans-serif;
     }
 
     td {
@@ -98,12 +126,15 @@ body {
     color: $ya-accent-hover;
     border-radius: 3px;
     padding: 1px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
   }
 
   pre {
     background: $ya-bg-alt;
     border-left: 3px solid $ya-accent;
     color: $ya-fg;
+    font-family: 'JetBrains Mono', monospace;
 
     code {
       background: transparent;
@@ -113,15 +144,18 @@ body {
   }
 
   blockquote {
-    border-left-color: $ya-accent;
+    border-left: 4px solid $ya-accent;
     color: $ya-fg-muted;
     background: rgba(255, 69, 0, 0.05);
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 0 6px 6px 0;
   }
 
   hr {
     border-color: rgba(255, 69, 0, 0.2);
     background: rgba(255, 69, 0, 0.2);
+    margin: 3rem 0;
   }
 }
 
@@ -131,15 +165,133 @@ body {
   background: $ya-bg;
 }
 
-// Cayman renders nav / call-to-action buttons with .btn. Keep them visible
-// on the dark canvas.
-.btn {
-  background: $ya-accent-soft;
-  color: $ya-accent;
-  border-color: $ya-accent;
+// --- CTA row (hero buttons) --------------------------------------------------
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 2rem 0;
+
+  a {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .btn-primary {
+    background: $ya-accent;
+    color: $ya-bg !important;
+    border: 2px solid $ya-accent;
+
+    &:hover {
+      background: $ya-accent-hover;
+      border-color: $ya-accent-hover;
+    }
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: $ya-accent !important;
+    border: 2px solid $ya-accent;
+
+    &:hover {
+      background: $ya-accent-soft;
+    }
+  }
+}
+
+// --- Variant cards (4 KDE flavours) ------------------------------------------
+.variant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+
+.variant-card {
+  background: $ya-bg-alt;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 4px solid $ya-accent;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
+    transform: translateY(-3px);
+    border-left-color: $ya-accent-hover;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .variant-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  h3 {
+    font-family: 'Outfit', sans-serif;
+    color: $ya-fg !important;
+    margin: 0.5rem 0;
+    border-bottom: none !important;
+    padding-bottom: 0;
+  }
+
+  p {
+    color: $ya-fg-muted;
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .btn-download {
+    display: inline-block;
     background: $ya-accent;
-    color: $ya-bg;
+    color: $ya-bg !important;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background 0.15s ease, transform 0.15s ease;
+    margin-bottom: 0.75rem;
+
+    &:hover {
+      background: $ya-accent-hover;
+      transform: translateY(-1px);
+    }
+
+    &::before {
+      content: '⬇ ';
+    }
+  }
+
+  details {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+
+    summary {
+      cursor: pointer;
+      color: $ya-fg-muted;
+      padding: 0.25rem 0;
+
+      &:hover {
+        color: $ya-accent;
+      }
+    }
+
+    pre {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      font-size: 0.8rem;
+      overflow-x: auto;
+    }
   }
 }
