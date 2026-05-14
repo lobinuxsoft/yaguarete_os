@@ -23,6 +23,11 @@ dnf5 install -y \
     blender \
     git-lfs
 
+### Custom apps installed from GitHub Releases (yryvu, capydeploy, godots, ...)
+# Pinned versions + checksums live in install-custom-apps.sh. Bumping any of
+# them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
+/ctx/install-custom-apps.sh
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
