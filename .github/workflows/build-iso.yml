@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
   workflow_call:
   push:
-    branches: [development, main]
+    branches: [unstable, testing]
     paths:
       - installer/**
       - .github/workflows/build-iso.yml
   pull_request:
-    branches: [development, main]
+    branches: [unstable, testing]
     paths:
       - installer/**
       - .github/workflows/build-iso.yml
@@ -66,8 +66,10 @@ jobs:
         id: generate-tag
         shell: bash
         run: |
-          TAG="latest"
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
+          # Bazzite tag model: testing branch → :stable, every other branch
+          # (notably unstable) → :unstable. Mirrors the policy in build.yml.
+          TAG="unstable"
+          if [[ "${{ github.ref_name }}" == "testing" ]]; then
               TAG="stable"
           fi
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
