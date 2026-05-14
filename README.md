@@ -1,5 +1,8 @@
 # YaguareteOS
 
+> 📖 **Landing page con variant picker:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
+> Si solo querés saber qué variant instalar, empezá ahí.
+
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
 YaguareteOS combines:
