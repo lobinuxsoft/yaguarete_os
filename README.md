@@ -1,8 +1,7 @@
 # YaguareteOS
 
-> 📖 **Landing pública con downloads:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
-> Si solo querés bajar la ISO o saber qué variant instalar, empezá ahí.
-> Las ISOs rolling-unstable se publican en cada push a `unstable` como assets del [Release `rolling-unstable`](https://github.com/lobinuxsoft/yaguarete_os/releases/tag/rolling-unstable).
+> 📖 **Landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
+> Hoy YaguareteOS se instala vía `bootc switch` desde otro sistema bootc (Bazzite, Bluefin, Aurora, Fedora Atomic). El channel `:unstable` rolling se distribuye solo como container — no como ISO. Una ISO offline-installable va a publicarse en Internet Archive cuando se promueva el primer `:stable`.
 
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
