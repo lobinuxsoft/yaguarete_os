@@ -58,29 +58,95 @@ jobs:
           # https://linux.die.net/man/1/date
           echo "date=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)" >> $GITHUB_OUTPUT
 
-      # Image metadata for https://artifacthub.io/ - This is optional but is highly recommended so we all can get a index of all the custom images
-      # The metadata by itself is not going to do anything, you choose if you want your image to be on ArtifactHub or not.
+      # Bazzite-literal tag derivation: reuse upstream Fedora label
+      # `org.opencontainers.image.version` (e.g. `44.20260514`) as the suffix
+      # so YaguareteOS rides Bazzite cadence instead of inventing local dates.
+      # Format: <channel>-<fedora>.<YYYYMMDD>[.N]; `.N` only when GHCR already
+      # has that tag (rebuilds of the same upstream day).
+      - name: Derive upstream tag and image tags
+        id: derive
+        env:
+          BASE_IMAGE: ghcr.io/ublue-os/bazzite:stable
+        run: |
+          set -eo pipefail
+
+          skopeo inspect "docker://$BASE_IMAGE" > source.json
+          UPSTREAM_TAG=$(jq -r '.Labels["org.opencontainers.image.version"]' source.json)
+          if [ -z "$UPSTREAM_TAG" ] || [ "$UPSTREAM_TAG" = "null" ]; then
+            echo "::error::base image $BASE_IMAGE has no org.opencontainers.image.version label"
+            exit 1
+          fi
+          UPSTREAM_TAG="${UPSTREAM_TAG%\.[0-9]}"
+          FEDORA_VERSION="${UPSTREAM_TAG%%.*}"
+          UPSTREAM_DIGEST=$(jq -r '.Digest' source.json)
+          SHA_SHORT="${GITHUB_SHA::7}"
+
+          REGISTRY_LC="${IMAGE_REGISTRY,,}"
+          IMAGE_LC="${IMAGE_NAME,,}"
+          REGISTRY_IMAGE="${REGISTRY_LC}/${IMAGE_LC}"
+
+          # Stable is never produced here; it is promoted via retag.yml or
+          # generate_release.yml. Feature branches via workflow_dispatch get a
+          # `dev-` tag so buildah has something to write to.
+          if [ -n "${{ github.event.pull_request.number }}" ]; then
+            VERSION="pr-${FEDORA_VERSION}-${{ github.event.pull_request.number }}"
+            CHANNEL="pr"
+            PRETTY="PR (#${{ github.event.pull_request.number }}, F${UPSTREAM_TAG})"
+          elif [[ "${{ github.ref_name }}" == "unstable" ]]; then
+            VERSION="unstable-${UPSTREAM_TAG}"
+            CHANNEL="unstable"
+            PRETTY="Unstable (F${UPSTREAM_TAG}, #${SHA_SHORT})"
+          elif [[ "${{ github.ref_name }}" == "testing" ]]; then
+            VERSION="testing-${UPSTREAM_TAG}"
+            CHANNEL="testing"
+            PRETTY="Testing (F${UPSTREAM_TAG}, #${SHA_SHORT})"
+          else
+            VERSION="dev-${{ github.ref_name }}-${UPSTREAM_TAG}"
+            CHANNEL="dev"
+            PRETTY="Dev (${{ github.ref_name }}, F${UPSTREAM_TAG})"
+          fi
+
+          EXISTING=$(skopeo list-tags "docker://$REGISTRY_IMAGE" 2>/dev/null | jq -r '.Tags[]' 2>/dev/null || true)
+          if printf '%s\n' "$EXISTING" | grep -qxF "$VERSION"; then
+            for n in 1 2 3 4 5 6 7 8 9; do
+              CANDIDATE="${VERSION}.${n}"
+              if ! printf '%s\n' "$EXISTING" | grep -qxF "$CANDIDATE"; then
+                VERSION="$CANDIDATE"
+                break
+              fi
+            done
+          fi
+
+          # Channel pointers (`unstable`, `testing`) roll forward to the
+          # freshest build; the dated tag is permanent for rollback.
+          TAGS=("$VERSION")
+          case "$CHANNEL" in
+            unstable)
+              TAGS+=("unstable" "unstable-${FEDORA_VERSION}")
+              ;;
+            testing)
+              TAGS+=("testing" "testing-${FEDORA_VERSION}")
+              ;;
+          esac
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+          echo "fedora_version=$FEDORA_VERSION" >> $GITHUB_OUTPUT
+          echo "upstream_tag=$UPSTREAM_TAG" >> $GITHUB_OUTPUT
+          echo "upstream_digest=$UPSTREAM_DIGEST" >> $GITHUB_OUTPUT
+          echo "pretty=$PRETTY" >> $GITHUB_OUTPUT
+          echo "tags=${TAGS[*]}" >> $GITHUB_OUTPUT
+
+      # Labels only; tag list comes from `derive`. metadata-action requires
+      # `tags:` so we pass the primary version as a placeholder and discard
+      # `outputs.tags`.
       - name: Image Metadata
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         id: metadata
         with:
-          # Bazzite tag model: push to `unstable` → :unstable (rolling testing),
-          # push to `testing` → :stable (validated release channel). PRs get a
-          # sha and a pr-N tag so the build is reachable for smoke without
-          # contaminating either long-lived channel.
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=unstable,enable=${{ github.ref == 'refs/heads/unstable' }}
-            type=raw,value=unstable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' }}
-            type=raw,value=stable,enable=${{ github.ref == 'refs/heads/testing' }}
-            type=raw,value=stable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/testing' }}
-            type=raw,value={{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing' }}
-            type=sha,enable=${{ github.event_name == 'pull_request' }}
-            type=ref,event=pr
-            # Fallback so workflow_dispatch from feature branches (e.g. while
-            # validating workflow edits) still produces a buildable tag. Without
-            # this the metadata-action emits zero tags and buildah dies on
-            # `yaguarete_os:` (empty reference).
-            type=ref,event=branch,enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=${{ steps.derive.outputs.version }}
           labels: |
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/${{ github.sha }}/README.md
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
@@ -90,12 +156,16 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/tree/${{ github.sha }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.version={{date 'YYYYMMDD'}}
+            org.opencontainers.image.version=${{ steps.derive.outputs.upstream_tag }}
+            dev.yaguarete.base.image=ghcr.io/ublue-os/bazzite:stable
+            dev.yaguarete.base.digest=${{ steps.derive.outputs.upstream_digest }}
+            dev.yaguarete.channel=${{ steps.derive.outputs.channel }}
+            dev.yaguarete.pretty=${{ steps.derive.outputs.pretty }}
             io.artifacthub.package.deprecated=false
             io.artifacthub.package.keywords=${{ env.IMAGE_KEYWORDS }}
             io.artifacthub.package.license=Apache-2.0
             io.artifacthub.package.logo-url=${{ env.IMAGE_LOGO_URL }}
-            io.artifacthub.package.prerelease=false
+            io.artifacthub.package.prerelease=${{ steps.derive.outputs.channel != 'stable' }}
             containers.bootc=1
           sep-tags: " "
           sep-annotations: " "
@@ -109,7 +179,7 @@ jobs:
           # Postfix image name with -custom to make it a little more descriptive
           # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.metadata.outputs.tags }}
+          tags: ${{ steps.derive.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           oci: false
 
@@ -157,7 +227,7 @@ jobs:
         with:
           registry: ${{ env.IMAGE_REGISTRY }}
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.metadata.outputs.tags }}
+          tags: ${{ steps.derive.outputs.tags }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
 
@@ -179,7 +249,7 @@ jobs:
             exit 0
           fi
           IMAGE_FULL="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
-          for tag in ${{ steps.metadata.outputs.tags }}; do
+          for tag in ${{ steps.derive.outputs.tags }}; do
             cosign sign -y --key env://COSIGN_PRIVATE_KEY $IMAGE_FULL:$tag
           done
         env:
