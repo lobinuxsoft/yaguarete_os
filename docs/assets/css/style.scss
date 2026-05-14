@@ -72,9 +72,30 @@ body {
 }
 
 // --- Main content ------------------------------------------------------------
+// Cayman caps content at max-width: 64rem on wide screens. Override so the
+// variant cards and CTAs use the viewport on modern monitors. Long-form text
+// still capped per-element (~72ch) for legibility.
 .main-content {
   color: $ya-fg;
   background: $ya-bg;
+  max-width: none;
+  padding: 3rem clamp(1rem, 6vw, 6rem);
+  margin: 0 auto;
+
+  // Cayman's breakpoint overrides for max-width need to be neutralised at
+  // each tier the upstream theme defines them.
+  @media screen and (min-width: 64em) {
+    max-width: none;
+    padding: 3rem clamp(1rem, 6vw, 6rem);
+  }
+  @media screen and (min-width: 42em) and (max-width: 64em) {
+    max-width: none;
+    padding: 2rem clamp(1rem, 4vw, 4rem);
+  }
+  @media screen and (max-width: 42em) {
+    max-width: none;
+    padding: 1.5rem 1rem;
+  }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
@@ -87,8 +108,16 @@ body {
   h2 { font-size: 1.8rem; font-weight: 700; margin-top: 3rem; }
   h3 { font-size: 1.3rem; font-weight: 700; }
 
+  // Long-form text stays readable at any container width.
   p, ul, ol, dl, li {
     color: $ya-fg;
+    max-width: 72ch;
+  }
+
+  // Components that should keep their grid / flex width — undo the prose cap.
+  .variant-card p,
+  .variant-card li {
+    max-width: none;
   }
 
   a {
