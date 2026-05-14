@@ -179,6 +179,20 @@ body {
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
     border-radius: 0 6px 6px 0;
+
+    // Variant used for "hoy / pronto" callouts directly under the hero
+    // CTA row — gives the status pair more visual weight than a regular
+    // pull-quote.
+    &.status-callout {
+      background: $ya-bg-alt;
+      border-left-width: 5px;
+
+      p {
+        color: $ya-fg;
+        margin: 0.4rem 0;
+        max-width: none;
+      }
+    }
   }
 
   hr {
@@ -280,47 +294,23 @@ body {
     margin-bottom: 1.25rem;
   }
 
-  .btn-download {
-    display: inline-block;
-    background: $ya-accent;
-    color: $ya-bg !important;
-    padding: 0.6rem 1.2rem;
-    border-radius: 6px;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 600;
-    text-decoration: none !important;
-    transition: background 0.15s ease, transform 0.15s ease;
-    margin-bottom: 0.75rem;
+  // CTA primario de cada card: el bloque de código del comando rebase.
+  // Le damos peso visual de "esto es lo que tenés que copiar" — borde
+  // accent, monoespaciada cómoda, hover cue sutil.
+  pre {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    border-left: 4px solid $ya-accent;
+    border-radius: 0 6px 6px 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: text;
 
-    &:hover {
-      background: $ya-accent-hover;
-      transform: translateY(-1px);
-    }
-
-    &::before {
-      content: '⬇ ';
-    }
-  }
-
-  details {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-
-    summary {
-      cursor: pointer;
-      color: $ya-fg-muted;
-      padding: 0.25rem 0;
-
-      &:hover {
-        color: $ya-accent;
-      }
-    }
-
-    pre {
-      margin-top: 0.5rem;
-      padding: 0.75rem;
-      font-size: 0.8rem;
-      overflow-x: auto;
+    code {
+      background: transparent;
+      color: $ya-fg;
+      padding: 0;
     }
   }
 }

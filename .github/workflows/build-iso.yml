@@ -56,9 +56,7 @@ jobs:
             variant_label: deck
 
     permissions:
-      # `contents: write` needed for `gh release create/edit/upload` on the
-      # rolling-unstable Release.
-      contents: write
+      contents: read
       packages: write
       id-token: write
       attestations: write
@@ -180,6 +178,16 @@ jobs:
               '{iso: $iso, variant: $variant, attestation_url: $url, build_date: $date}' > "${iso}.json"
           done
 
+      # ISOs from unstable/testing stay as Actions artifacts only (login
+      # required), matching Bazzite's own build_iso.yml behaviour. The 2 GiB
+      # hard limit on GitHub Release assets makes them unsuitable for a
+      # ~3 GB ISO; offline-installable ISOs of the stable channel will be
+      # published to an external host (Internet Archive or equivalent) by
+      # the `generate_release.yml` workflow once `:stable` exists.
+      #
+      # Early adopters who want unstable do not need an ISO — they rebase
+      # via `bootc switch ghcr.io/.../yaguarete_os:unstable` from an
+      # existing bootc system.
       - name: Upload ISO and Checksum to Job Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -189,68 +197,3 @@ jobs:
           retention-days: 7
           compression-level: 0
           overwrite: true
-
-      # Make the ISO publicly downloadable from a fixed GitHub Release tag
-      # (`rolling-unstable`). Each push to `unstable` overwrites the previous
-      # asset for this variant, so the URL stays stable while the contents
-      # roll. PR builds and runs from non-unstable branches do not publish.
-      - name: Publish ISO to rolling-unstable Release
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/unstable'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISO_UPLOAD_DIR: ${{ steps.upload-directory.outputs.iso-upload-dir }}
-          IMAGE_NAME: ${{ matrix.image_name }}
-          VARIANT_LABEL: ${{ matrix.variant_label }}
-        run: |
-          set -eo pipefail
-          tag="rolling-unstable"
-          title="Rolling unstable builds"
-          notes_file=$(mktemp)
-          cat > "$notes_file" <<NOTES
-          # Rolling unstable ISOs
-
-          These ISOs are rebuilt every time \`unstable\` advances. The asset URLs
-          stay stable; the contents roll. Use them to test the four KDE variants
-          on real hardware or in a VM before deciding whether to rebase via
-          \`bootc switch\`.
-
-          - \`yaguarete_os-...\` — AMD/Intel desktop (KDE)
-          - \`yaguarete_os-nvidia-...\` — NVIDIA proprietary driver (KDE)
-          - \`yaguarete_os-nvidia-open-...\` — NVIDIA open kernel module (Turing+)
-          - \`yaguarete_os-deck-...\` — Handheld / Steam Deck / OneXFly (gamescope-session)
-
-          Each \`.iso\` ships with a \`.iso-CHECKSUM\` (sha256) and a \`.iso.json\`
-          metadata file pointing at the build provenance attestation.
-
-          **Not for production.** Promoted \`:stable\` images publish to a
-          separate GitHub Release.
-          NOTES
-
-          if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" \
-              --title "$title" \
-              --notes-file "$notes_file" \
-              --prerelease \
-              --latest=false
-          else
-            gh release edit "$tag" \
-              --notes-file "$notes_file" \
-              --prerelease \
-              --latest=false >/dev/null
-          fi
-
-          # Rename ISO + sidecar files so the asset key stays variant-stable
-          # across pushes (the dated filename moves into a "stable name"
-          # alias). The dated artifact is still in the workflow run for audit.
-          dated_iso=$(ls "$ISO_UPLOAD_DIR"/*.iso | head -1)
-          dated_base=$(basename "$dated_iso" .iso)
-          stable_iso="${ISO_UPLOAD_DIR}/${IMAGE_NAME}-rolling-unstable-amd64.iso"
-          cp "$dated_iso" "$stable_iso"
-          cp "${dated_iso}-CHECKSUM" "${stable_iso}-CHECKSUM"
-          cp "${dated_iso}.json" "${stable_iso}.json"
-
-          gh release upload "$tag" \
-            "$stable_iso" "${stable_iso}-CHECKSUM" "${stable_iso}.json" \
-            --clobber
-
-          echo "::notice::Published ${IMAGE_NAME} ISO to release ${tag} (variant: ${VARIANT_LABEL})"
