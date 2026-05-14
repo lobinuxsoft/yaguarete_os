@@ -1,7 +1,8 @@
 # YaguareteOS
 
-> 📖 **Landing page con variant picker:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
-> Si solo querés saber qué variant instalar, empezá ahí.
+> 📖 **Landing pública con downloads:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
+> Si solo querés bajar la ISO o saber qué variant instalar, empezá ahí.
+> Las ISOs rolling-unstable se publican en cada push a `unstable` como assets del [Release `rolling-unstable`](https://github.com/lobinuxsoft/yaguarete_os/releases/tag/rolling-unstable).
 
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
