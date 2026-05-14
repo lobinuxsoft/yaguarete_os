@@ -41,15 +41,14 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 - **Short imperative subject** (≤72 chars), wrapped body explaining the *why*.
 - **One logical change per commit** when feasible. Subtask checklists in issues map cleanly to one commit per subtask.
 
-### SemVer impact (release-please)
+### Channels and promotion (Bazzite model)
 
-Only three prefixes affect version bumps on `main`:
+Two long-running branches, two GHCR tags:
 
-- `feat:` → MINOR bump.
-- `fix:` → PATCH bump.
-- Any commit with `BREAKING CHANGE:` footer → MAJOR bump.
+- `unstable` → `:unstable` — rolling testing channel. Every PR merge here triggers a container + ISO build.
+- `testing` → `:stable` — validated release channel. Promotion is a manual PR `testing ← unstable` opened when a build has been smoke-validated. Merging that PR rebuilds `:stable` and emits an ISO release.
 
-Other prefixes (`docs:`, `chore:`, `refactor:`, etc.) are recorded in history but do not trigger a release.
+Conventional Commits (`feat:`, `fix:`, `chore:`, etc.) are kept for readability and grep-ability of history, but no longer drive automatic version bumps — release-please has been removed (Bazzite does not use it).
 
 ### Anti-patterns rejected
 
