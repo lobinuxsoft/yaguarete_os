@@ -23,6 +23,18 @@ dnf5 install -y \
     blender \
     git-lfs
 
+# Typography stack — decisions tracked in #12.
+# - Inter (rsms-inter-fonts) is the UI font referenced by the kdeglobals
+#   font keys; pre-install so the theme applies on first boot instead of
+#   falling back to Noto Sans.
+# - JetBrainsMono Nerd Font ships in the Bazzite nerd-fonts layer, so we
+#   do not duplicate it here — it is already the mono font in
+#   /etc/xdg/kdeglobals and the YaguareteOS Konsole profile.
+# - Noto Serif is the document font; apps (Kate, LibreOffice) can opt in.
+dnf5 install -y \
+    rsms-inter-fonts \
+    google-noto-serif-fonts
+
 ### Custom apps installed from GitHub Releases (yryvu, capydeploy, godots, ...)
 # Pinned versions + checksums live in install-custom-apps.sh. Bumping any of
 # them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
