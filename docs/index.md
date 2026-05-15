@@ -1,7 +1,7 @@
 ---
 layout: default
 title: YaguareteOS
-description: Linux para gaming, desarrollo y privacidad. Identidad cultural argentina. Construida sobre Bazzite.
+description: Linux argentino para jugar, crear y trabajar tranquilo. Bajá la ISO y probala en tu PC, laptop o handheld.
 image: /assets/img/banner.png
 ---
 
@@ -9,162 +9,138 @@ image: /assets/img/banner.png
   <img src="assets/img/yaguarete-logo.svg" alt="YaguareteOS" width="220" />
 </p>
 
-# Linux para gamers, devs y gente que quiere su privacidad
+# YaguareteOS
 
-YaguareteOS es una distribución Linux atómica construida sobre **[Bazzite](https://bazzite.gg/)** — gaming-ready out of the box, con Steam, Proton y los drivers que necesitás. Sumamos identidad argentina (naming guaraní, locale es-AR, theme propio) y un set de apps por defecto.
-
-Tu sistema vive como una **imagen firmada**. Eso quiere decir actualizaciones atómicas (todo o nada), rollback con un comando si algo se rompe, y verificación criptográfica del build cada vez que se actualiza.
+> **Linux argentino para jugar, crear y trabajar tranquilo.**
+> Bajá la ISO, pasala a un USB, booteala. Funciona en PC, laptop o handheld.
 
 <p class="cta-row">
-  <a class="btn-primary" href="#probala-ya">↻ Rebase desde otra bootc</a>
-  <a class="btn-secondary" href="https://github.com/lobinuxsoft/yaguarete_os">📦 Repo en GitHub</a>
-  <a class="btn-secondary" href="https://github.com/lobinuxsoft/yaguarete_os/discussions">💬 Discusiones</a>
+  <a class="btn-primary" href="#descargar">⬇️ Bajá la ISO</a>
+  <a class="btn-secondary" href="#como-se-instala">📀 Cómo se instala</a>
 </p>
-
-<blockquote class="status-callout">
-
-📦 **Hoy:** YaguareteOS se instala vía `bootc switch` desde otro sistema bootc (Bazzite, Bluefin, Aurora, Fedora Atomic).
-📀 **Pronto:** ISO instalable offline para cuando promovamos el primer `:stable` — la subimos a Internet Archive y aparece linkeada acá.
-
-</blockquote>
 
 ---
 
-## Probala ya
+## Descargar
 
-Si ya corrés un sistema bootc, podés cambiarte a YaguareteOS sin reinstalar. Elegí tu variant según el hardware y ejecutá el comando — el sistema actual queda intacto en disco hasta que reinicies.
+Elegí tu versión según tu computadora. Si dudás, **arrancá con la primera**.
 
 <div class="variant-grid" markdown="0">
 
   <div class="variant-card">
     <div class="variant-icon">🖥️</div>
-    <h3>Desktop AMD / Intel</h3>
-    <p>Para PCs y laptops con tarjeta gráfica AMD o Intel. La opción por defecto si no sabés cuál elegir y tu GPU no es NVIDIA.</p>
-    <pre><code>sudo bootc switch \
-  ghcr.io/lobinuxsoft/yaguarete_os:unstable</code></pre>
+    <h3>PC o laptop común</h3>
+    <p>Si tu computadora tiene placa de video AMD o Intel — la mayoría de las PCs y notebooks de los últimos 10 años. Si no sabés cuál tenés, esta es la indicada.</p>
+    <a class="btn-download" href="https://archive.org/download/yaguarete_os-unstable-amd64/yaguarete_os-unstable-amd64.iso">Descargar ISO</a>
+    <details>
+      <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:unstable</code></pre>
+    </details>
   </div>
 
   <div class="variant-card">
     <div class="variant-icon">🎮</div>
-    <h3>Desktop NVIDIA</h3>
-    <p>Tarjetas NVIDIA con driver propietario. La opción más segura si tu GPU es NVIDIA y no te interesa el módulo abierto.</p>
-    <pre><code>sudo bootc switch \
-  ghcr.io/lobinuxsoft/yaguarete_os-nvidia:unstable</code></pre>
+    <h3>PC con placa NVIDIA</h3>
+    <p>Si tu computadora tiene una placa NVIDIA (cualquier modelo de los últimos 15 años) — usa los drivers oficiales de NVIDIA.</p>
+    <a class="btn-download" href="https://archive.org/download/yaguarete_os-nvidia-unstable-amd64/yaguarete_os-nvidia-unstable-amd64.iso">Descargar ISO</a>
+    <details>
+      <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:unstable</code></pre>
+    </details>
   </div>
 
   <div class="variant-card">
     <div class="variant-icon">🔓</div>
-    <h3>Desktop NVIDIA (open)</h3>
-    <p>NVIDIA con el módulo kernel abierto (mantenido por NVIDIA, no es nouveau). Recomendado para RTX 20xx o más nuevo.</p>
-    <pre><code>sudo bootc switch \
-  ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:unstable</code></pre>
+    <h3>PC con NVIDIA moderna</h3>
+    <p>Si tu placa NVIDIA es RTX 20xx o más nueva (Turing en adelante). Usa el driver abierto de NVIDIA — un poquito más nuevo, mismo rendimiento.</p>
+    <a class="btn-download" href="https://archive.org/download/yaguarete_os-nvidia-open-unstable-amd64/yaguarete_os-nvidia-open-unstable-amd64.iso">Descargar ISO</a>
+    <details>
+      <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:unstable</code></pre>
+    </details>
   </div>
 
   <div class="variant-card">
     <div class="variant-icon">🕹️</div>
-    <h3>Handheld</h3>
-    <p>Steam Deck, OneXFly, ROG Ally y compañía. Arranca directo en gamescope-session (modo juego), igual que SteamOS.</p>
-    <pre><code>sudo bootc switch \
-  ghcr.io/lobinuxsoft/yaguarete_os-deck:unstable</code></pre>
+    <h3>Consola portátil</h3>
+    <p>Para Steam Deck, OneXFly, ROG Ally y similares. Arranca directo en modo juego, igual que SteamOS, pero con todas las apps de escritorio disponibles cuando las necesites.</p>
+    <a class="btn-download" href="https://archive.org/download/yaguarete_os-deck-unstable-amd64/yaguarete_os-deck-unstable-amd64.iso">Descargar ISO</a>
+    <details>
+      <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:unstable</code></pre>
+    </details>
   </div>
 
 </div>
 
-> Estás rebaseando a **`:unstable`** — la versión rolling de desarrollo. Cuando saquemos el primer `:stable` validado, los comandos van a apuntar a `:stable` por default. Mientras tanto, `bootc rollback` te lleva al sistema anterior con un comando si algo rompe.
+> 💡 **Aviso honesto:** estás bajando la versión de desarrollo (rolling). Es estable para la mayoría de los usos pero puede tener bugs ocasionales. Cuando saquemos la primera versión "estable" oficial, va a haber otro link arriba con la edición pulida.
 
 ---
 
-## ¿No corro bootc todavía?
+## Cómo se instala
 
-Si arrancás de cero (Windows / otra distro tradicional), necesitás **primero instalar un sistema bootc** y después rebasear a YaguareteOS. Las opciones recomendadas:
+Cuatro pasos. No hace falta conocimiento técnico previo.
 
-- **[Bazzite](https://bazzite.gg/)** — el upstream directo nuestro. Mismo stack gaming. Bajá su ISO, instalala, después rebaseá a YaguareteOS con uno de los comandos de arriba.
-- **[Bluefin](https://projectbluefin.io/)** o **[Aurora](https://getaurora.dev/)** — sibling forks de Universal Blue (Bluefin = workstation dev, Aurora = KDE general).
-- **Fedora Atomic Kinoite** directo — la base mínima.
+### 1. Bajá la ISO
 
-Después del rebase: `bootc status` confirma la imagen activa, `bootc rollback` vuelve a la versión anterior, y `rpm-ostree upgrade` aplica las actualizaciones que llegan via cron diario del CI.
+Apretá el botón **Descargar ISO** de la versión que te corresponda. Vas a recibir un archivo `.iso` de unos 3 GB.
 
-> 📀 **Cuando promovamos el primer `:stable`**, vamos a publicar una ISO instalable offline (sin necesidad de Bazzite previo) en Internet Archive. El link va a aparecer en esta página + en el Release de GitHub correspondiente. Hasta entonces, la ruta es bootc-encima-de-bootc.
+### 2. Pasala a un USB
 
----
+Necesitás un pendrive de **mínimo 8 GB** (lo que tenga adentro se borra). La forma más fácil:
 
-## Rebase desde otra distro
+- **[Ventoy](https://www.ventoy.net/)** — instalalo al USB una vez, después copiás cualquier `.iso` ahí como si fuera un archivo común. Funciona en Windows, Mac y Linux. **Recomendado para principiantes.**
+- **[Rufus](https://rufus.ie/)** (Windows) o **[balenaEtcher](https://etcher.balena.io/)** (cualquier sistema) son alternativas simples si no querés usar Ventoy.
 
-Si ya corrés Bazzite, Bluefin, Aurora o cualquier Fedora Atomic con `bootc`, podés cambiarte **sin reinstalar**. Cuatro pasos:
+### 3. Booteá del USB
 
-### 1. Verificá la firma cosign primero
+Reiniciá la computadora con el USB conectado. Al prender, apretá la tecla del menú de booteo — suele ser **F12, F11, F10, F2 o Esc** según la marca. Elegí el USB de la lista.
 
-```bash
-VARIANT=yaguarete_os   # o -nvidia, -nvidia-open, -deck
-cosign verify \
-  --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub \
-  ghcr.io/lobinuxsoft/${VARIANT}:stable
-```
+### 4. Probá y/o instalá
 
-Si la verificación falla, **parate**. No avances.
+Vas a entrar en **modo live** — el sistema corre desde el USB sin tocar tu disco. Podés navegar, abrir programas, ver si te gusta.
 
-### 2. Switch
+Cuando estés listo, hacé doble click en **"Instalar YaguareteOS"** en el escritorio y seguí el asistente.
 
-```bash
-sudo bootc switch ghcr.io/lobinuxsoft/${VARIANT}:stable
-```
-
-El sistema actual sigue intacto en disco hasta que reinicies.
-
-### 3. Reiniciá
-
-```bash
-sudo systemctl reboot
-```
-
-### 4. Confirmá
-
-```bash
-sudo bootc status
-```
-
-`Booted image` debe mostrar `ghcr.io/lobinuxsoft/${VARIANT}:stable`.
-
-➡️ Detalles completos (rollback, pin-by-date, prerequisitos) en el [README del repo](https://github.com/lobinuxsoft/yaguarete_os/blob/unstable/README.md#rebase-from-an-existing-bootc-system).
+> 🔁 **Antes de instalar:** verificá que tu información importante está respaldada. El instalador te va a pedir borrar el disco — eso es definitivo.
 
 ---
 
-## Lineage
+## ¿Qué viene incluido?
 
-YaguareteOS no oculta su origen.
+Sin instalar nada extra, tu sistema arranca listo para:
 
-```
-Fedora Atomic (Kinoite)
-   ↓ Universal Blue
-   ↓ Bazzite
-   ↓ YaguareteOS
-```
+- 🎮 **Jugar** — Steam con Proton (corre la mayoría de los juegos de Windows), Lutris, Heroic Launcher, gamescope, MangoHud.
+- 🎨 **Crear** — GIMP (imágenes), Inkscape (vectorial), Krita, Blender (3D), OBS Studio (grabar/streamear).
+- 💬 **Comunicarte** — Signal, Discord, Telegram preinstalados.
+- 💼 **Trabajar** — OnlyOffice (compatible con MS Office), VSCodium (programar sin telemetría), Git con interfaz gráfica.
+- 🌎 **Navegar** — Firefox, todo en español argentino por default.
 
-Heredamos gaming stack, modelo bootc, firma y toolchain de [Universal Blue](https://universal-blue.org/). Sumamos rebranding, locale es-AR, theme negro+naranja, 15 apps default, signing key propio y 4 variants.
-
-Sibling-fork precedent: [Bluefin](https://projectbluefin.io/) y [Aurora](https://getaurora.dev/) — derivan abiertamente. Mismo modelo.
+Y se actualiza solo en segundo plano (con `bootc rollback` para volver atrás si algo se rompe).
 
 ---
 
-## Qué es y qué *no* es
+## ¿Qué es YaguareteOS exactamente?
 
-**Es:** una distro libre, KDE-only, optimizada para **dev + gaming + privacidad** con identidad cultural argentina (naming guaraní, español-first, locale es-AR, wallpapers nativos).
+Es una distribución de **Linux argentina**, basada en [Bazzite](https://bazzite.gg/) (proyecto open source orientado a gaming). Le agregamos:
 
-**No es:**
+- Nombre en guaraní (Yaguareté = jaguar), idioma español argentino, locale `es-AR`, wallpapers con fauna local.
+- Set de programas curado para uso real, no genérico.
+- Tema visual propio (negro + naranja).
 
-- Una plataforma estado-alineada. **No** ship certificados gubernamentales (ONTI), apps tied to state identity (AFIP, ANSES, Mi Argentina), billeteras estatales, mirrors hosted en infra del estado, ni compliance tooling que pida identificarte para usar el sistema.
+**Es libre y gratis.** Código abierto bajo licencia Apache 2.0. **No tiene telemetría, no espía, no requiere identificarte.**
 
-La privacidad y la libertad están sobre la integración local. Si querés esas integraciones, el fork model existe para eso.
-
----
-
-## Contribuir y reportar
-
-- 🐛 [Issues](https://github.com/lobinuxsoft/yaguarete_os/issues)
-- 💬 [Discusión](https://github.com/lobinuxsoft/yaguarete_os/discussions)
-- 📚 [Cómo contribuir](https://github.com/lobinuxsoft/yaguarete_os/blob/unstable/CONTRIBUTING.md)
-- 🔐 **Seguridad:** ver [`SECURITY.md`](https://github.com/lobinuxsoft/yaguarete_os/blob/unstable/SECURITY.md) — no abras issues públicos.
+**No es** una plataforma del estado argentino — el proyecto es independiente, sin integraciones con AFIP, ANSES, ONTI ni similares. Si querés esas integraciones, podés agregarlas vos mismo o hacer un fork.
 
 ---
 
-<sub>Yaguareté = jaguar en guaraní, felino emblema del Litoral argentino. Yryvu (jote) es el cliente Git hermano. Naming guaraní es identidad cultural; el proyecto no integra herramientas estatales.</sub>
+## ¿Hay problemas? ¿Querés ayudar?
+
+- 🐛 [Reportar un bug](https://github.com/lobinuxsoft/yaguarete_os/issues/new)
+- 💬 [Discusión y dudas](https://github.com/lobinuxsoft/yaguarete_os/discussions)
+- 📦 [Código fuente en GitHub](https://github.com/lobinuxsoft/yaguarete_os)
+- 📚 [Guía para contribuir](https://github.com/lobinuxsoft/yaguarete_os/blob/unstable/CONTRIBUTING.md)
+
+---
+
+<sub>Yaguareté = jaguar en guaraní, felino emblema del Litoral argentino. Yryvu (jote, en guaraní) es el cliente Git hermano del ecosistema.</sub>

@@ -1,7 +1,7 @@
 # YaguareteOS
 
-> 📖 **Landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
-> Hoy YaguareteOS se instala vía `bootc switch` desde otro sistema bootc (Bazzite, Bluefin, Aurora, Fedora Atomic). El channel `:unstable` rolling se distribuye solo como container — no como ISO. Una ISO offline-installable va a publicarse en Internet Archive cuando se promueva el primer `:stable`.
+> 📖 **Download + landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
+> Las ISOs rolling unstable de las 4 variants KDE se publican como descarga directa en archive.org en cada push a `unstable` ([ítems del proyecto](https://archive.org/search?query=creator%3A%22lobinuxsoft%22)). Filename estable por variant: `<image>-unstable-amd64.iso`. Para usuarios bootc, `bootc switch ghcr.io/lobinuxsoft/<image>:unstable` sigue funcionando.
 
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
