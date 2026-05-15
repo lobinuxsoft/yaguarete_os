@@ -2,9 +2,7 @@
 import HeroSection from '@components/sections/landing/HeroSection.astro';
 import FeaturesGeneral from '@components/sections/features/FeaturesGeneral.astro';
 import FAQ from '@components/sections/misc/FAQ.astro';
-import AnnouncementBanner from '@components/ui/banners/AnnouncementBanner.astro';
 import PrimaryCTA from '@components/ui/buttons/PrimaryCTA.astro';
-import SecondaryCTA from '@components/ui/buttons/SecondaryCTA.astro';
 import type { Translations } from '@utils/i18n/types';
 
 interface Props {
@@ -16,23 +14,15 @@ const { t } = Astro.props;
 const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.titlePrefix}</span>${t.hero.titleSuffix}`;
 ---
 
-<AnnouncementBanner
-  btnId="phase-banner-dismiss"
-  btnTitle={t.announcement.text}
-  url="https://github.com/lobinuxsoft/yaguarete_os/issues"
-/>
-
-{/* Hero is wrapped so BackgroundScroller's IntersectionObserver can observe
-    it as #hero. The side-column image prop is intentionally omitted: the
+{/* Hero is wrapped so BackgroundScroller's IntersectionObserver can pick it
+    up as #hero. The side-column image prop is intentionally omitted: the
     fullscreen wallpaper behind the page already serves as the hero visual. */}
 <section id="hero">
   <HeroSection
     title={heroTitle}
     subTitle={t.hero.subTitle}
     primaryBtn={t.hero.primaryBtn}
-    primaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
-    secondaryBtn={t.hero.secondaryBtn}
-    secondaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os#readme"
+    primaryBtnURL={t.hero.primaryBtnUrl}
   />
 </section>
 
@@ -42,9 +32,7 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
   class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
 >
   <div class="mb-10 max-w-2xl">
-    <h2
-      class="text-2xl font-bold text-neutral-100 md:text-3xl lg:text-4xl"
-    >
+    <h2 class="text-2xl font-bold text-neutral-100 md:text-3xl lg:text-4xl">
       {t.variants.title}
     </h2>
     <p class="mt-2 text-neutral-300">{t.variants.subTitle}</p>
@@ -57,24 +45,28 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
           <h3 class="font-mono text-sm font-bold break-all text-orange-400">
             {variant.name}
           </h3>
-          <p class="mt-1 text-sm font-medium text-neutral-100">
-            {variant.tag}
+          <p class="mt-1 text-sm font-medium text-neutral-100">{variant.tag}</p>
+          <p class="mt-3 grow text-sm text-neutral-300">
+            {variant.description}
           </p>
-          <p class="mt-3 grow text-sm text-neutral-300">{variant.description}</p>
-          <dl class="mt-4 space-y-2 text-xs">
-            <div>
-              <dt class="text-neutral-400">{t.variants.upstreamLabel}</dt>
-              <dd class="font-mono text-neutral-200">{variant.upstream}</dd>
-            </div>
-            <div>
-              <dt class="text-neutral-400">{t.variants.rebaseLabel}</dt>
-              <dd>
-                <code class="block overflow-x-auto rounded bg-neutral-900/80 p-2 font-mono text-[0.7rem] leading-snug break-all whitespace-pre-wrap text-neutral-100">
-                  {variant.rebase}
-                </code>
-              </dd>
-            </div>
+          <dl class="mt-4 text-xs">
+            <dt class="text-neutral-400">{t.variants.upstreamLabel}</dt>
+            <dd class="font-mono text-neutral-200">{variant.upstream}</dd>
           </dl>
+          <div class="mt-5">
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title={t.variants.pendingNote}
+              class="inline-flex w-full cursor-not-allowed items-center justify-center gap-x-2 rounded-lg border border-neutral-700 bg-neutral-800/60 px-3 py-2 text-sm font-medium text-neutral-400"
+            >
+              {t.variants.downloadLabel}
+            </button>
+            <p class="mt-2 text-[0.7rem] leading-snug text-neutral-500">
+              {t.variants.pendingNote}
+            </p>
+          </div>
         </li>
       ))
     }
@@ -83,47 +75,15 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
   <p class="mt-6 text-sm text-neutral-400">{t.variants.cosignNote}</p>
 </section>
 
-{/* Sovereign supply chain */}
-<div id="sovereign">
+{/* Stack — replaces the previous Soberanía / Herencia blocks with a single
+    short section: Bazzite underneath, dev + gaming on top. */}
+<div id="stack">
   <FeaturesGeneral
-    title={t.sovereign.title}
-    subTitle={t.sovereign.subTitle}
-    features={t.sovereign.features}
+    title={t.stack.title}
+    subTitle={t.stack.subTitle}
+    features={t.stack.features}
   />
 </div>
-
-{/* Inherited and credited */}
-<div id="inheritance">
-  <FeaturesGeneral
-    title={t.inheritance.title}
-    subTitle={t.inheritance.subTitle}
-    features={t.inheritance.features}
-  />
-</div>
-
-{/* CTA block */}
-<section
-  class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
->
-  <div
-    class="rounded-2xl border border-neutral-700/60 bg-neutral-950/60 p-8 shadow-2xl shadow-black/30 backdrop-blur-md md:p-12"
-  >
-    <h2 class="max-w-2xl text-2xl font-bold text-neutral-100 md:text-3xl">
-      {t.cta.title}
-    </h2>
-    <p class="mt-3 max-w-2xl text-neutral-300">{t.cta.body}</p>
-    <div class="mt-6 grid gap-3 sm:inline-flex">
-      <PrimaryCTA
-        title={t.cta.primaryBtn}
-        url="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
-      />
-      <SecondaryCTA
-        title={t.cta.secondaryBtn}
-        url="https://github.com/lobinuxsoft/yaguarete_os"
-      />
-    </div>
-  </div>
-</section>
 
 {/* FAQ */}
 <div id="faq">

@@ -2,40 +2,36 @@ import type { Translations } from './types';
 
 const en: Translations = {
   meta: {
-    pageTitle: 'YaguareteOS — Sovereign bootc-based KDE for gaming and dev',
-    ogTitle: 'YaguareteOS — Sovereign bootc-based KDE',
+    pageTitle:
+      'YaguareteOS — Bazzite-based KDE distribution for dev and gaming',
+    ogTitle: 'YaguareteOS — KDE for dev and gaming on top of Bazzite',
     description:
-      'YaguareteOS is a bootable, image-based Linux distribution built on top of Bazzite (Universal Blue / Fedora Atomic). Gaming-ready, atomic, signed in our own CI, with Argentine cultural identity.',
-  },
-  announcement: {
-    text: 'Phase 0 caveat — Argentine branding lands in Phase 1',
+      'YaguareteOS is a bootable Linux distribution built on top of Bazzite (Universal Blue / Fedora Atomic), aimed at development and gaming, with atomic updates and signed by our own CI.',
   },
   hero: {
     titlePrefix: 'Yaguarete',
     titleSuffix: 'OS',
     subTitle:
-      'A bootable, image-based KDE distribution built on top of Bazzite (Universal Blue / Fedora Atomic). Gaming-ready, atomically updated, signed in our own CI.',
-    primaryBtn: 'Get the latest release',
-    secondaryBtn: 'Read the README',
-    heroAlt:
-      'Selva oscura — the dark Argentine jungle that gives YaguareteOS its visual identity',
+      'Bazzite-based KDE distribution aimed at development and gaming. Image-based with bootc, atomic updates, signed by our own CI.',
+    primaryBtn: 'Read the README',
+    primaryBtnUrl: 'https://github.com/lobinuxsoft/yaguarete_os#readme',
   },
   variants: {
     title: 'Four KDE variants, one pipeline',
     subTitle:
-      'Pick the variant that matches your hardware. All four are built from the same source tree and signed with the same cosign keypair. GNOME variants are intentionally not offered — this is a KDE-only project.',
+      'Pick the variant that matches your hardware. All four are built from the same source tree and signed with the same cosign keypair.',
     upstreamLabel: 'Upstream',
-    rebaseLabel: 'Rebase',
+    downloadLabel: 'Download ISO',
+    pendingNote: 'Pre-release — first stable ISO in preparation',
     cosignNote:
-      'Verify the image signature with cosign verify against cosign.pub before running bootc switch. Full instructions in the README.',
+      'Stable releases are signed with cosign. Verify the signature against cosign.pub before installing — instructions in the README.',
     cards: [
       {
         name: 'yaguarete_os',
         tag: 'AMD / Intel desktop',
         description:
-          'Default variant. Picks the open-source graphics stack and works on most non-NVIDIA hardware.',
+          'Default variant. Open-source graphics stack, works on most non-NVIDIA hardware.',
         upstream: 'bazzite:stable',
-        rebase: 'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable',
       },
       {
         name: 'yaguarete_os-nvidia',
@@ -43,107 +39,57 @@ const en: Translations = {
         description:
           'NVIDIA GPU with the proprietary driver. Recommended for gaming on NVIDIA hardware today.',
         upstream: 'bazzite-nvidia:stable',
-        rebase:
-          'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:stable',
       },
       {
         name: 'yaguarete_os-nvidia-open',
         tag: 'NVIDIA open kernel module',
         description:
-          'NVIDIA GPU with the open kernel module (Turing+). Server / dev workstation oriented.',
+          'NVIDIA GPU with the open kernel module (Turing+). Aimed at dev workstations.',
         upstream: 'bazzite-nvidia-open:stable',
-        rebase:
-          'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:stable',
       },
       {
         name: 'yaguarete_os-deck',
         tag: 'Handheld (Steam Deck, OneXFly, ROG Ally)',
         description:
-          'Boots into game mode by default. ISO build is still gated by issue #112; rebase from Bazzite-deck works today.',
+          'Boots into game mode. ISO build is gated by issue #112; rebase from Bazzite-deck works today.',
         upstream: 'bazzite-deck:stable',
-        rebase:
-          'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:stable',
       },
     ],
   },
-  sovereign: {
-    title: 'What is sovereign',
+  stack: {
+    title: 'Bazzite underneath, dev and gaming on top',
     subTitle:
-      'Digital sovereignty here means controlling the pipeline — signing keys, build infrastructure, distribution registry, project governance, branding — not hiding technical inheritance.',
+      'We inherit the Bazzite gaming stack — Steam, Proton-GE, GameMode, gamescope, MangoHud, recent Mesa — and layer on what we need for daily dev work. Image-based with bootc: every update is atomic, rollback is one command.',
     features: [
       {
-        heading: 'Our build pipeline',
+        heading: 'Gaming-ready',
         content:
-          'CI runners, build policies and release workflow live in this repo. No third-party builders, no opaque promotion steps.',
-        svg: 'tools',
-      },
-      {
-        heading: 'Our signing keypair',
-        content:
-          'cosign keypair under our control. Public key shipped in-tree; private key offline. Every published image is signed and verifiable.',
-        svg: 'verified',
-      },
-      {
-        heading: 'Our distribution registry',
-        content:
-          'Images published to ghcr.io/lobinuxsoft/yaguarete_os. Stable releases are mirrored as dated identifiers on archive.org for long-term preservation.',
+          'Steam, Proton-GE, GameMode, gamescope and MangoHud preconfigured. Recent Mesa/AMD. Handheld profiles (Steam Deck, OneXFly, ROG Ally).',
         svg: 'rocket',
       },
       {
-        heading: 'Our branding and locale',
+        heading: 'Atomic and immutable',
         content:
-          'Guaraní project naming, Spanish-first defaults, es-AR locale, native wallpapers. Cultural, not governmental — no state-identity tooling bundled.',
-        svg: 'sparks',
-      },
-    ],
-  },
-  inheritance: {
-    title: 'What is inherited (openly credited)',
-    subTitle:
-      'YaguareteOS does not hide its lineage. Sibling Universal Blue derivatives such as Bluefin and Aurora attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add.',
-    features: [
-      {
-        heading: 'Base image — Bazzite',
-        content:
-          'KDE desktop, Steam, Proton-GE, GameMode, gamescope, MangoHud and the latest Mesa/AMD drivers inherit straight from bazzite:stable.',
-        svg: 'community',
-      },
-      {
-        heading: 'Build system — Universal Blue',
-        content:
-          'Containerfile + system_files overlay + just recipes follow the Universal Blue image-template layout. Recipes are kept compatible upstream.',
-        svg: 'puzzle',
-      },
-      {
-        heading: 'Atomic updates — bootc',
-        content:
-          'Image-based OS with transactional updates and atomic rollback via bootc on top of Fedora Atomic. Roll forward, roll back, reboot.',
+          'Image-based on Fedora Atomic with bootc. Every update is a full signed image. Instant rollback if anything breaks.',
         svg: 'frame',
       },
       {
-        heading: 'Gaming stack — Valve + community',
+        heading: 'Dev-friendly',
         content:
-          'Steam, Proton-GE, MangoHud, gamescope and the rest of the handheld-friendly stack are pulled from upstream — credited, not rebadged.',
-        svg: 'guides',
+          'Toolbox, distrobox and devcontainer first-class. KDE Plasma desktop. Spanish-first defaults, es-AR locale.',
+        svg: 'tools',
       },
     ],
-  },
-  cta: {
-    title:
-      'Build it yourself, rebase from a bootc host, or grab a signed release.',
-    body: 'Containerfile + just recipes are reproducible on any Bazzite, Bluefin, Aurora or Fedora Atomic host with podman 5.8+. Stable releases ship as signed OCI tags and as dated ISO/qcow2 artefacts on archive.org.',
-    primaryBtn: 'Latest release',
-    secondaryBtn: 'GitHub repo',
   },
   faq: {
     title: 'Frequently asked questions',
     subTitle:
-      'Common questions about what YaguareteOS is, how to install it, and how it relates to Bazzite and the Universal Blue ecosystem.',
+      'What YaguareteOS is, how to install it, and how it relates to Bazzite and the Universal Blue ecosystem.',
     items: [
       {
         question: 'Is YaguareteOS just Bazzite with a new logo?',
         answer:
-          'In Phase 0, functionally yes — the image is Bazzite stable plus our pipeline, signing key and registry. Argentine branding (Plymouth, theme, locale defaults, wallpapers) lands incrementally in Phase 1. The point of the project is the sovereign supply chain, not pretending the lineage does not exist.',
+          'In Phase 0, functionally yes — the image is Bazzite stable plus our pipeline, signing key and registry. Argentine branding (Plymouth, theme, locale defaults, wallpapers) lands incrementally in Phase 1. The value-add today is the pipeline itself: we build it, we sign it, we publish it to our registry.',
       },
       {
         question: 'Which variant should I install?',
@@ -156,12 +102,12 @@ const en: Translations = {
           'Verify the signature with cosign against our public key, then run sudo bootc switch ghcr.io/lobinuxsoft/<variant>:stable and reboot. The previous deployment stays on disk as a rollback target. Full step-by-step instructions live in the README.',
       },
       {
-        question: 'Why no government integrations (AFIP, ANSES, Mi Argentina)?',
+        question: 'When will downloadable ISOs be available?',
         answer:
-          'YaguareteOS is Argentine because the maintainer is Argentine, not because it ships state-identity tooling. Privacy and freedom take precedence over locale compliance. A hardened variant tracked in issue #25 is the natural escalation for security-conscious users; state integrations are explicitly out of scope.',
+          'As soon as the first :stable release is cut. The pipeline is already in place (build container → bootc-image-builder → archive.org); what remains is the manual promotion from unstable → testing → stable. The variant download buttons activate automatically when that release exists.',
       },
       {
-        question: 'Where do stable releases live?',
+        question: 'Where will stable releases live?',
         answer:
           'Each :stable promotion produces a GitHub Release plus a dated archive.org item under identifier <image>-stable-<fedora>.<YYYYMMDD>. The container registry serves :stable, :testing and :unstable channels for bootc users; the dated tags pin a specific build.',
       },
