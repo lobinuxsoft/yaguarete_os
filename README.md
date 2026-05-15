@@ -1,7 +1,7 @@
 # YaguareteOS
 
-> 📖 **Download + landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
-> Las ISOs rolling unstable de las 4 variants KDE se publican como descarga directa en archive.org en cada push a `unstable` ([ítems del proyecto](https://archive.org/search?query=creator%3A%22lobinuxsoft%22)). Filename estable por variant: `<image>-unstable-amd64.iso`. Para usuarios bootc, `bootc switch ghcr.io/lobinuxsoft/<image>:unstable` sigue funcionando.
+> 📖 **Landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
+> Las ISOs de cada release `:stable` se publican como GitHub Release + items dated permanentes en archive.org bajo creator `lobinuxsoft` ([listado](https://archive.org/details/@matias_galarza_lobinuxsoft_)). Identifier pattern: `<image>-stable-<fedora>.<YYYYMMDD>`. Para usuarios bootc, `bootc switch ghcr.io/lobinuxsoft/<image>:stable` (o `:unstable` para rolling).
 
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
