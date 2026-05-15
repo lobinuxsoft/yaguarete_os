@@ -389,7 +389,14 @@ spawn-vm rebuild="0" type="qcow2" ram="6G":
 
     [ "{{ rebuild }}" -eq 1 ] && echo "Rebuilding the ISO" && just build-vm {{ rebuild }} {{ type }}
 
+    # systemd-vmspawn does NOT auto-discover OVMF and ships with no NVRAM
+    # vars preconfigured, so the guest used to drop into the UEFI Boot
+    # Manager every time. Pass --firmware=auto and let vmspawn locate
+    # the OVMF code blob on the host (edk2-ovmf package on Fedora) and
+    # spin up its own NVMRAM vars. On hosts where auto-discovery does
+    # not work, override with --firmware=/usr/share/edk2/ovmf/OVMF_CODE.fd.
     systemd-vmspawn \
+      --firmware=auto \
       -M "bootc-image" \
       --console=gui \
       --cpus=2 \
