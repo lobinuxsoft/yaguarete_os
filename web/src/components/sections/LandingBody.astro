@@ -5,7 +5,6 @@ import FAQ from '@components/sections/misc/FAQ.astro';
 import AnnouncementBanner from '@components/ui/banners/AnnouncementBanner.astro';
 import PrimaryCTA from '@components/ui/buttons/PrimaryCTA.astro';
 import SecondaryCTA from '@components/ui/buttons/SecondaryCTA.astro';
-import heroImage from '@images/yaguarete_hero.webp';
 import type { Translations } from '@utils/i18n/types';
 
 interface Props {
@@ -23,16 +22,19 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
   url="https://github.com/lobinuxsoft/yaguarete_os/issues"
 />
 
-<HeroSection
-  title={heroTitle}
-  subTitle={t.hero.subTitle}
-  primaryBtn={t.hero.primaryBtn}
-  primaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
-  secondaryBtn={t.hero.secondaryBtn}
-  secondaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os#readme"
-  src={heroImage}
-  alt={t.hero.heroAlt}
-/>
+{/* Hero is wrapped so BackgroundScroller's IntersectionObserver can observe
+    it as #hero. The side-column image prop is intentionally omitted: the
+    fullscreen wallpaper behind the page already serves as the hero visual. */}
+<section id="hero">
+  <HeroSection
+    title={heroTitle}
+    subTitle={t.hero.subTitle}
+    primaryBtn={t.hero.primaryBtn}
+    primaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
+    secondaryBtn={t.hero.secondaryBtn}
+    secondaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os#readme"
+  />
+</section>
 
 {/* Variants */}
 <section
@@ -41,43 +43,33 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
 >
   <div class="mb-10 max-w-2xl">
     <h2
-      class="text-2xl font-bold text-neutral-800 md:text-3xl lg:text-4xl dark:text-neutral-200"
+      class="text-2xl font-bold text-neutral-100 md:text-3xl lg:text-4xl"
     >
       {t.variants.title}
     </h2>
-    <p class="mt-2 text-neutral-600 dark:text-neutral-400">
-      {t.variants.subTitle}
-    </p>
+    <p class="mt-2 text-neutral-300">{t.variants.subTitle}</p>
   </div>
 
   <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
     {
       t.variants.cards.map(variant => (
-        <li class="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-700 dark:bg-neutral-900/40">
-          <h3 class="font-mono text-sm font-bold break-all text-orange-600 dark:text-orange-400">
+        <li class="flex flex-col rounded-2xl border border-neutral-700/60 bg-neutral-950/60 p-6 shadow-2xl shadow-black/30 backdrop-blur-md">
+          <h3 class="font-mono text-sm font-bold break-all text-orange-400">
             {variant.name}
           </h3>
-          <p class="mt-1 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+          <p class="mt-1 text-sm font-medium text-neutral-100">
             {variant.tag}
           </p>
-          <p class="mt-3 grow text-sm text-neutral-600 dark:text-neutral-400">
-            {variant.description}
-          </p>
+          <p class="mt-3 grow text-sm text-neutral-300">{variant.description}</p>
           <dl class="mt-4 space-y-2 text-xs">
             <div>
-              <dt class="text-neutral-500 dark:text-neutral-500">
-                {t.variants.upstreamLabel}
-              </dt>
-              <dd class="font-mono text-neutral-700 dark:text-neutral-300">
-                {variant.upstream}
-              </dd>
+              <dt class="text-neutral-400">{t.variants.upstreamLabel}</dt>
+              <dd class="font-mono text-neutral-200">{variant.upstream}</dd>
             </div>
             <div>
-              <dt class="text-neutral-500 dark:text-neutral-500">
-                {t.variants.rebaseLabel}
-              </dt>
+              <dt class="text-neutral-400">{t.variants.rebaseLabel}</dt>
               <dd>
-                <code class="block overflow-x-auto rounded bg-neutral-200 p-2 font-mono text-[0.7rem] leading-snug break-all whitespace-pre-wrap text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                <code class="block overflow-x-auto rounded bg-neutral-900/80 p-2 font-mono text-[0.7rem] leading-snug break-all whitespace-pre-wrap text-neutral-100">
                   {variant.rebase}
                 </code>
               </dd>
@@ -88,9 +80,7 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
     }
   </ul>
 
-  <p class="mt-6 text-sm text-neutral-500 dark:text-neutral-400">
-    {t.variants.cosignNote}
-  </p>
+  <p class="mt-6 text-sm text-neutral-400">{t.variants.cosignNote}</p>
 </section>
 
 {/* Sovereign supply chain */}
@@ -116,16 +106,12 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
   class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
 >
   <div
-    class="rounded-2xl border border-neutral-200 bg-neutral-50 p-8 md:p-12 dark:border-neutral-700 dark:bg-neutral-900/40"
+    class="rounded-2xl border border-neutral-700/60 bg-neutral-950/60 p-8 shadow-2xl shadow-black/30 backdrop-blur-md md:p-12"
   >
-    <h2
-      class="max-w-2xl text-2xl font-bold text-neutral-800 md:text-3xl dark:text-neutral-200"
-    >
+    <h2 class="max-w-2xl text-2xl font-bold text-neutral-100 md:text-3xl">
       {t.cta.title}
     </h2>
-    <p class="mt-3 max-w-2xl text-neutral-600 dark:text-neutral-400">
-      {t.cta.body}
-    </p>
+    <p class="mt-3 max-w-2xl text-neutral-300">{t.cta.body}</p>
     <div class="mt-6 grid gap-3 sm:inline-flex">
       <PrimaryCTA
         title={t.cta.primaryBtn}
