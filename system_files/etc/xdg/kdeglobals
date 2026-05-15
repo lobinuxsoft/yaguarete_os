@@ -9,9 +9,12 @@ smallestReadableFont=Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 toolBarFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 
 [KDE]
-LookAndFeelPackage=org.kde.breezedark.desktop
+# Layan-KDE supplies the glass / blur / acrylic structure; YaguareteOS.colors
+# stays selected above so the accent stays #FF4500 (Layan ships its own
+# tealish palette which would override the brand identity if used as-is).
+LookAndFeelPackage=com.github.vinceliuice.Layan
 contrast=4
-widgetStyle=Breeze
+widgetStyle=kvantum-dark
 
 [WM]
 activeBackground=26,26,26

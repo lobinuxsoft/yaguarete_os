@@ -1,0 +1,31 @@
+# KWin configuration to make the Layan-KDE glass / blur feel visible.
+# Settings here are system defaults; users can still override per-account
+# from System Settings → Window Management → Desktop Effects.
+
+[Plugins]
+# Acrylic blur effect — required for the macOS-style translucent panels
+# that Layan-KDE is designed around.
+blurEnabled=true
+# Background-contrast nudges colours behind translucent surfaces so text
+# stays legible regardless of what the wallpaper is showing.
+contrastEnabled=true
+# Slide animations on window switch — matches Layan's animation language.
+slideEnabled=true
+
+[Effect-Blur]
+# 0 (subtle) — 15 (very strong). Layan looks best at 9-11.
+BlurStrength=11
+# Use lighter noise on the blurred surfaces — almost imperceptible but
+# kills banding on solid wallpapers.
+NoiseStrength=4
+
+[Effect-BackgroundContrast]
+# Default values are conservative on Plasma 6; bumping them slightly
+# keeps Layan's pop-up surfaces readable on a dark wallpaper.
+
+[Compositing]
+# Smoother animations + better blur performance on Wayland.
+AnimationSpeed=3
+Backend=OpenGL
+GLCore=true
+WindowsBlockCompositing=false

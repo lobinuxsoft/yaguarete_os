@@ -61,6 +61,29 @@ dnf5 install -y glibc-langpack-es
 # image overlay value wins.
 echo 'LANG=es_AR.UTF-8' >/etc/locale.conf
 
+### Theme: Layan-KDE base Look-And-Feel.
+# Provides macOS-style glass / blur / transparency effects that match the
+# YaguareteOS jungle aesthetic. Our own `YaguareteOS.colors` color scheme
+# stays on top of it for the #FF4500 accent — kdeglobals stitches the
+# two together (Layan structure + YaguareteOS palette).
+#
+# Pinned to a specific commit SHA so an upstream change cannot mutate the
+# theme out from under us between builds. To bump:
+#   1. Verify the new SHA at https://github.com/vinceliuice/Layan-kde/commits/master
+#   2. Update LAYAN_SHA below.
+#   3. Commit as `chore(theme): bump Layan-kde <old> -> <new>`.
+LAYAN_REPO="https://github.com/vinceliuice/Layan-kde.git"
+LAYAN_SHA="a0b6a4956022276aee33309b2e07d1d0ef3db30c"
+LAYAN_TMP=$(mktemp -d)
+git clone --quiet --filter=blob:none "$LAYAN_REPO" "$LAYAN_TMP"
+git -C "$LAYAN_TMP" checkout --quiet "$LAYAN_SHA"
+# install.sh detects UID 0 and writes to /usr/share/{aurorae,color-schemes,
+# Kvantum,plasma/{desktoptheme,look-and-feel},wallpapers}.
+(cd "$LAYAN_TMP" && bash ./install.sh)
+# SDDM theme of Layan is shipped under sddm/; install only if Layan SDDM
+# is desired (left out by default — Plasma 6 plasmalogin handles login).
+rm -rf "$LAYAN_TMP"
+
 ### Branding: prune upstream Bazzite/Fedora/UBlue wallpapers from the
 # Plasma wallpaper switcher. Keep KDE defaults (Altai, Cascade, ...) and
 # Steam Deck Logo set (useful for handheld variants).
@@ -129,19 +152,21 @@ sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
 ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-portal.svg \
     /usr/share/icons/hicolor/scalable/apps/io.github.ublue_os.yafti_gtk.svg
 
-### Branding: plasmalogin (Plasma 6 display manager) greeter wallpaper.
-# Bazzite pattern: do not override /usr/lib/plasmalogin/defaults.conf
-# (upstream Fedora ships it referencing file:///usr/share/backgrounds/
-# default.jxl). Instead, swap the destination of that path so the
-# upstream default resolution lands on the YaguareteOS wallpaper.
-# Bazzite redirects to convergence.jxl this same way; we redirect to
-# yaguarete_02 (the W2 lockscreen slot from Phase 3).
-# Extension stays .jxl even though the target is .jpg — Plasma 6 / Qt 6
+### Branding: plasmalogin (Plasma 6 display manager) + desktop default
+# wallpaper. Bazzite pattern: do not override
+# /usr/lib/plasmalogin/defaults.conf (upstream Fedora ships it referencing
+# file:///usr/share/backgrounds/default.jxl). Instead, swap the
+# destination of that path so the upstream default resolution lands on
+# the YaguareteOS wallpaper. Bazzite redirects to convergence.jxl this
+# same way; we redirect to yaguarete_selva_oscura.png — dark jungle
+# texture that pairs with the Layan-KDE glass / blur (see #118).
+#
+# Extension stays .jxl even though the target is .png — Plasma 6 / Qt 6
 # decodes by magic bytes, not by extension. Same trade-off applied to
 # the bazzite-logo.svg → yaguarete-logo.svg redirect block above.
-ln -sf /usr/share/wallpapers/yaguarete/yaguarete_02.jpg \
+ln -sf /usr/share/wallpapers/yaguarete/yaguarete_selva_oscura.png \
     /usr/share/backgrounds/default.jxl
-ln -sf /usr/share/wallpapers/yaguarete/yaguarete_02.jpg \
+ln -sf /usr/share/wallpapers/yaguarete/yaguarete_selva_oscura.png \
     /usr/share/backgrounds/default-dark.jxl
 
 ### Branding: pre-flatten the 256x256 yaguarete logo onto solid black so
