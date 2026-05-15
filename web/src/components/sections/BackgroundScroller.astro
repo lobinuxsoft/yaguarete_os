@@ -1,0 +1,122 @@
+---
+import { Image } from 'astro:assets';
+import bgHero from '@images/bg_hero.webp';
+import bgVariants from '@images/bg_variants.webp';
+import bgSovereign from '@images/bg_sovereign.webp';
+import bgInheritance from '@images/bg_inheritance.webp';
+import bgFaq from '@images/bg_faq.webp';
+
+// Section-tied full-bleed backgrounds. Each entry's `id` matches an anchor
+// in the rewritten landing (#variants, #sovereign, #inheritance, #faq) plus
+// `hero` for the initial viewport (the page top has no explicit anchor, so
+// the script falls back to the hero bg when nothing else is intersecting).
+const backgrounds = [
+  { id: 'hero', src: bgHero, alt: 'Selva oscura — jungla nocturna' },
+  { id: 'variants', src: bgVariants, alt: 'Amanecer — variantes y hardware' },
+  {
+    id: 'sovereign',
+    src: bgSovereign,
+    alt: 'Jaguar artwork — supply chain soberano',
+  },
+  {
+    id: 'inheritance',
+    src: bgInheritance,
+    alt: 'Paisaje majestuoso — herencia upstream',
+  },
+  { id: 'faq', src: bgFaq, alt: 'Cyberpunk yaguareté — preguntas y futuro' },
+];
+---
+
+<div
+  id="bg-scroller"
+  aria-hidden="true"
+  class="pointer-events-none fixed inset-0 -z-20 overflow-hidden"
+>
+  {
+    backgrounds.map((bg, idx) => (
+      <Image
+        src={bg.src}
+        alt={bg.alt}
+        data-bg-id={bg.id}
+        widths={[1280, 1600, 1920]}
+        sizes="100vw"
+        class:list={[
+          'absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-[1200ms] ease-out',
+          idx === 0 ? 'opacity-100' : 'opacity-0',
+        ]}
+        loading={idx === 0 ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    ))
+  }
+</div>
+
+<!-- Dark overlay for legibility on top of the photographic backgrounds. -->
+<div
+  aria-hidden="true"
+  class="pointer-events-none fixed inset-0 -z-10 bg-neutral-950/65 dark:bg-neutral-950/70"
+>
+</div>
+
+<script>
+  // Cross-fade the section-tied background as the user scrolls. We watch the
+  // section anchors that already exist in the landing and switch the bg
+  // image whose data-bg-id matches the most visible one.
+  const SECTION_IDS = [
+    'hero',
+    'variants',
+    'sovereign',
+    'inheritance',
+    'faq',
+  ] as const;
+
+  type SectionId = (typeof SECTION_IDS)[number];
+
+  function setActiveBg(id: SectionId) {
+    document.querySelectorAll<HTMLElement>('[data-bg-id]').forEach(el => {
+      const active = el.dataset.bgId === id;
+      el.classList.toggle('opacity-100', active);
+      el.classList.toggle('opacity-0', !active);
+    });
+  }
+
+  // Track visibility ratios so we always pick the section with the largest
+  // viewport overlap — avoids flickering when two sections briefly share the
+  // viewport at boundaries.
+  const ratios = new Map<SectionId, number>(
+    SECTION_IDS.map(id => [id, 0])
+  );
+
+  function pickMostVisible(): SectionId {
+    let best: SectionId = 'hero';
+    let bestRatio = -1;
+    for (const id of SECTION_IDS) {
+      const r = ratios.get(id) ?? 0;
+      if (r > bestRatio) {
+        bestRatio = r;
+        best = id;
+      }
+    }
+    return best;
+  }
+
+  const observer = new IntersectionObserver(
+    entries => {
+      for (const entry of entries) {
+        const id = entry.target.id as SectionId;
+        ratios.set(id, entry.intersectionRatio);
+      }
+      setActiveBg(pickMostVisible());
+    },
+    {
+      // Many fine-grained thresholds so we get continuous ratio updates as
+      // the user scrolls instead of single binary in/out events.
+      threshold: Array.from({ length: 21 }, (_, i) => i / 20),
+    }
+  );
+
+  for (const id of SECTION_IDS) {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  }
+</script>

@@ -1,6 +1,11 @@
 ---
-import { languages } from '@utils//ui';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { languages } from '@utils/ui';
 import Icon from './icons/Icon.astro';
+
+// Each entry maps locale code → display label. URLs are resolved server-side
+// via getRelativeLocaleUrl so the /yaguarete_os base prefix is preserved and
+// the default locale stays unprefixed.
 ---
 
 <div class="hs-dropdown relative inline-flex">
@@ -30,11 +35,11 @@ import Icon from './icons/Icon.astro';
     aria-labelledby="hs-dropdown-hover-event"
   >
     {
-      // Map through the list of languages, creating a link for each language
       Object.entries(languages).map(([lang, label]) => (
         <a
           class="flex items-center gap-x-3.5 rounded-lg px-3 py-2 text-sm text-neutral-800 hover:bg-neutral-100 focus:bg-neutral-100 focus:outline-hidden dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700"
-          href={`/${lang === 'en' ? '' : lang}`}
+          href={getRelativeLocaleUrl(lang, '/')}
+          hreflang={lang}
         >
           {label}
         </a>
@@ -42,48 +47,3 @@ import Icon from './icons/Icon.astro';
     }
   </div>
 </div>
-
-<script>
-  // Type alias for supported languages
-  type TLanguage = 'en' | 'fr';
-  // array of supported languages
-  const languages: TLanguage[] = ['en', 'fr'];
-
-  document.addEventListener('DOMContentLoaded', function () {
-    // Only target language picker links
-    const languageLinks = document.querySelectorAll(
-      ".hs-dropdown-menu[aria-labelledby='hs-dropdown-hover-event'] a"
-    );
-
-    languageLinks.forEach(element => {
-      const link = element as HTMLAnchorElement;
-      const lang = link
-        .getAttribute('href')
-        ?.replace('/', '')
-        .replace('/', '') as TLanguage;
-
-      link.addEventListener('click', function (event) {
-        event.preventDefault();
-
-        const url = new URL(window.location.href);
-
-        const currentPath = url.pathname
-          .split('/')
-          .filter(part => part && !languages.includes(part as TLanguage))
-          .join('/');
-
-        let newPath = '';
-        if (lang && lang !== 'en') {
-          newPath = `/${lang}/${currentPath}`;
-        } else {
-          newPath = `/${currentPath}`;
-        }
-
-        newPath = newPath.replace(/\/+/g, '/');
-        if (newPath === '') newPath = '/';
-
-        window.location.href = `${url.origin}${newPath}${url.search}`;
-      });
-    });
-  });
-</script>
