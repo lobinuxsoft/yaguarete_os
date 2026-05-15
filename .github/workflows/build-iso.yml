@@ -256,13 +256,13 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
 
           # Single config file so `ia` finds the IAS3 credentials.
-          mkdir -p "$HOME/.config/ia"
-          cat > "$HOME/.config/ia/ia.ini" <<INI
+          mkdir -p "$HOME/.config/internetarchive"
+          cat > "$HOME/.config/internetarchive/ia.ini" <<INI
           [s3]
           access = ${IA_ACCESS_KEY}
           secret = ${IA_SECRET_KEY}
           INI
-          chmod 0600 "$HOME/.config/ia/ia.ini"
+          chmod 0600 "$HOME/.config/internetarchive/ia.ini"
 
           # Rename to stable filename so the public download URL never moves.
           dated_iso=$(ls "${ISO_UPLOAD_DIR}"/*.iso | head -1)
@@ -287,5 +287,5 @@ jobs:
 
           # Best-effort secret wipe from the runner FS. Process env is
           # discarded when the step ends regardless.
-          rm -f "$HOME/.config/ia/ia.ini"
+          rm -f "$HOME/.config/internetarchive/ia.ini"
           echo "::notice::Published https://archive.org/details/${identifier}"
