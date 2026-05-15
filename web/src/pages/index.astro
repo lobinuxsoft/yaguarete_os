@@ -9,6 +9,7 @@ import FAQ from '@components/sections/misc/FAQ.astro';
 import AnnouncementBanner from '@components/ui/banners/AnnouncementBanner.astro';
 import PrimaryCTA from '@components/ui/buttons/PrimaryCTA.astro';
 import SecondaryCTA from '@components/ui/buttons/SecondaryCTA.astro';
+import heroImage from '@images/yaguarete_hero.webp';
 
 interface Variant {
   name: string;
@@ -159,6 +160,8 @@ const faqData = {
     primaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
     secondaryBtn="Read the README"
     secondaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os#readme"
+    src={heroImage}
+    alt="Selva oscura — the dark Argentine jungle that gives YaguareteOS its visual identity"
   />
 
   {/* Variants */}
