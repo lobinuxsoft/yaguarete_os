@@ -73,18 +73,41 @@ jobs:
             echo "mnt_is_there=0" >>$GITHUB_OUTPUT
           fi
 
+      # Aggressive flags: free-disk-space keeps a lot of preinstalled stacks
+      # by default. For deck the F43-vs-F44 lockstep duplicates several
+      # paralel package sets during the rpm-ostree swap and the runner
+      # ran out of disk. Pruning Android SDKs, .NET, Haskell, large APT
+      # packages, prebuilt Docker images and swap recovers ~50 GB extra
+      # vs the default ~30 GB.
       - name: Free Disk Space (Ubuntu)
         if: ${{ steps.check_mnt.outputs.mnt_is_there == '1' }}
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Mount Container Storage BTRFS Loopback
         run: |
-          sudo truncate -s 70G /mnt/podman-storage.img
+          # /mnt on ubuntu-24.04 free-tier runners exposes ~75 GB. The
+          # loopback file is sparse so we ask for the full available
+          # window; podman never sees disk pressure until the underlying
+          # /mnt itself fills, which only happens on the deck variant
+          # because of the parallel F43/F44 libs during the swap.
+          sudo truncate -s 75G /mnt/podman-storage.img
           sudo mkfs.btrfs -f /mnt/podman-storage.img
           sudo podman system reset --force
           sudo systemctl stop podman.service
           sudo mount -o compress-force=zstd:2 /mnt/podman-storage.img /var/lib/containers/storage
           sudo systemctl start podman.service
+
+      - name: Report disk space after setup
+        run: |
+          df -h
+          echo "::notice::Pre-build disk: $(df -h /mnt /var/lib/containers/storage | tail -2)"
 
       - name: Checkout Repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
