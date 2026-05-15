@@ -1,38 +1,62 @@
-// An array of links for navigation bar
+// Navigation data for the landing.
+//
+// All in-page routes are single-page anchors against the rewritten index.
+// External project links point at the canonical YaguareteOS repo on GitHub,
+// not the upstream ScrewFast template.
+
 const navBarLinks = [
-  { name: 'Home', url: '/' },
-  { name: 'Products', url: '/products' },
-  { name: 'Services', url: '/services' },
-  { name: 'Blog', url: '/blog' },
-  { name: 'Contact', url: '/contact' },
+  { name: 'Variants', url: '#variants' },
+  { name: 'Sovereignty', url: '#sovereign' },
+  { name: 'Inheritance', url: '#inheritance' },
+  { name: 'FAQ', url: '#faq' },
 ];
-// An array of links for footer
+
 const footerLinks = [
   {
-    section: 'Ecosystem',
+    section: 'Project',
     links: [
-      { name: 'Documentation', url: '/welcome-to-docs/' },
-      { name: 'Tools & Equipment', url: '/products' },
-      { name: 'Construction Services', url: '/services' },
+      {
+        name: 'GitHub',
+        url: 'https://github.com/lobinuxsoft/yaguarete_os',
+      },
+      {
+        name: 'Releases',
+        url: 'https://github.com/lobinuxsoft/yaguarete_os/releases',
+      },
+      {
+        name: 'README',
+        url: 'https://github.com/lobinuxsoft/yaguarete_os#readme',
+      },
+      {
+        name: 'ADRs',
+        url: 'https://github.com/lobinuxsoft/yaguarete_os/tree/main/docs/adr',
+      },
     ],
   },
   {
-    section: 'Company',
+    section: 'Upstream',
     links: [
-      { name: 'About us', url: '#' },
-      { name: 'Blog', url: '/blog' },
-      { name: 'Careers', url: '#' },
-      { name: 'Customers', url: '#' },
+      { name: 'Bazzite', url: 'https://bazzite.gg/' },
+      { name: 'Universal Blue', url: 'https://universal-blue.org/' },
+      {
+        name: 'Fedora Atomic',
+        url: 'https://fedoraproject.org/atomic-desktops/',
+      },
+      { name: 'bootc', url: 'https://github.com/containers/bootc' },
     ],
   },
 ];
-// An object of links for social icons
+
+// FooterSection.astro hard-references these keys; keep the shape stable and
+// point every entry at the canonical project URL until/unless real social
+// accounts exist.
+const projectUrl = 'https://github.com/lobinuxsoft/yaguarete_os';
 const socialLinks = {
-  facebook: 'https://www.facebook.com/',
-  x: 'https://twitter.com/',
-  github: 'https://github.com/mearashadowfax/ScrewFast',
-  google: 'https://www.google.com/',
-  slack: 'https://slack.com/',
+  facebook: projectUrl,
+  x: projectUrl,
+  github: projectUrl,
+  google: projectUrl,
+  slack: projectUrl,
 };
 
 export default {

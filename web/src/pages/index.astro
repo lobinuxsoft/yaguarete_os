@@ -1,147 +1,277 @@
 ---
-// Import the necessary components
+// YaguareteOS landing — content reflects the actual project, not the upstream
+// ScrewFast demo. Image swaps (hero / variant illustrations) land in a
+// follow-up commit; this rewrite focuses on copy + structure.
 import MainLayout from '@/layouts/MainLayout.astro';
 import HeroSection from '@components/sections/landing/HeroSection.astro';
-import HeroSectionAlt from '@components/sections/landing/HeroSectionAlt.astro';
-import ClientsSection from '@components/sections/landing/ClientsSection.astro';
 import FeaturesGeneral from '@components/sections/features/FeaturesGeneral.astro';
-import FeaturesNavs from '@components/sections/features/FeaturesNavs.astro';
-import TestimonialsSection from '@components/sections/testimonials/TestimonialsSection.astro';
-import PricingSection from '@components/sections/pricing/PricingSection.astro';
 import FAQ from '@components/sections/misc/FAQ.astro';
 import AnnouncementBanner from '@components/ui/banners/AnnouncementBanner.astro';
-import heroImage from '@images/hero-image.avif';
-import faqs from '@data/faqs.json';
-import features from '@data/features.json';
-import pricing from '@data/pricing.json';
-import featureImage from '@images/features-image.avif';
-import construction from '@images/construction-image.avif';
-import tools from '@images/automated-tools.avif';
-import dashboard from '@images/dashboard-image.avif';
-import { partnersData } from '@/data_files/constants';
+import PrimaryCTA from '@components/ui/buttons/PrimaryCTA.astro';
+import SecondaryCTA from '@components/ui/buttons/SecondaryCTA.astro';
 
-const avatarSrcs: Array<string> = [
-  'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
-  'https://images.unsplash.com/photo-1531927557220-a9e23c1e4794?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
-  'https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&&auto=format&fit=facearea&facepad=3&w=300&h=300&q=80',
-  'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=300&h=300&q=80',
+interface Variant {
+  name: string;
+  tag: string;
+  description: string;
+  upstream: string;
+  rebase: string;
+}
+
+const variants: Variant[] = [
+  {
+    name: 'yaguarete_os',
+    tag: 'AMD / Intel desktop',
+    description:
+      'Default variant. Picks the open-source graphics stack and works on most non-NVIDIA hardware.',
+    upstream: 'bazzite:stable',
+    rebase: 'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable',
+  },
+  {
+    name: 'yaguarete_os-nvidia',
+    tag: 'NVIDIA proprietary',
+    description:
+      'NVIDIA GPU with the proprietary driver. Recommended for gaming on NVIDIA hardware today.',
+    upstream: 'bazzite-nvidia:stable',
+    rebase:
+      'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:stable',
+  },
+  {
+    name: 'yaguarete_os-nvidia-open',
+    tag: 'NVIDIA open kernel module',
+    description:
+      'NVIDIA GPU with the open kernel module (Turing+). Server / dev workstation oriented.',
+    upstream: 'bazzite-nvidia-open:stable',
+    rebase:
+      'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:stable',
+  },
+  {
+    name: 'yaguarete_os-deck',
+    tag: 'Handheld (Steam Deck, OneXFly, ROG Ally)',
+    description:
+      'Boots into game mode by default. ISO build is still gated by issue #112; rebase from Bazzite-deck works today.',
+    upstream: 'bazzite-deck:stable',
+    rebase: 'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:stable',
+  },
 ];
+
+const sovereignFeatures = [
+  {
+    heading: 'Our build pipeline',
+    content:
+      'CI runners, build policies and release workflow live in this repo. No third-party builders, no opaque promotion steps.',
+    svg: 'tools',
+  },
+  {
+    heading: 'Our signing keypair',
+    content:
+      'cosign keypair under our control. Public key shipped in-tree; private key offline. Every published image is signed and verifiable.',
+    svg: 'verified',
+  },
+  {
+    heading: 'Our distribution registry',
+    content:
+      'Images published to ghcr.io/lobinuxsoft/yaguarete_os. Stable releases are mirrored as dated identifiers on archive.org for long-term preservation.',
+    svg: 'rocket',
+  },
+  {
+    heading: 'Our branding and locale',
+    content:
+      'Guaraní project naming, Spanish-first defaults, es-AR locale, native wallpapers. Cultural, not governmental — no state-identity tooling bundled.',
+    svg: 'sparks',
+  },
+];
+
+const inheritedFeatures = [
+  {
+    heading: 'Base image — Bazzite',
+    content:
+      'KDE desktop, Steam, Proton-GE, GameMode, gamescope, MangoHud and the latest Mesa/AMD drivers inherit straight from bazzite:stable.',
+    svg: 'community',
+  },
+  {
+    heading: 'Build system — Universal Blue',
+    content:
+      'Containerfile + system_files overlay + just recipes follow the Universal Blue image-template layout. Recipes are kept compatible upstream.',
+    svg: 'puzzle',
+  },
+  {
+    heading: 'Atomic updates — bootc',
+    content:
+      'Image-based OS with transactional updates and atomic rollback via bootc on top of Fedora Atomic. Roll forward, roll back, reboot.',
+    svg: 'frame',
+  },
+  {
+    heading: 'Gaming stack — Valve + community',
+    content:
+      'Steam, Proton-GE, MangoHud, gamescope and the rest of the handheld-friendly stack are pulled from upstream — credited, not rebadged.',
+    svg: 'guides',
+  },
+];
+
+const faqData = {
+  subTitle:
+    'Common questions about what YaguareteOS is, how to install it, and how it relates to Bazzite and the Universal Blue ecosystem.',
+  faqs: [
+    {
+      question: 'Is YaguareteOS just Bazzite with a new logo?',
+      answer:
+        'In Phase 0, functionally yes — the image is Bazzite stable plus our pipeline, signing key and registry. Argentine branding (Plymouth, theme, locale defaults, wallpapers) lands incrementally in Phase 1. The point of the project is the sovereign supply chain, not pretending the lineage does not exist.',
+    },
+    {
+      question: 'Which variant should I install?',
+      answer:
+        'AMD or Intel GPU on a desktop or laptop → yaguarete_os. NVIDIA with the proprietary driver → yaguarete_os-nvidia. NVIDIA with the open kernel module (Turing+) → yaguarete_os-nvidia-open. Steam Deck, OneXFly or ROG Ally → yaguarete_os-deck (rebase only for now; the deck ISO build is tracked in issue #112).',
+    },
+    {
+      question: 'How do I rebase from another bootc system?',
+      answer:
+        'Verify the signature with cosign against our public key, then run sudo bootc switch ghcr.io/lobinuxsoft/<variant>:stable and reboot. The previous deployment stays on disk as a rollback target. Full step-by-step instructions live in the README.',
+    },
+    {
+      question: 'Why no government integrations (AFIP, ANSES, Mi Argentina)?',
+      answer:
+        'YaguareteOS is Argentine because the maintainer is Argentine, not because it ships state-identity tooling. Privacy and freedom take precedence over locale compliance. A hardened variant tracked in issue #25 is the natural escalation for security-conscious users; state integrations are explicitly out of scope.',
+    },
+    {
+      question: 'Where do stable releases live?',
+      answer:
+        'Each :stable promotion produces a GitHub Release plus a dated archive.org item under identifier <image>-stable-<fedora>.<YYYYMMDD>. The container registry serves :stable, :testing and :unstable channels for bootc users; the dated tags pin a specific build.',
+    },
+  ],
+};
 ---
 
-<MainLayout>
+<MainLayout
+  title="YaguareteOS — Sovereign bootc-based KDE for gaming and dev"
+  lang="en"
+>
   <AnnouncementBanner
-    btnId="dismiss-button"
-    btnTitle="Explore ScrewFast on GitHub"
-    url="https://github.com/mearashadowfax/ScrewFast"
+    btnId="phase-banner-dismiss"
+    btnTitle="Phase 0 caveat — Argentine branding lands in Phase 1"
+    url="https://github.com/lobinuxsoft/yaguarete_os/issues"
   />
 
   <HeroSection
-    title=`Equip Your Projects with <span
-        class="text-yellow-500 dark:text-yellow-400">ScrewFast</span>`
-    subTitle="Top-quality hardware tools and expert construction services for every project need."
-    primaryBtn="Start Exploring"
-    primaryBtnURL="/products"
-    secondaryBtn="Contact Sales Team"
-    secondaryBtnURL="/contact"
-    withReview={true}
-    avatars={avatarSrcs}
-    rating=`<span class="font-bold">4.8</span> / 5`
-    starCount={4}
-    reviews=`From Over <span class="font-bold">12.8k</span> Reviews`
-    src={heroImage}
-    alt="Stack of ScrewFast product boxes containing assorted hardware tools"
+    title={`<span class="text-orange-500 dark:text-orange-400">Yaguarete</span>OS`}
+    subTitle="A bootable, image-based KDE distribution built on top of Bazzite (Universal Blue / Fedora Atomic). Gaming-ready, atomically updated, signed in our own CI."
+    primaryBtn="Get the latest release"
+    primaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
+    secondaryBtn="Read the README"
+    secondaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os#readme"
   />
 
-  <ClientsSection
-    title="Trusted by Industry Leaders"
-    subTitle="Experience the reliability chosen by industry giants."
-    partners={partnersData}
-  />
+  {/* Variants */}
+  <section
+    id="variants"
+    class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
+  >
+    <div class="mb-10 max-w-2xl">
+      <h2
+        class="text-2xl font-bold text-neutral-800 md:text-3xl lg:text-4xl dark:text-neutral-200"
+      >
+        Four KDE variants, one pipeline
+      </h2>
+      <p class="mt-2 text-neutral-600 dark:text-neutral-400">
+        Pick the variant that matches your hardware. All four are built from
+        the same source tree and signed with the same cosign keypair. GNOME
+        variants are intentionally not offered — this is a KDE-only project.
+      </p>
+    </div>
 
-  <FeaturesGeneral
-    title="Meeting Industry Demands"
-    subTitle="At ScrewFast, we tackle the unique challenges encountered in the hardware and construction sectors. From cutting-edge tools to expert services, we're dedicated to helping you overcome obstacles and achieve your goals."
-    src={featureImage}
-    alt="ScrewFast products in floating boxes"
-    features={features}
-  />
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        variants.map(variant => (
+          <li class="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-700 dark:bg-neutral-900/40">
+            <h3 class="font-mono text-sm font-bold break-all text-orange-600 dark:text-orange-400">
+              {variant.name}
+            </h3>
+            <p class="mt-1 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              {variant.tag}
+            </p>
+            <p class="mt-3 grow text-sm text-neutral-600 dark:text-neutral-400">
+              {variant.description}
+            </p>
+            <dl class="mt-4 space-y-2 text-xs">
+              <div>
+                <dt class="text-neutral-500 dark:text-neutral-500">Upstream</dt>
+                <dd class="font-mono text-neutral-700 dark:text-neutral-300">
+                  {variant.upstream}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-neutral-500 dark:text-neutral-500">Rebase</dt>
+                <dd>
+                  <code class="block overflow-x-auto rounded bg-neutral-200 p-2 font-mono text-[0.7rem] leading-snug break-all whitespace-pre-wrap text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                    {variant.rebase}
+                  </code>
+                </dd>
+              </div>
+            </dl>
+          </li>
+        ))
+      }
+    </ul>
 
-  <FeaturesNavs
-    title=`Customize <span class="text-yellow-500 dark:text-yellow-400">ScrewFast</span>'s offerings to perfectly suit your hardware and construction needs.`
-    tabs={[
-      {
-        heading: 'Cutting-Edge Tools',
-        content:
-          "Empower your projects with ScrewFast's cutting-edge tools. Experience enhanced efficiency in construction management with our sophisticated automated solutions.",
-        svg: 'tools',
-        src: tools,
-        alt: 'Yellow and black heavy equipment on brown grass field',
-        first: true,
-      },
-      {
-        heading: 'Intuitive Dashboards',
-        content:
-          "Navigate with ease using ScrewFast's intuitive dashboards. Set up and oversee your projects seamlessly, with user-friendly interfaces designed for quick and effective workflow management.",
-        svg: 'dashboard',
-        src: dashboard,
-        alt: 'A screenshot or graphic representation of the intuitive dashboard',
-        second: true,
-      },
-      {
-        heading: 'Robust Features',
-        content:
-          "Minimize complexity, maximize productivity. ScrewFast's robust features are engineered to streamline your construction process, delivering results that stand out for their excellence.",
-        svg: 'house',
-        src: construction,
-        alt: 'Gray metal building frame near tower crane during daytime',
-      },
-    ]}
-  />
+    <p class="mt-6 text-sm text-neutral-500 dark:text-neutral-400">
+      Verify the image signature with{' '}
+      <code class="font-mono">cosign verify</code> against{' '}
+      <code class="font-mono">cosign.pub</code> before running{' '}
+      <code class="font-mono">bootc switch</code>. Full instructions in the
+      README.
+    </p>
+  </section>
 
-  <TestimonialsSection
-    title="Fast-Track Your Projects"
-    subTitle="At ScrewFast, we ensure a swift start with instant account setup. Experience the speed of construction redefined."
-    ;
-    testimonials={[
-      {
-        content:
-          'ScrewFast dramatically boosted our project efficiency. Setup was instant, and their rapid response times are phenomenal. Truly a game-changer in hardware and construction support!',
-        author: 'Samantha Ruiz',
-        role: 'Chief Operating Officer | ConstructIt Inc.',
-        avatarSrc:
-          'https://images.unsplash.com/photo-1593104547489-5cfb3839a3b5?q=80&w=1453&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80',
-      },
-    ]}
-    statistics={[
-      {
-        count: '70k+',
-        description:
-          'customers equipped — from DIY to major construction firms',
-      },
-      {
-        count: '35%',
-        description:
-          'uptick in project efficiency with ScrewFast tools and services',
-      },
-      {
-        count: '15.3%',
-        description:
-          'reduction in maintenance costs reported by long-term clients',
-      },
-      {
-        count: '2x',
-        description: 'quicker assembly using innovative fastening solutions',
-      },
-    ]}
-  />
+  {/* Sovereign supply chain */}
+  <div id="sovereign">
+    <FeaturesGeneral
+      title="What is sovereign"
+      subTitle="Digital sovereignty here means controlling the pipeline — signing keys, build infrastructure, distribution registry, project governance, branding — not hiding technical inheritance."
+      features={sovereignFeatures}
+    />
+  </div>
 
-  <PricingSection pricing={pricing} />
+  {/* Inherited and credited */}
+  <div id="inheritance">
+    <FeaturesGeneral
+      title="What is inherited (openly credited)"
+      subTitle="YaguareteOS does not hide its lineage. Sibling Universal Blue derivatives such as Bluefin and Aurora attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add."
+      features={inheritedFeatures}
+    />
+  </div>
 
-  <FAQ title="Frequently<br />asked questions" faqs={faqs} />
+  {/* CTA block */}
+  <section
+    class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
+  >
+    <div
+      class="rounded-2xl border border-neutral-200 bg-neutral-50 p-8 md:p-12 dark:border-neutral-700 dark:bg-neutral-900/40"
+    >
+      <h2
+        class="max-w-2xl text-2xl font-bold text-neutral-800 md:text-3xl dark:text-neutral-200"
+      >
+        Build it yourself, rebase from a bootc host, or grab a signed release.
+      </h2>
+      <p class="mt-3 max-w-2xl text-neutral-600 dark:text-neutral-400">
+        Containerfile + just recipes are reproducible on any Bazzite, Bluefin,
+        Aurora or Fedora Atomic host with podman 5.8+. Stable releases ship as
+        signed OCI tags and as dated ISO/qcow2 artefacts on archive.org.
+      </p>
+      <div class="mt-6 grid gap-3 sm:inline-flex">
+        <PrimaryCTA
+          title="Latest release"
+          url="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
+        />
+        <SecondaryCTA
+          title="GitHub repo"
+          url="https://github.com/lobinuxsoft/yaguarete_os"
+        />
+      </div>
+    </div>
+  </section>
 
-  <HeroSectionAlt
-    title="Let's Build Together"
-    subTitle="ScrewFast is an open-source template, meticulously crafted with Astro, Tailwind CSS, and Preline UI frameworks."
-    url="https://github.com/mearashadowfax/ScrewFast"
-  />
+  {/* FAQ */}
+  <div id="faq">
+    <FAQ title="Frequently asked questions" faqs={faqData} />
+  </div>
 </MainLayout>
