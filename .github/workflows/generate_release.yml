@@ -34,6 +34,9 @@ jobs:
     permissions:
       contents: write
       packages: read
+      # actions: read so we can `gh run download` the ISOs that the
+      # most recent build-iso run on `testing` produced.
+      actions: read
     steps:
       - name: Checkout testing
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -119,3 +122,155 @@ jobs:
             --notes-file "$NOTES_FILE" \
             --generate-notes \
             --latest
+
+      # archive.org upload of the four stable ISOs. Each release gets its
+      # own dated identifier (Garuda-style permanent history), so older
+      # releases stay accessible at their original URLs and the new one
+      # appears alongside them in the lobinuxsoft creator page.
+      #
+      # We download the ISOs from the latest successful build-iso run on
+      # `testing` (the run that produced the very digests retag.yml just
+      # promoted). If the maintainer's archive.org secrets are missing or
+      # the build-iso run is missing some variant (e.g. the deck variant
+      # is currently broken — see #112), we skip that one gracefully.
+      - name: Download ISOs from latest testing build-iso run
+        id: artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eo pipefail
+          RUN_ID=$(gh run list \
+            --workflow=build-iso.yml \
+            --branch=testing \
+            --status=success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId // empty')
+          if [ -z "$RUN_ID" ]; then
+            # Build-iso may have completed with failure (e.g. one variant broken
+            # while the others published artifacts). Fall back to the most
+            # recent run, success-or-not — `gh run download` only pulls the
+            # artifacts that actually exist.
+            RUN_ID=$(gh run list \
+              --workflow=build-iso.yml \
+              --branch=testing \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId // empty')
+          fi
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::No build-iso run found on testing branch."
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
+          mkdir -p iso_artifacts
+          gh run download "$RUN_ID" --dir iso_artifacts || true
+          echo "::notice::Downloaded artifacts from build-iso run $RUN_ID"
+          ls -lh iso_artifacts/ || true
+
+      - name: Render archive.org thumbnail from logo SVG
+        run: |
+          set -eo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends imagemagick librsvg2-bin
+          mkdir -p thumbs
+          # 1024x1024 with the page background colour (#1A1A1A) baked in
+          # so the thumbnail reads cleanly on archive.org's white listings
+          # as well as our own black landing.
+          magick -background "#1A1A1A" -density 192 -resize 1024x1024 \
+            system_files/usr/share/yaguarete/branding/yaguarete_os_vector_01.svg \
+            thumbs/__ia_thumb.png
+          ls -lh thumbs/__ia_thumb.png
+
+      - name: Upload stable ISOs to archive.org
+        env:
+          IA_ACCESS_KEY: ${{ secrets.ARCHIVE_ORG_ACCESS_KEY }}
+          IA_SECRET_KEY: ${{ secrets.ARCHIVE_ORG_SECRET_KEY }}
+          UPSTREAM_TAG: ${{ steps.derive.outputs.upstream_tag }}
+          FEDORA: ${{ steps.derive.outputs.fedora_version }}
+          STABLE_TAG: ${{ steps.derive.outputs.stable_tag }}
+        run: |
+          set -eo pipefail
+          if [ -z "$IA_ACCESS_KEY" ] || [ -z "$IA_SECRET_KEY" ]; then
+            echo "::warning::archive.org keys missing (ARCHIVE_ORG_ACCESS_KEY / ARCHIVE_ORG_SECRET_KEY). Skipping upload — the GitHub Release with ghcr.io pulls still works."
+            exit 0
+          fi
+
+          python3 -m pip install --user --quiet internetarchive
+          export PATH="$HOME/.local/bin:$PATH"
+          mkdir -p "$HOME/.config/internetarchive"
+          cat > "$HOME/.config/internetarchive/ia.ini" <<INI
+          [s3]
+          access = ${IA_ACCESS_KEY}
+          secret = ${IA_SECRET_KEY}
+          INI
+          chmod 0600 "$HOME/.config/internetarchive/ia.ini"
+
+          # variant key → friendly label that goes into the archive.org
+          # metadata title / description / subject.
+          declare -A LABELS=(
+            ["yaguarete_os"]="desktop"
+            ["yaguarete_os-nvidia"]="nvidia"
+            ["yaguarete_os-nvidia-open"]="nvidia-open"
+            ["yaguarete_os-deck"]="deck"
+          )
+
+          overall_status=0
+
+          for variant in "${!LABELS[@]}"; do
+            label="${LABELS[$variant]}"
+            # Build-iso names its artifact "<variant>-<filename_tag>-iso";
+            # `gh run download` extracts each into a dir named after the
+            # artifact, so iso_artifacts/<variant>-<filename_tag>-iso/.iso.
+            iso_dir=$(find iso_artifacts -maxdepth 1 -type d -name "${variant}-*-iso" | head -1)
+            if [ -z "$iso_dir" ] || [ -z "$(ls -A "$iso_dir"/*.iso 2>/dev/null)" ]; then
+              echo "::warning::${variant} has no ISO in the artifacts (variant build likely failed); skipping archive.org upload."
+              continue
+            fi
+
+            identifier="${variant}-stable-${UPSTREAM_TAG}"
+            iso_file=$(ls "$iso_dir"/*.iso | head -1)
+            sum_file="${iso_file}-CHECKSUM"
+            meta_file="${iso_file}.json"
+
+            # Copy the rendered thumb into the artifact dir so it ships in
+            # the same `ia upload` invocation as the ISO + sidecars.
+            cp thumbs/__ia_thumb.png "${iso_dir}/__ia_thumb.png"
+
+            echo "::group::Upload ${variant} → ${identifier}"
+            upload_ok=true
+            ia upload "$identifier" \
+              "$iso_file" "$sum_file" "$meta_file" "${iso_dir}/__ia_thumb.png" \
+              --no-derive \
+              --metadata="title:YaguareteOS ${label} ${STABLE_TAG#stable-}" \
+              --metadata="creator:lobinuxsoft" \
+              --metadata="description:YaguareteOS ${label} variant — stable release ${STABLE_TAG#stable-}. Bootable ISO, offline installable. Source: https://github.com/lobinuxsoft/yaguarete_os" \
+              --metadata="subject:linux;distro;bazzite;yaguarete;gaming;kde;${label}" \
+              --metadata="licenseurl:https://www.apache.org/licenses/LICENSE-2.0" \
+              --metadata="mediatype:software" \
+              --metadata="collection:opensource" \
+              || upload_ok=false
+
+            # `ia upload` sometimes exits 1 after the upload actually
+            # succeeded (race against archive.org's bucket allocation,
+            # observed in #115). Confirm via the metadata API that the
+            # item exists with an .iso file before treating it as a fail.
+            if ! $upload_ok; then
+              echo "ia upload returned non-zero. Verifying item via metadata API..."
+              sleep 15
+              if curl -fsSL "https://archive.org/metadata/${identifier}" 2>/dev/null \
+                  | jq -e '(.files // []) | map(select(.name | endswith(".iso"))) | length > 0' >/dev/null; then
+                echo "::notice::Item ${identifier} verified — soft-fail tolerated."
+              else
+                echo "::error::Item ${identifier} not present after upload."
+                overall_status=1
+              fi
+            fi
+
+            echo "Published https://archive.org/details/${identifier}"
+            echo "::endgroup::"
+          done
+
+          rm -f "$HOME/.config/internetarchive/ia.ini"
+          exit $overall_status

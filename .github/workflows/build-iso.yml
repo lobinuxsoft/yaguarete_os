@@ -201,11 +201,12 @@ jobs:
               '{iso: $iso, variant: $variant, attestation_url: $url, build_date: $date}' > "${iso}.json"
           done
 
-      # ISOs always uploaded as Actions artifacts (login-required) for
-      # smoke / audit. Plus: on push to `unstable`, the next step
-      # republishes the same ISO to archive.org under a stable identifier
-      # so the public landing has working download buttons that never
-      # rotate URLs.
+      # unstable ISOs stay as Actions artifacts only (login-required), same
+      # pattern Bazzite uses for its own testing/unstable lanes. The public
+      # archive.org publish is reserved for promoted `:stable` releases
+      # and lives in `generate_release.yml`, where each release gets its
+      # own dated identifier (yaguarete_os-stable-<fedora>.<YYYYMMDD>) and
+      # the history is preserved permanently (Garuda-style).
       - name: Upload ISO and Checksum to Job Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -215,77 +216,3 @@ jobs:
           retention-days: 7
           compression-level: 0
           overwrite: true
-
-      # Public-facing distribution for the rolling unstable channel: upload
-      # the same ISO + sidecars to archive.org under a fixed identifier
-      # per variant. Filename is renamed to `<image>-unstable-amd64.iso`
-      # so the public download URL stays stable across rebuilds.
-      #
-      # `ia upload --no-derive` skips archive.org's server-side derivative
-      # generation (we ship a raw .iso, no point asking IA to transcode it).
-      # `ia upload <identifier>` with the same identifier on subsequent
-      # pushes overwrites the asset (no version explosion, no orphan items).
-      #
-      # Secrets configured by maintainer post-merge:
-      #   gh secret set ARCHIVE_ORG_ACCESS_KEY --repo lobinuxsoft/yaguarete_os
-      #   gh secret set ARCHIVE_ORG_SECRET_KEY --repo lobinuxsoft/yaguarete_os
-      # (values from https://archive.org/account/s3.php)
-      #
-      # When the secrets are absent (e.g. fork builds), the step emits a
-      # warning and exits 0 so the rest of the matrix stays green.
-      - name: Publish rolling ISO to archive.org
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/unstable'
-        env:
-          IA_ACCESS_KEY: ${{ secrets.ARCHIVE_ORG_ACCESS_KEY }}
-          IA_SECRET_KEY: ${{ secrets.ARCHIVE_ORG_SECRET_KEY }}
-          ISO_UPLOAD_DIR: ${{ steps.upload-directory.outputs.iso-upload-dir }}
-          IMAGE_NAME: ${{ matrix.image_name }}
-          VARIANT_LABEL: ${{ matrix.variant_label }}
-          UPSTREAM_TAG: ${{ steps.generate-tag.outputs.dated }}
-        run: |
-          set -eo pipefail
-          if [ -z "${IA_ACCESS_KEY}" ] || [ -z "${IA_SECRET_KEY}" ]; then
-            echo "::warning::archive.org keys not set (ARCHIVE_ORG_ACCESS_KEY / ARCHIVE_ORG_SECRET_KEY). Skipping upload for ${IMAGE_NAME}. See #111 for setup."
-            exit 0
-          fi
-
-          # Internet Archive CLI; ships via pip. pipx keeps it isolated.
-          python3 -m pip install --user --quiet --upgrade pip
-          python3 -m pip install --user --quiet internetarchive
-          # User-site bin onto PATH for this step.
-          export PATH="$HOME/.local/bin:$PATH"
-
-          # Single config file so `ia` finds the IAS3 credentials.
-          mkdir -p "$HOME/.config/internetarchive"
-          cat > "$HOME/.config/internetarchive/ia.ini" <<INI
-          [s3]
-          access = ${IA_ACCESS_KEY}
-          secret = ${IA_SECRET_KEY}
-          INI
-          chmod 0600 "$HOME/.config/internetarchive/ia.ini"
-
-          # Rename to stable filename so the public download URL never moves.
-          dated_iso=$(ls "${ISO_UPLOAD_DIR}"/*.iso | head -1)
-          stable_iso="${ISO_UPLOAD_DIR}/${IMAGE_NAME}-unstable-amd64.iso"
-          stable_sum="${stable_iso}-CHECKSUM"
-          stable_meta="${stable_iso}.json"
-          cp "${dated_iso}" "${stable_iso}"
-          cp "${dated_iso}-CHECKSUM" "${stable_sum}"
-          cp "${dated_iso}.json" "${stable_meta}"
-
-          identifier="${IMAGE_NAME}-unstable-amd64"
-          ia upload "${identifier}" \
-            "${stable_iso}" "${stable_sum}" "${stable_meta}" \
-            --no-derive \
-            --metadata="title:YaguareteOS ${VARIANT_LABEL} — rolling unstable" \
-            --metadata="creator:lobinuxsoft" \
-            --metadata="description:YaguareteOS ${VARIANT_LABEL} variant, rolling unstable build (${UPSTREAM_TAG:-latest}). Bootable ISO, offline installable. Source: https://github.com/lobinuxsoft/yaguarete_os" \
-            --metadata="subject:linux;distro;bazzite;yaguarete;gaming;kde;${VARIANT_LABEL}" \
-            --metadata="licenseurl:https://www.apache.org/licenses/LICENSE-2.0" \
-            --metadata="mediatype:software" \
-            --metadata="collection:opensource"
-
-          # Best-effort secret wipe from the runner FS. Process env is
-          # discarded when the step ends regardless.
-          rm -f "$HOME/.config/internetarchive/ia.ini"
-          echo "::notice::Published https://archive.org/details/${identifier}"
