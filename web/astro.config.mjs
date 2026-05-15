@@ -17,6 +17,13 @@ import mdx from '@astrojs/mdx';
 export default defineConfig({
   site: 'https://lobinuxsoft.github.io',
   base: '/yaguarete_os',
+  // Spanish-first per the project README (es-AR locale defaults, Guaraní
+  // naming). English is served as a secondary mirror under /en/.
+  i18n: {
+    locales: ['es', 'en'],
+    defaultLocale: 'es',
+    routing: { prefixDefaultLocale: false },
+  },
   image: {
     // ScrewFast pulled hero images from unsplash. We use local assets
     // only, so the allowlist is empty. Add domains here if/when we
