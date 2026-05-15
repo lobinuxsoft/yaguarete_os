@@ -1,13 +1,12 @@
-// Navigation data for the landing.
+// English navigation (mirror under /en/).
 //
-// All in-page routes are single-page anchors against the rewritten index.
-// External project links point at the canonical YaguareteOS repo on GitHub,
-// not the upstream ScrewFast template.
+// All in-page links are bare anchors (`#id`) so the browser keeps the current
+// path — without the leading slash they would jump to site root and lose the
+// /yaguarete_os base prefix.
 
 const navBarLinks = [
   { name: 'Variants', url: '#variants' },
-  { name: 'Sovereignty', url: '#sovereign' },
-  { name: 'Inheritance', url: '#inheritance' },
+  { name: 'Stack', url: '#stack' },
   { name: 'FAQ', url: '#faq' },
 ];
 
@@ -47,16 +46,17 @@ const footerLinks = [
   },
 ];
 
-// FooterSection.astro hard-references these keys; keep the shape stable and
-// point every entry at the canonical project URL until/unless real social
-// accounts exist.
+// FooterSection.astro hard-references the keys below; placeholder social
+// accounts that pointed at the project URL were misleading and have been
+// dropped. We keep the shape and set unused channels to null so the footer
+// can skip them instead of rendering dead links.
 const projectUrl = 'https://github.com/lobinuxsoft/yaguarete_os';
 const socialLinks = {
-  facebook: projectUrl,
-  x: projectUrl,
   github: projectUrl,
-  google: projectUrl,
-  slack: projectUrl,
+  facebook: null,
+  x: null,
+  google: null,
+  slack: null,
 };
 
 export default {

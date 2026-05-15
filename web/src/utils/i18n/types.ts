@@ -3,7 +3,6 @@ export interface VariantCard {
   tag: string;
   description: string;
   upstream: string;
-  rebase: string;
 }
 
 export interface FeatureCard {
@@ -23,40 +22,26 @@ export interface Translations {
     ogTitle: string;
     description: string;
   };
-  announcement: {
-    text: string;
-  };
   hero: {
     titlePrefix: string;
     titleSuffix: string;
     subTitle: string;
     primaryBtn: string;
-    secondaryBtn: string;
-    heroAlt: string;
+    primaryBtnUrl: string;
   };
   variants: {
     title: string;
     subTitle: string;
     upstreamLabel: string;
-    rebaseLabel: string;
+    downloadLabel: string;
+    pendingNote: string;
     cosignNote: string;
     cards: VariantCard[];
   };
-  sovereign: {
+  stack: {
     title: string;
     subTitle: string;
     features: FeatureCard[];
-  };
-  inheritance: {
-    title: string;
-    subTitle: string;
-    features: FeatureCard[];
-  };
-  cta: {
-    title: string;
-    body: string;
-    primaryBtn: string;
-    secondaryBtn: string;
   };
   faq: {
     title: string;

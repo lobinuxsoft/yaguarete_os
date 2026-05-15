@@ -1,13 +1,13 @@
 // Navegación en español (locale por defecto).
 //
-// Las rutas internas son anchors single-page del index reescrito. Los links
-// externos apuntan al repo canónico lobinuxsoft/yaguarete_os.
+// Los links internos son anchors bare (`#id`) para que el navegador conserve
+// el path actual — con el slash inicial saltaríamos a la raíz del sitio y
+// perderíamos el prefijo /yaguarete_os.
 
 const navBarLinks = [
-  { name: 'Variantes', url: '/#variants' },
-  { name: 'Soberanía', url: '/#sovereign' },
-  { name: 'Herencia', url: '/#inheritance' },
-  { name: 'Preguntas', url: '/#faq' },
+  { name: 'Variantes', url: '#variants' },
+  { name: 'Stack', url: '#stack' },
+  { name: 'Preguntas', url: '#faq' },
 ];
 
 const footerLinks = [
@@ -46,16 +46,17 @@ const footerLinks = [
   },
 ];
 
-// FooterSection.astro depende de estas claves; mantenemos la shape estable y
-// apuntamos todas las entradas al repo canónico hasta que existan cuentas
-// sociales reales.
+// FooterSection.astro hard-references las keys de abajo; las cuentas sociales
+// placeholder que apuntaban al repo del proyecto eran engañosas y se
+// eliminaron. Mantenemos la shape pero los canales no usados son null para
+// que el footer los pueda saltar en vez de renderizar links muertos.
 const projectUrl = 'https://github.com/lobinuxsoft/yaguarete_os';
 const socialLinks = {
-  facebook: projectUrl,
-  x: projectUrl,
   github: projectUrl,
-  google: projectUrl,
-  slack: projectUrl,
+  facebook: null,
+  x: null,
+  google: null,
+  slack: null,
 };
 
 export default {

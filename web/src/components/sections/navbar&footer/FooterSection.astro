@@ -89,27 +89,15 @@ const crafted: string =
         </p>
       </div>
 
-      {/* Social Brands */}
+      {/* Social Brands — channels without a real account are null and skipped */}
       <div>
-        <FooterSocialLink url={strings.socialLinks.facebook}
-          ><Icon name="facebookFooter" />
-        </FooterSocialLink>
-
-        <FooterSocialLink url={strings.socialLinks.x}
-          ><Icon name="xFooter" /></FooterSocialLink
-        >
-
-        <FooterSocialLink url={strings.socialLinks.github}
-          ><Icon name="githubFooter" />
-        </FooterSocialLink>
-
-        <FooterSocialLink url={strings.socialLinks.google}
-          ><Icon name="googleFooter" />
-        </FooterSocialLink>
-
-        <FooterSocialLink url={strings.socialLinks.slack}
-          ><Icon name="slackFooter" />
-        </FooterSocialLink>
+        {
+          strings.socialLinks.github && (
+            <FooterSocialLink url={strings.socialLinks.github}>
+              <Icon name="githubFooter" />
+            </FooterSocialLink>
+          )
+        }
       </div>
     </div>
 
