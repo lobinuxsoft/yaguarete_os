@@ -266,6 +266,10 @@ body {
   border-left: 4px solid $ya-accent;
   border-radius: 8px;
   padding: 1.5rem;
+  // Flex column so .btn-download `margin-top: auto` pushes it to the
+  // bottom of the card regardless of how long the description ran.
+  display: flex;
+  flex-direction: column;
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
@@ -294,13 +298,63 @@ body {
     margin-bottom: 1.25rem;
   }
 
-  // CTA primario de cada card: el bloque de código del comando rebase.
-  // Le damos peso visual de "esto es lo que tenés que copiar" — borde
-  // accent, monoespaciada cómoda, hover cue sutil.
+  // CTA primario de cada card: botón "Descargar ISO" grande, naranja
+  // sólido, con icono de descarga. Va apuntando directo a archive.org.
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+    background: $ya-accent;
+    color: $ya-bg !important;
+    padding: 0.85rem 1.2rem;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none !important;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    margin-top: auto;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 8px rgba(255, 69, 0, 0.25);
+
+    &:hover {
+      background: $ya-accent-hover;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 69, 0, 0.4);
+      color: $ya-bg !important;
+    }
+
+    &::before {
+      content: '⬇';
+      font-size: 1.1rem;
+    }
+  }
+
+  // Secondary CTA: bloque de código del comando bootc switch en
+  // <details>, oculto por default. Para usuarios avanzados que ya
+  // corren bootc y prefieren rebase a flashear USB.
+  details {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+
+    summary {
+      cursor: pointer;
+      color: $ya-fg-muted;
+      padding: 0.4rem 0;
+      user-select: none;
+
+      &:hover {
+        color: $ya-accent;
+      }
+    }
+  }
+
   pre {
-    margin: 0;
-    padding: 0.85rem 1rem;
-    font-size: 0.85rem;
+    margin: 0.5rem 0 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
     overflow-x: auto;
     border-left: 4px solid $ya-accent;
     border-radius: 0 6px 6px 0;
