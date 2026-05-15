@@ -152,19 +152,21 @@ sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
 ln -sf /usr/share/icons/hicolor/scalable/apps/yaguarete-portal.svg \
     /usr/share/icons/hicolor/scalable/apps/io.github.ublue_os.yafti_gtk.svg
 
-### Branding: plasmalogin (Plasma 6 display manager) greeter wallpaper.
-# Bazzite pattern: do not override /usr/lib/plasmalogin/defaults.conf
-# (upstream Fedora ships it referencing file:///usr/share/backgrounds/
-# default.jxl). Instead, swap the destination of that path so the
-# upstream default resolution lands on the YaguareteOS wallpaper.
-# Bazzite redirects to convergence.jxl this same way; we redirect to
-# yaguarete_02 (the W2 lockscreen slot from Phase 3).
-# Extension stays .jxl even though the target is .jpg — Plasma 6 / Qt 6
+### Branding: plasmalogin (Plasma 6 display manager) + desktop default
+# wallpaper. Bazzite pattern: do not override
+# /usr/lib/plasmalogin/defaults.conf (upstream Fedora ships it referencing
+# file:///usr/share/backgrounds/default.jxl). Instead, swap the
+# destination of that path so the upstream default resolution lands on
+# the YaguareteOS wallpaper. Bazzite redirects to convergence.jxl this
+# same way; we redirect to yaguarete_selva_oscura.png — dark jungle
+# texture that pairs with the Layan-KDE glass / blur (see #118).
+#
+# Extension stays .jxl even though the target is .png — Plasma 6 / Qt 6
 # decodes by magic bytes, not by extension. Same trade-off applied to
 # the bazzite-logo.svg → yaguarete-logo.svg redirect block above.
-ln -sf /usr/share/wallpapers/yaguarete/yaguarete_02.jpg \
+ln -sf /usr/share/wallpapers/yaguarete/yaguarete_selva_oscura.png \
     /usr/share/backgrounds/default.jxl
-ln -sf /usr/share/wallpapers/yaguarete/yaguarete_02.jpg \
+ln -sf /usr/share/wallpapers/yaguarete/yaguarete_selva_oscura.png \
     /usr/share/backgrounds/default-dark.jxl
 
 ### Branding: pre-flatten the 256x256 yaguarete logo onto solid black so
