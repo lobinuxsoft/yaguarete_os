@@ -61,6 +61,29 @@ dnf5 install -y glibc-langpack-es
 # image overlay value wins.
 echo 'LANG=es_AR.UTF-8' >/etc/locale.conf
 
+### Theme: Layan-KDE base Look-And-Feel.
+# Provides macOS-style glass / blur / transparency effects that match the
+# YaguareteOS jungle aesthetic. Our own `YaguareteOS.colors` color scheme
+# stays on top of it for the #FF4500 accent — kdeglobals stitches the
+# two together (Layan structure + YaguareteOS palette).
+#
+# Pinned to a specific commit SHA so an upstream change cannot mutate the
+# theme out from under us between builds. To bump:
+#   1. Verify the new SHA at https://github.com/vinceliuice/Layan-kde/commits/master
+#   2. Update LAYAN_SHA below.
+#   3. Commit as `chore(theme): bump Layan-kde <old> -> <new>`.
+LAYAN_REPO="https://github.com/vinceliuice/Layan-kde.git"
+LAYAN_SHA="a0b6a4956022276aee33309b2e07d1d0ef3db30c"
+LAYAN_TMP=$(mktemp -d)
+git clone --quiet --filter=blob:none "$LAYAN_REPO" "$LAYAN_TMP"
+git -C "$LAYAN_TMP" checkout --quiet "$LAYAN_SHA"
+# install.sh detects UID 0 and writes to /usr/share/{aurorae,color-schemes,
+# Kvantum,plasma/{desktoptheme,look-and-feel},wallpapers}.
+(cd "$LAYAN_TMP" && bash ./install.sh)
+# SDDM theme of Layan is shipped under sddm/; install only if Layan SDDM
+# is desired (left out by default — Plasma 6 plasmalogin handles login).
+rm -rf "$LAYAN_TMP"
+
 ### Branding: prune upstream Bazzite/Fedora/UBlue wallpapers from the
 # Plasma wallpaper switcher. Keep KDE defaults (Altai, Cascade, ...) and
 # Steam Deck Logo set (useful for handheld variants).
