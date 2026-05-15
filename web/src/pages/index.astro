@@ -1,0 +1,280 @@
+---
+// YaguareteOS landing — content reflects the actual project, not the upstream
+// ScrewFast demo. Image swaps (hero / variant illustrations) land in a
+// follow-up commit; this rewrite focuses on copy + structure.
+import MainLayout from '@/layouts/MainLayout.astro';
+import HeroSection from '@components/sections/landing/HeroSection.astro';
+import FeaturesGeneral from '@components/sections/features/FeaturesGeneral.astro';
+import FAQ from '@components/sections/misc/FAQ.astro';
+import AnnouncementBanner from '@components/ui/banners/AnnouncementBanner.astro';
+import PrimaryCTA from '@components/ui/buttons/PrimaryCTA.astro';
+import SecondaryCTA from '@components/ui/buttons/SecondaryCTA.astro';
+import heroImage from '@images/yaguarete_hero.webp';
+
+interface Variant {
+  name: string;
+  tag: string;
+  description: string;
+  upstream: string;
+  rebase: string;
+}
+
+const variants: Variant[] = [
+  {
+    name: 'yaguarete_os',
+    tag: 'AMD / Intel desktop',
+    description:
+      'Default variant. Picks the open-source graphics stack and works on most non-NVIDIA hardware.',
+    upstream: 'bazzite:stable',
+    rebase: 'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable',
+  },
+  {
+    name: 'yaguarete_os-nvidia',
+    tag: 'NVIDIA proprietary',
+    description:
+      'NVIDIA GPU with the proprietary driver. Recommended for gaming on NVIDIA hardware today.',
+    upstream: 'bazzite-nvidia:stable',
+    rebase:
+      'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:stable',
+  },
+  {
+    name: 'yaguarete_os-nvidia-open',
+    tag: 'NVIDIA open kernel module',
+    description:
+      'NVIDIA GPU with the open kernel module (Turing+). Server / dev workstation oriented.',
+    upstream: 'bazzite-nvidia-open:stable',
+    rebase:
+      'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:stable',
+  },
+  {
+    name: 'yaguarete_os-deck',
+    tag: 'Handheld (Steam Deck, OneXFly, ROG Ally)',
+    description:
+      'Boots into game mode by default. ISO build is still gated by issue #112; rebase from Bazzite-deck works today.',
+    upstream: 'bazzite-deck:stable',
+    rebase: 'sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:stable',
+  },
+];
+
+const sovereignFeatures = [
+  {
+    heading: 'Our build pipeline',
+    content:
+      'CI runners, build policies and release workflow live in this repo. No third-party builders, no opaque promotion steps.',
+    svg: 'tools',
+  },
+  {
+    heading: 'Our signing keypair',
+    content:
+      'cosign keypair under our control. Public key shipped in-tree; private key offline. Every published image is signed and verifiable.',
+    svg: 'verified',
+  },
+  {
+    heading: 'Our distribution registry',
+    content:
+      'Images published to ghcr.io/lobinuxsoft/yaguarete_os. Stable releases are mirrored as dated identifiers on archive.org for long-term preservation.',
+    svg: 'rocket',
+  },
+  {
+    heading: 'Our branding and locale',
+    content:
+      'Guaraní project naming, Spanish-first defaults, es-AR locale, native wallpapers. Cultural, not governmental — no state-identity tooling bundled.',
+    svg: 'sparks',
+  },
+];
+
+const inheritedFeatures = [
+  {
+    heading: 'Base image — Bazzite',
+    content:
+      'KDE desktop, Steam, Proton-GE, GameMode, gamescope, MangoHud and the latest Mesa/AMD drivers inherit straight from bazzite:stable.',
+    svg: 'community',
+  },
+  {
+    heading: 'Build system — Universal Blue',
+    content:
+      'Containerfile + system_files overlay + just recipes follow the Universal Blue image-template layout. Recipes are kept compatible upstream.',
+    svg: 'puzzle',
+  },
+  {
+    heading: 'Atomic updates — bootc',
+    content:
+      'Image-based OS with transactional updates and atomic rollback via bootc on top of Fedora Atomic. Roll forward, roll back, reboot.',
+    svg: 'frame',
+  },
+  {
+    heading: 'Gaming stack — Valve + community',
+    content:
+      'Steam, Proton-GE, MangoHud, gamescope and the rest of the handheld-friendly stack are pulled from upstream — credited, not rebadged.',
+    svg: 'guides',
+  },
+];
+
+const faqData = {
+  subTitle:
+    'Common questions about what YaguareteOS is, how to install it, and how it relates to Bazzite and the Universal Blue ecosystem.',
+  faqs: [
+    {
+      question: 'Is YaguareteOS just Bazzite with a new logo?',
+      answer:
+        'In Phase 0, functionally yes — the image is Bazzite stable plus our pipeline, signing key and registry. Argentine branding (Plymouth, theme, locale defaults, wallpapers) lands incrementally in Phase 1. The point of the project is the sovereign supply chain, not pretending the lineage does not exist.',
+    },
+    {
+      question: 'Which variant should I install?',
+      answer:
+        'AMD or Intel GPU on a desktop or laptop → yaguarete_os. NVIDIA with the proprietary driver → yaguarete_os-nvidia. NVIDIA with the open kernel module (Turing+) → yaguarete_os-nvidia-open. Steam Deck, OneXFly or ROG Ally → yaguarete_os-deck (rebase only for now; the deck ISO build is tracked in issue #112).',
+    },
+    {
+      question: 'How do I rebase from another bootc system?',
+      answer:
+        'Verify the signature with cosign against our public key, then run sudo bootc switch ghcr.io/lobinuxsoft/<variant>:stable and reboot. The previous deployment stays on disk as a rollback target. Full step-by-step instructions live in the README.',
+    },
+    {
+      question: 'Why no government integrations (AFIP, ANSES, Mi Argentina)?',
+      answer:
+        'YaguareteOS is Argentine because the maintainer is Argentine, not because it ships state-identity tooling. Privacy and freedom take precedence over locale compliance. A hardened variant tracked in issue #25 is the natural escalation for security-conscious users; state integrations are explicitly out of scope.',
+    },
+    {
+      question: 'Where do stable releases live?',
+      answer:
+        'Each :stable promotion produces a GitHub Release plus a dated archive.org item under identifier <image>-stable-<fedora>.<YYYYMMDD>. The container registry serves :stable, :testing and :unstable channels for bootc users; the dated tags pin a specific build.',
+    },
+  ],
+};
+---
+
+<MainLayout
+  title="YaguareteOS — Sovereign bootc-based KDE for gaming and dev"
+  lang="en"
+>
+  <AnnouncementBanner
+    btnId="phase-banner-dismiss"
+    btnTitle="Phase 0 caveat — Argentine branding lands in Phase 1"
+    url="https://github.com/lobinuxsoft/yaguarete_os/issues"
+  />
+
+  <HeroSection
+    title={`<span class="text-orange-500 dark:text-orange-400">Yaguarete</span>OS`}
+    subTitle="A bootable, image-based KDE distribution built on top of Bazzite (Universal Blue / Fedora Atomic). Gaming-ready, atomically updated, signed in our own CI."
+    primaryBtn="Get the latest release"
+    primaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
+    secondaryBtn="Read the README"
+    secondaryBtnURL="https://github.com/lobinuxsoft/yaguarete_os#readme"
+    src={heroImage}
+    alt="Selva oscura — the dark Argentine jungle that gives YaguareteOS its visual identity"
+  />
+
+  {/* Variants */}
+  <section
+    id="variants"
+    class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
+  >
+    <div class="mb-10 max-w-2xl">
+      <h2
+        class="text-2xl font-bold text-neutral-800 md:text-3xl lg:text-4xl dark:text-neutral-200"
+      >
+        Four KDE variants, one pipeline
+      </h2>
+      <p class="mt-2 text-neutral-600 dark:text-neutral-400">
+        Pick the variant that matches your hardware. All four are built from
+        the same source tree and signed with the same cosign keypair. GNOME
+        variants are intentionally not offered — this is a KDE-only project.
+      </p>
+    </div>
+
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        variants.map(variant => (
+          <li class="flex flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-700 dark:bg-neutral-900/40">
+            <h3 class="font-mono text-sm font-bold break-all text-orange-600 dark:text-orange-400">
+              {variant.name}
+            </h3>
+            <p class="mt-1 text-sm font-medium text-neutral-800 dark:text-neutral-200">
+              {variant.tag}
+            </p>
+            <p class="mt-3 grow text-sm text-neutral-600 dark:text-neutral-400">
+              {variant.description}
+            </p>
+            <dl class="mt-4 space-y-2 text-xs">
+              <div>
+                <dt class="text-neutral-500 dark:text-neutral-500">Upstream</dt>
+                <dd class="font-mono text-neutral-700 dark:text-neutral-300">
+                  {variant.upstream}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-neutral-500 dark:text-neutral-500">Rebase</dt>
+                <dd>
+                  <code class="block overflow-x-auto rounded bg-neutral-200 p-2 font-mono text-[0.7rem] leading-snug break-all whitespace-pre-wrap text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200">
+                    {variant.rebase}
+                  </code>
+                </dd>
+              </div>
+            </dl>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="mt-6 text-sm text-neutral-500 dark:text-neutral-400">
+      Verify the image signature with{' '}
+      <code class="font-mono">cosign verify</code> against{' '}
+      <code class="font-mono">cosign.pub</code> before running{' '}
+      <code class="font-mono">bootc switch</code>. Full instructions in the
+      README.
+    </p>
+  </section>
+
+  {/* Sovereign supply chain */}
+  <div id="sovereign">
+    <FeaturesGeneral
+      title="What is sovereign"
+      subTitle="Digital sovereignty here means controlling the pipeline — signing keys, build infrastructure, distribution registry, project governance, branding — not hiding technical inheritance."
+      features={sovereignFeatures}
+    />
+  </div>
+
+  {/* Inherited and credited */}
+  <div id="inheritance">
+    <FeaturesGeneral
+      title="What is inherited (openly credited)"
+      subTitle="YaguareteOS does not hide its lineage. Sibling Universal Blue derivatives such as Bluefin and Aurora attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add."
+      features={inheritedFeatures}
+    />
+  </div>
+
+  {/* CTA block */}
+  <section
+    class="mx-auto max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 2xl:max-w-full"
+  >
+    <div
+      class="rounded-2xl border border-neutral-200 bg-neutral-50 p-8 md:p-12 dark:border-neutral-700 dark:bg-neutral-900/40"
+    >
+      <h2
+        class="max-w-2xl text-2xl font-bold text-neutral-800 md:text-3xl dark:text-neutral-200"
+      >
+        Build it yourself, rebase from a bootc host, or grab a signed release.
+      </h2>
+      <p class="mt-3 max-w-2xl text-neutral-600 dark:text-neutral-400">
+        Containerfile + just recipes are reproducible on any Bazzite, Bluefin,
+        Aurora or Fedora Atomic host with podman 5.8+. Stable releases ship as
+        signed OCI tags and as dated ISO/qcow2 artefacts on archive.org.
+      </p>
+      <div class="mt-6 grid gap-3 sm:inline-flex">
+        <PrimaryCTA
+          title="Latest release"
+          url="https://github.com/lobinuxsoft/yaguarete_os/releases/latest"
+        />
+        <SecondaryCTA
+          title="GitHub repo"
+          url="https://github.com/lobinuxsoft/yaguarete_os"
+        />
+      </div>
+    </div>
+  </section>
+
+  {/* FAQ */}
+  <div id="faq">
+    <FAQ title="Frequently asked questions" faqs={faqData} />
+  </div>
+</MainLayout>
