@@ -159,30 +159,45 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
     #!/usr/bin/env bash
     set -euo pipefail
 
+    # Prime sudo upfront so a stale or missing credential cache fails fast
+    # with a clear message instead of hanging the recipe halfway through
+    # waiting for a password prompt that nobody can answer (CI runners,
+    # SSH without -t, background pipelines). Once primed, every downstream
+    # `sudo -n` call reuses the cached credential.
+    if ! sudo -n true 2>/dev/null; then
+      if ! sudo -v; then
+        echo "::error:: _build-bib requires sudo. Run interactively or pre-cache credentials with 'sudo -v' before invoking this recipe." >&2
+        exit 1
+      fi
+    fi
+
     args="--type ${type} "
     args+="--use-librepo=True "
     args+="--rootfs=btrfs"
 
-    BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
+    # Bind-mount the host's output/ directly into the container so the
+    # bootc-image-builder writes its artefacts where we want them on the
+    # first try, eliminating the BUILDTMP → output/ relocation that used
+    # to need a separate `sudo mv` (and used to hang without a TTY).
+    mkdir -p output
 
-    sudo podman run \
+    sudo -n podman run \
       --rm \
-      -it \
       --privileged \
       --pull=newer \
       --net=host \
       --security-opt label=type:unconfined_t \
       -v $(pwd)/${config}:/config.toml:ro \
-      -v $BUILDTMP:/output \
+      -v $(pwd)/output:/output:Z \
       -v /var/lib/containers/storage:/var/lib/containers/storage \
       "${bib_image}" \
       ${args} \
       "${target_image}:${tag}"
 
-    mkdir -p output
-    sudo mv -f $BUILDTMP/* output/
-    sudo rmdir $BUILDTMP
-    sudo chown -R $USER:$USER output/
+    # bootc-image-builder writes as root inside the container; reclaim
+    # ownership on the host so the user can move / delete the artefacts
+    # without sudo afterwards.
+    sudo -n chown -R $USER:$USER output/
 
 # Podman builds the image from the Containerfile and creates a bootable image
 # Parameters:
