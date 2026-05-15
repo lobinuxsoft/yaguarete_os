@@ -25,16 +25,22 @@ image: /assets/img/banner.png
 
 Elegí tu versión según tu computadora. Si dudás, **arrancá con la primera**.
 
+<blockquote class="status-callout">
+
+📅 **Hoy:** Los botones llevan a la **última versión estable** publicada en GitHub Releases. Cada release oficial se preserva en [archive.org](https://archive.org/details/@matias_galarza_lobinuxsoft_) con su propia URL permanente — historial intacto, podés volver a versiones viejas cuando quieras.
+
+</blockquote>
+
 <div class="variant-grid" markdown="0">
 
   <div class="variant-card">
     <div class="variant-icon">🖥️</div>
     <h3>PC o laptop común</h3>
     <p>Si tu computadora tiene placa de video AMD o Intel — la mayoría de las PCs y notebooks de los últimos 10 años. Si no sabés cuál tenés, esta es la indicada.</p>
-    <a class="btn-download" href="https://archive.org/download/yaguarete_os-unstable-amd64/yaguarete_os-unstable-amd64.iso">Descargar ISO</a>
+    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/latest">Ver última versión</a>
     <details>
       <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:unstable</code></pre>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable</code></pre>
     </details>
   </div>
 
@@ -42,10 +48,10 @@ Elegí tu versión según tu computadora. Si dudás, **arrancá con la primera**
     <div class="variant-icon">🎮</div>
     <h3>PC con placa NVIDIA</h3>
     <p>Si tu computadora tiene una placa NVIDIA (cualquier modelo de los últimos 15 años) — usa los drivers oficiales de NVIDIA.</p>
-    <a class="btn-download" href="https://archive.org/download/yaguarete_os-nvidia-unstable-amd64/yaguarete_os-nvidia-unstable-amd64.iso">Descargar ISO</a>
+    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/latest">Ver última versión</a>
     <details>
       <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:unstable</code></pre>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia:stable</code></pre>
     </details>
   </div>
 
@@ -53,10 +59,10 @@ Elegí tu versión según tu computadora. Si dudás, **arrancá con la primera**
     <div class="variant-icon">🔓</div>
     <h3>PC con NVIDIA moderna</h3>
     <p>Si tu placa NVIDIA es RTX 20xx o más nueva (Turing en adelante). Usa el driver abierto de NVIDIA — un poquito más nuevo, mismo rendimiento.</p>
-    <a class="btn-download" href="https://archive.org/download/yaguarete_os-nvidia-open-unstable-amd64/yaguarete_os-nvidia-open-unstable-amd64.iso">Descargar ISO</a>
+    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/latest">Ver última versión</a>
     <details>
       <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:unstable</code></pre>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-nvidia-open:stable</code></pre>
     </details>
   </div>
 
@@ -64,16 +70,16 @@ Elegí tu versión según tu computadora. Si dudás, **arrancá con la primera**
     <div class="variant-icon">🕹️</div>
     <h3>Consola portátil</h3>
     <p>Para Steam Deck, OneXFly, ROG Ally y similares. Arranca directo en modo juego, igual que SteamOS, pero con todas las apps de escritorio disponibles cuando las necesites.</p>
-    <a class="btn-download" href="https://archive.org/download/yaguarete_os-deck-unstable-amd64/yaguarete_os-deck-unstable-amd64.iso">Descargar ISO</a>
+    <a class="btn-download" href="https://github.com/lobinuxsoft/yaguarete_os/releases/latest">Ver última versión</a>
     <details>
       <summary>¿Ya corrés Bazzite u otra distro bootc?</summary>
-      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:unstable</code></pre>
+      <pre><code>sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os-deck:stable</code></pre>
     </details>
   </div>
 
 </div>
 
-> 💡 **Aviso honesto:** estás bajando la versión de desarrollo (rolling). Es estable para la mayoría de los usos pero puede tener bugs ocasionales. Cuando saquemos la primera versión "estable" oficial, va a haber otro link arriba con la edición pulida.
+> 💡 **Sin estables aún:** El primer release oficial está saliendo del horno. Si llegás antes que aparezca, los botones de arriba te van a llevar a una página "No releases yet" — y en ese caso, los comandos del bloque colapsado en cada card te permiten rebasear al canal `:stable` (también listo cuando se prenda). Para los más impacientes: hay [builds rolling unstable en Actions](https://github.com/lobinuxsoft/yaguarete_os/actions/workflows/build-iso.yml?query=branch%3Aunstable+is%3Asuccess) (requiere login GitHub, retención 7 días).
 
 ---
 
