@@ -100,9 +100,9 @@ jobs:
           fi
           {
             printf '## Image\n\n'
-            printf '- Pull: `%s:%s`\n' "$REGISTRY_IMAGE" "$STABLE_TAG"
-            printf '- Channel pointers: `%s:stable`, `%s:latest`, `%s:stable-%s`\n' "$REGISTRY_IMAGE" "$REGISTRY_IMAGE" "$REGISTRY_IMAGE" "$FEDORA"
-            printf '- Base: `ghcr.io/ublue-os/bazzite:stable` (Bazzite `%s`, Fedora %s)\n\n' "$UPSTREAM_TAG" "$FEDORA"
+            printf -- '- Pull: `%s:%s`\n' "$REGISTRY_IMAGE" "$STABLE_TAG"
+            printf -- '- Channel pointers: `%s:stable`, `%s:latest`, `%s:stable-%s`\n' "$REGISTRY_IMAGE" "$REGISTRY_IMAGE" "$REGISTRY_IMAGE" "$FEDORA"
+            printf -- '- Base: `ghcr.io/ublue-os/bazzite:stable` (Bazzite `%s`, Fedora %s)\n\n' "$UPSTREAM_TAG" "$FEDORA"
           } >> "$NOTES"
           echo "notes_file=$NOTES" >> $GITHUB_OUTPUT
 
