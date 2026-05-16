@@ -124,13 +124,18 @@ jobs:
           IMAGE: ${{ matrix.image_name }}
         run: |
           set -eo pipefail
-          # Channel selection mirrors build.yml: testing → stable, anything
-          # else (notably unstable) → unstable. ISO pulls the rolling pointer
-          # and reuses the resolved dated tag for the filename so the artifact
-          # carries the upstream Fedora/date trail.
-          CHANNEL="unstable"
+          # Channel selection mirrors Bazzite upstream
+          # (ublue-os/bazzite/.github/workflows/build_iso.yml): each branch
+          # pulls the digest that branch just pushed to GHCR. `:stable` is the
+          # default so workflow_dispatch (manual ISO regeneration over an
+          # already-cut stable) works without a branch context. Reusing the
+          # resolved dated tag for the filename carries the upstream
+          # Fedora/date trail into the artifact name.
+          CHANNEL="stable"
           if [[ "${{ github.ref_name }}" == "testing" ]]; then
-            CHANNEL="stable"
+            CHANNEL="testing"
+          elif [[ "${{ github.ref_name }}" == "unstable" ]]; then
+            CHANNEL="unstable"
           fi
           REGISTRY_IMAGE="ghcr.io/${OWNER}/${IMAGE}"
           DATED=""
