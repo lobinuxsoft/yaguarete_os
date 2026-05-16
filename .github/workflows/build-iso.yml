@@ -22,11 +22,6 @@ on:
     paths:
       - installer/**
       - .github/workflows/build-iso.yml
-  pull_request:
-    branches: [unstable, testing]
-    paths:
-      - installer/**
-      - .github/workflows/build-iso.yml
 
 env:
   REPO_OWNER: ${{ github.repository_owner }}
