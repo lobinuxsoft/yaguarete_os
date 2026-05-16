@@ -1,10 +1,10 @@
 # 0003. Ship a single image first; defer multi-flavor splits to Phase 4
 
-- **Status:** Accepted
+- **Status:** Superseded (2026-05-14) — decision reversed by #22 + #95. YaguareteOS now ships 4 KDE variants (base / nvidia / nvidia-open / deck) in matrix from Phase 1. Also note: the "Phase 2 — national layer" framing referenced below was retired the same day; YaguareteOS no longer pursues government / state-identity integration (see #13, #14, #15, #16, #28 closed as not planned, and #99 README realign).
 - **Date:** 2026-05-06
 - **Decided by:** lobinuxsoft
 - **Supersedes:** none
-- **Related:** ADR-0001, ADR-0002, issues #22, #23, #24, #25, #30
+- **Related:** ADR-0001, ADR-0002, issues #22, #23, #24, #25, #30, #95, #99
 
 ## Context
 

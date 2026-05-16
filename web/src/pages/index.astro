@@ -1,0 +1,15 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import LandingBody from '@components/sections/LandingBody.astro';
+import t from '@utils/i18n/es';
+---
+
+<MainLayout
+  title={t.meta.pageTitle}
+  meta={t.meta.description}
+  customDescription={t.meta.description}
+  customOgTitle={t.meta.ogTitle}
+  lang="es"
+>
+  <LandingBody t={t} />
+</MainLayout>

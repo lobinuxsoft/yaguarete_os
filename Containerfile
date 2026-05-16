@@ -1,21 +1,35 @@
+# Base image is parameterised so the same Containerfile feeds every variant
+# in the build matrix:
+#   - ghcr.io/ublue-os/bazzite:stable             — AMD/Intel desktop (KDE)
+#   - ghcr.io/ublue-os/bazzite-nvidia:stable      — NVIDIA proprietary (KDE)
+#   - ghcr.io/ublue-os/bazzite-nvidia-open:stable — NVIDIA open kernel (KDE)
+#   - ghcr.io/ublue-os/bazzite-deck:stable        — handheld (KDE + gamescope-session)
+# Default keeps `podman build .` (without --build-arg) reproducible to the
+# desktop AMD base — the most common local dev path.
+#
+# IMPORTANT: this `ARG` MUST be declared *before* the first `FROM` so it has
+# global scope and is visible to every subsequent `FROM`. Declaring it after
+# the first FROM scopes it to that stage only and the second FROM resolves
+# to an empty string ("no FROM statement found").
+ARG BASE_IMAGE=ghcr.io/ublue-os/bazzite:stable
+
+# Image name is also parameterised so build.sh can stamp it into
+# /usr/share/ublue-os/image-info.json without hardcoding the variant.
+# Default matches the desktop base; matrix entries override it.
+ARG IMAGE_NAME=yaguarete_os
+
 # Allow build scripts to be referenced without being copied into the final image
 FROM scratch AS ctx
 COPY build_files /
 
-# Base Image — Bazzite stable (gaming-ready: Steam, Proton-GE, gamescope, MangoHud, AMD drivers)
-FROM ghcr.io/ublue-os/bazzite:stable
+FROM ${BASE_IMAGE}
+
+# Persist the build-time image name so /ctx/build.sh can read it.
+ARG IMAGE_NAME
+ENV YAGUARETE_IMAGE_NAME=${IMAGE_NAME}
 
 # Overlay system_files/ into rootfs (wallpapers, branding, configs)
 COPY system_files/ /
-
-## Other possible base images include:
-# FROM ghcr.io/ublue-os/bazzite:latest
-# FROM ghcr.io/ublue-os/bluefin-nvidia:stable
-# 
-# ... and so on, here are more base images
-# Universal Blue Images: https://github.com/orgs/ublue-os/packages
-# Fedora base image: quay.io/fedora/fedora-bootc:41
-# CentOS base images: quay.io/centos-bootc/centos-bootc:stream10
 
 ### [IM]MUTABLE /opt
 ## Some bootable images, like Fedora, have /opt symlinked to /var/opt, in order to

@@ -1,5 +1,8 @@
 # YaguareteOS
 
+> 📖 **Landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
+> Las ISOs de cada release `:stable` se publican como GitHub Release + items dated permanentes en archive.org bajo creator `lobinuxsoft` ([listado](https://archive.org/details/@matias_galarza_lobinuxsoft_)). Identifier pattern: `<image>-stable-<fedora>.<YYYYMMDD>`. Para usuarios bootc, `bootc switch ghcr.io/lobinuxsoft/<image>:stable` (o `:unstable` para rolling).
+
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
 YaguareteOS combines:
@@ -7,7 +10,7 @@ YaguareteOS combines:
 - **Gaming-ready base** — inherits Steam, Proton-GE, GameMode, gamescope, MangoHud and the latest AMD/Mesa drivers from Bazzite.
 - **Image-based atomic updates** — built on `bootc`. Rebase, rollback, and reproducible builds out of the box.
 - **Sovereign supply chain** — built and signed in our own CI; rebase URL points to our own OCI registry (`ghcr.io/lobinuxsoft/yaguarete_os`).
-- **Argentine identity** — branding, wallpapers, locale `es-AR` and (eventually) regional packages.
+- **Argentine cultural identity** — Guaraní naming (Yaguareté, Yryvu), Spanish-first defaults, `es-AR` locale, native wallpapers. *Cultural*, not governmental: no state-identity / fiscal / control tooling is bundled.
 
 ## Status
 
@@ -17,7 +20,7 @@ Early scaffolding. Project pivoted from Archiso to Universal Blue / bootc on 202
 
 YaguareteOS does not hide its lineage. We derive from [Bazzite](https://bazzite.gg/) (Apache 2.0), which itself derives from [Universal Blue](https://universal-blue.org/) on top of Fedora Atomic, and we keep upstream references explicit throughout this repository.
 
-**Why we attribute openly.** Digital sovereignty is about controlling the *pipeline* — signing keys, build infrastructure, distribution registry, governance, branding — not about hiding technical inheritance. Nation-grade derivatives such as Astra Linux (Debian), Pardus (Debian) and Kylin (Ubuntu) all attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add.
+**Why we attribute openly.** Digital sovereignty here means controlling the *pipeline* — signing keys, build infrastructure, distribution registry, project governance, branding — not hiding technical inheritance. Sibling Universal Blue derivatives such as [Bluefin](https://projectbluefin.io/) and [Aurora](https://getaurora.dev/) attribute upstream openly; we follow the same principle. Honesty about what we inherit is what allows users to audit and trust what we add.
 
 **What is sovereign in YaguareteOS:**
 
@@ -33,6 +36,19 @@ YaguareteOS does not hide its lineage. We derive from [Bazzite](https://bazzite.
 - Build system and project layout: Universal Blue `image-template`.
 - Atomic update model: `bootc`, Fedora Atomic.
 - Gaming stack: Steam, Proton-GE, GameMode, gamescope, MangoHud, Mesa.
+
+## Scope: what YaguareteOS is and is not
+
+**Is** a free, image-based, gaming-and-development-first KDE distribution with Argentine cultural identity at the surface. Optimised for desktop and handheld play, dev tooling, and privacy-respecting defaults. Argentine because the maintainer is Argentine — Guaraní project naming, Spanish-first UI, AR locale, native wallpapers.
+
+**Is not** a state-aligned platform. YaguareteOS deliberately does **not** ship:
+
+- Government-issued root certificates or trust-store extensions (ONTI, etc.).
+- Pre-installed shortcuts or apps tied to state identity, fiscal control, social registries or surveillance pipelines (AFIP, ANSES, Mi Argentina, billetera estatal, etc.).
+- Mirrors hosted on state infrastructure as the canonical pull path.
+- Compliance tooling that requires user identification to use the OS.
+
+Privacy and freedom take precedence over locale compliance. If you want those integrations, fork — the model exists for exactly that. The maintainer's roadmap stays on dev + gaming + privacy, with a hardened variant ([#25](https://github.com/lobinuxsoft/yaguarete_os/issues/25)) as the natural escalation for security-conscious users.
 
 ## Build locally
 
@@ -94,24 +110,41 @@ If you already run a `bootc`-based system (Bazzite, Bluefin, Aurora, or any Fedo
 - Network access to `ghcr.io` and `raw.githubusercontent.com`.
 - `cosign` available (`rpm-ostree install cosign` if missing, then reboot).
 
+### Variant selection
+
+YaguareteOS ships four KDE variants. Pick the one that matches your hardware:
+
+| Image                              | When to use                                                       | Upstream base               |
+|------------------------------------|-------------------------------------------------------------------|-----------------------------|
+| `yaguarete_os`                      | AMD / Intel desktop. Default for most users.                       | `bazzite:stable`            |
+| `yaguarete_os-nvidia`               | NVIDIA GPU with the proprietary driver.                            | `bazzite-nvidia:stable`     |
+| `yaguarete_os-nvidia-open`          | NVIDIA GPU with the open kernel module (Turing+, server use).      | `bazzite-nvidia-open:stable`|
+| `yaguarete_os-deck`                 | Handheld (Steam Deck, OneXFly, ROG Ally) — boots into game mode.   | `bazzite-deck:stable`       |
+
+GNOME variants are intentionally not offered; this is a KDE-only project. NVIDIA via `nouveau` is not a separate variant — users on NVIDIA hardware should pick `-nvidia` or `-nvidia-open` and stay there.
+
 ### Tag selection
+
+Within each variant, three channels are available:
 
 | Tag         | When to use                                                                                |
 |-------------|--------------------------------------------------------------------------------------------|
-| `:stable`   | **Recommended.** Latest validated build from the `testing` branch. What you want for daily use. |
-| `:unstable` | Rolling tip of `unstable`. Opt-in for testers and contributors. May break.                 |
-| `:<date>`   | Pin to a specific build (e.g. `:stable.20260513`).                                         |
+| `:stable`   | **Recommended.** Latest validated build (manually promoted from `testing`). What you want for daily use. |
+| `:testing`  | Rolling tip of `testing`. Pre-release validation.                                          |
+| `:unstable` | Rolling tip of `unstable`. Tester / contributor channel. May break.                        |
+| `:<channel>-<fedora>.<YYYYMMDD>` | Pin to a specific build (e.g. `:stable-44.20260514`).                  |
 
-The examples below use `:stable`. Substitute the tag you prefer.
+The examples below use the base variant on `:stable`. Substitute `<variant>` and `<tag>` for your case.
 
 ### Step 1 — Verify the image signature *before* switching
 
 Never switch to an unverified image. Pull the public key from `testing` and verify the target tag:
 
 ```bash
+VARIANT=yaguarete_os            # or yaguarete_os-nvidia | yaguarete_os-nvidia-open | yaguarete_os-deck
 cosign verify \
   --key https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub \
-  ghcr.io/lobinuxsoft/yaguarete_os:stable
+  ghcr.io/lobinuxsoft/${VARIANT}:stable
 ```
 
 A successful verification prints the signed claims (issuer, subject, digest). If it fails, **stop**: do not rebase.
@@ -119,7 +152,7 @@ A successful verification prints the signed claims (issuer, subject, digest). If
 ### Step 2 — Switch
 
 ```bash
-sudo bootc switch ghcr.io/lobinuxsoft/yaguarete_os:stable
+sudo bootc switch ghcr.io/lobinuxsoft/${VARIANT}:stable
 ```
 
 `bootc switch` stages the new image as the next boot entry. Your current system stays untouched on disk until you reboot.
@@ -138,7 +171,7 @@ After login, verify you booted into YaguareteOS:
 sudo bootc status
 ```
 
-The `Booted image` should be `ghcr.io/lobinuxsoft/yaguarete_os:stable` with the digest from Step 1.
+The `Booted image` should be `ghcr.io/lobinuxsoft/${VARIANT}:stable` with the digest from Step 1.
 
 ### Rolling back
 

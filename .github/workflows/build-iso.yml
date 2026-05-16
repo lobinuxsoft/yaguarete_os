@@ -1,4 +1,17 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+#
+# Two ways this workflow runs:
+#
+#  1. As a reusable workflow chained off `build.yml`. After every variant
+#     in the build matrix successfully pushes its container, `build.yml`
+#     calls this with `workflow_call` so the ISO build sees the freshly
+#     pushed `:unstable` / `:testing` digest. This eliminates the prior
+#     race where build-iso pulled `:unstable` while build.yml was still
+#     pushing it.
+#
+#  2. Directly on installer-only changes (e.g. tweaks under installer/
+#     that do not invalidate the container image itself). In that case
+#     the trigger fires standalone — no container rebuild needed.
 name: Build Live ISO
 
 on:
@@ -17,17 +30,31 @@ on:
 
 env:
   REPO_OWNER: ${{ github.repository_owner }}
-  IMAGE_NAME: yaguarete_os
 
 permissions: {}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-iso
-  cancel-in-progress: true
-
 jobs:
   build-iso:
+    name: ISO ${{ matrix.image_name }}
     runs-on: ubuntu-latest
+    # Per-variant concurrency lives on the job: workflow-level concurrency
+    # cannot reference `matrix.*` (matrix context only exists inside jobs).
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ matrix.image_name }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: yaguarete_os
+            variant_label: desktop
+          - image_name: yaguarete_os-nvidia
+            variant_label: nvidia
+          - image_name: yaguarete_os-nvidia-open
+            variant_label: nvidia-open
+          - image_name: yaguarete_os-deck
+            variant_label: deck
+
     permissions:
       contents: read
       packages: write
@@ -46,41 +73,81 @@ jobs:
             echo "mnt_is_there=0" >>$GITHUB_OUTPUT
           fi
 
+      # Aggressive flags: free-disk-space keeps a lot of preinstalled stacks
+      # by default. For deck the F43-vs-F44 lockstep duplicates several
+      # paralel package sets during the rpm-ostree swap and the runner
+      # ran out of disk. Pruning Android SDKs, .NET, Haskell, large APT
+      # packages, prebuilt Docker images and swap recovers ~50 GB extra
+      # vs the default ~30 GB.
       - name: Free Disk Space (Ubuntu)
         if: ${{ steps.check_mnt.outputs.mnt_is_there == '1' }}
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: Mount Container Storage BTRFS Loopback
         run: |
-          sudo truncate -s 70G /mnt/podman-storage.img
+          # /mnt on ubuntu-24.04 free-tier runners exposes ~75 GB. The
+          # loopback file is sparse so we ask for the full available
+          # window; podman never sees disk pressure until the underlying
+          # /mnt itself fills, which only happens on the deck variant
+          # because of the parallel F43/F44 libs during the swap.
+          sudo truncate -s 75G /mnt/podman-storage.img
           sudo mkfs.btrfs -f /mnt/podman-storage.img
           sudo podman system reset --force
           sudo systemctl stop podman.service
           sudo mount -o compress-force=zstd:2 /mnt/podman-storage.img /var/lib/containers/storage
           sudo systemctl start podman.service
 
+      - name: Report disk space after setup
+        run: |
+          df -h
+          echo "::notice::Pre-build disk: $(df -h /mnt /var/lib/containers/storage | tail -2)"
+
       - name: Checkout Repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Set Image Tag
-        id: generate-tag
-        shell: bash
-        run: |
-          # Bazzite tag model: testing branch → :stable, every other branch
-          # (notably unstable) → :unstable. Mirrors the policy in build.yml.
-          TAG="unstable"
-          if [[ "${{ github.ref_name }}" == "testing" ]]; then
-              TAG="stable"
-          fi
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Get lower-case repo owner
         id: repo_owner_case
         run: echo "lowercase=${REPO_OWNER,,}" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve channel + dated tag for ${{ matrix.image_name }}
+        id: generate-tag
+        shell: bash
+        env:
+          OWNER: ${{ steps.repo_owner_case.outputs.lowercase }}
+          IMAGE: ${{ matrix.image_name }}
+        run: |
+          set -eo pipefail
+          # Channel selection mirrors build.yml: testing → stable, anything
+          # else (notably unstable) → unstable. ISO pulls the rolling pointer
+          # and reuses the resolved dated tag for the filename so the artifact
+          # carries the upstream Fedora/date trail.
+          CHANNEL="unstable"
+          if [[ "${{ github.ref_name }}" == "testing" ]]; then
+            CHANNEL="stable"
+          fi
+          REGISTRY_IMAGE="ghcr.io/${OWNER}/${IMAGE}"
+          DATED=""
+          if UPSTREAM_TAG=$(skopeo inspect "docker://${REGISTRY_IMAGE}:${CHANNEL}" 2>/dev/null \
+              | jq -er '.Labels["org.opencontainers.image.version"]'); then
+            DATED="${CHANNEL}-${UPSTREAM_TAG}"
+          fi
+          FILENAME_TAG="${DATED:-$CHANNEL}"
+          {
+            echo "tag=${CHANNEL}"
+            echo "dated=${DATED}"
+            echo "filename_tag=${FILENAME_TAG}"
+          } >> $GITHUB_OUTPUT
+
       - name: Build Payload Container
         run: |
-          BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ steps.generate-tag.outputs.tag }}"
+          BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ matrix.image_name }}:${{ steps.generate-tag.outputs.tag }}"
           INSTALL_IMAGE_PAYLOAD="$BASE_IMAGE"
           FLATPAK_DIR_SHORTNAME="kde_flatpaks"
 
@@ -97,7 +164,7 @@ jobs:
         id: build
         with:
           image-ref: localhost/payload:latest
-          iso-dest: ${{ env.IMAGE_NAME }}-${{ steps.generate-tag.outputs.tag }}-live-amd64.iso
+          iso-dest: ${{ matrix.image_name }}-${{ steps.generate-tag.outputs.filename_tag }}-live-amd64.iso
 
       - name: Move ISO to Upload Directory
         id: upload-directory
@@ -122,20 +189,28 @@ jobs:
         env:
           ISO_UPLOAD_DIR: ${{ steps.upload-directory.outputs.iso-upload-dir }}
           ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
+          VARIANT_LABEL: ${{ matrix.variant_label }}
         run: |
           for iso in ${ISO_UPLOAD_DIR}/*.iso; do
             iso_name=$(basename "$iso")
             jq -n \
               --arg iso "$iso_name" \
               --arg url "$ATTESTATION_URL" \
+              --arg variant "$VARIANT_LABEL" \
               --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-              '{iso: $iso, attestation_url: $url, build_date: $date}' > "${iso}.json"
+              '{iso: $iso, variant: $variant, attestation_url: $url, build_date: $date}' > "${iso}.json"
           done
 
+      # unstable ISOs stay as Actions artifacts only (login-required), same
+      # pattern Bazzite uses for its own testing/unstable lanes. The public
+      # archive.org publish is reserved for promoted `:stable` releases
+      # and lives in `generate_release.yml`, where each release gets its
+      # own dated identifier (yaguarete_os-stable-<fedora>.<YYYYMMDD>) and
+      # the history is preserved permanently (Garuda-style).
       - name: Upload ISO and Checksum to Job Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ${{ env.IMAGE_NAME }}-${{ steps.generate-tag.outputs.tag }}-iso
+          name: ${{ matrix.image_name }}-${{ steps.generate-tag.outputs.filename_tag }}-iso
           path: ${{ steps.upload-directory.outputs.iso-upload-dir }}
           if-no-files-found: error
           retention-days: 7

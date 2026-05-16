@@ -41,14 +41,83 @@ feat/<id>-<slug> | fix/<id>-<slug> | chore/<id>-<slug>
 - **Short imperative subject** (≤72 chars), wrapped body explaining the *why*.
 - **One logical change per commit** when feasible. Subtask checklists in issues map cleanly to one commit per subtask.
 
+### Variants (Bazzite-derived, KDE-only)
+
+Four images are built from a single parameterised `Containerfile`, one per upstream base:
+
+| Image                       | Base upstream               | Fedora target                  | HW                                  |
+|-----------------------------|-----------------------------|--------------------------------|-------------------------------------|
+| `yaguarete_os`              | `bazzite:stable`            | latest (F44 today)             | AMD / Intel desktop                 |
+| `yaguarete_os-nvidia`       | `bazzite-nvidia:stable`     | latest (F44 today)             | NVIDIA proprietary                  |
+| `yaguarete_os-nvidia-open`  | `bazzite-nvidia-open:stable`| latest (F44 today)             | NVIDIA open kernel module           |
+| `yaguarete_os-deck`         | `bazzite-deck:stable`       | lockstep upstream (F43 today)  | Steam Deck / OneXFly / ROG Ally     |
+
+Overlay (`system_files/`, `build_files/`) is shared across all four — every branding / app / config change lands in all variants at once. Only the `FROM` differs.
+
+Maintainer smoke-test coverage:
+
+- ✅ Desktop AMD (`yaguarete_os`)
+- ✅ Handheld AMD (`yaguarete_os-deck`)
+- ✅ Desktop NVIDIA proprietary (`yaguarete_os-nvidia`) — covered by the same HW as `-nvidia-open`
+- ⚠️ `yaguarete_os-nvidia-open` — built and validated by `nvidia` HW; minimal cross-coverage
+
+GNOME / Budgie / Surface / Ally-budgie variants are intentionally excluded.
+
 ### Channels and promotion (Bazzite model)
 
-Two long-running branches, two GHCR tags:
+Two long-running branches, three GHCR channels — applied per variant:
 
-- `unstable` → `:unstable` — rolling testing channel. Every PR merge here triggers a container + ISO build.
-- `testing` → `:stable` — validated release channel. Promotion is a manual PR `testing ← unstable` opened when a build has been smoke-validated. Merging that PR rebuilds `:stable` and emits an ISO release.
+- `unstable` → `:unstable` — rolling integration channel. Every PR merge triggers container + ISO builds for all 4 variants in matrix.
+- `testing` → `:testing` — pre-release channel. Manual PR `testing ← unstable` opened when a smoke build is ready.
+- (promoted) → `:stable` / `:latest` — validated release channel. **Never built**, only promoted by digest from a chosen `:testing` tag via [`retag.yml`](.github/workflows/retag.yml). Each variant promotes independently — `yaguarete_os-deck` typically lands on a different Fedora major than the desktop variants.
+
+#### Tag format (Bazzite-literal)
+
+`<channel>-<fedora>.<YYYYMMDD>[.N]`
+
+The `<fedora>.<YYYYMMDD>` suffix is **not invented locally** — it is read from the `org.opencontainers.image.version` label of `ghcr.io/ublue-os/bazzite:stable` at build time, so YaguareteOS stays in lockstep with Bazzite's actual Fedora cadence. The `.N` collision suffix only appears when rebuilding the same upstream tag on the same day.
+
+Rolling pointers always exist alongside the dated tags:
+
+- `:unstable`, `:unstable-<fedora>` — newest unstable build of that Fedora major.
+- `:testing`, `:testing-<fedora>` — newest testing build.
+- `:stable`, `:stable-<fedora>`, `:latest` — current promoted stable.
+
+#### Cadence
+
+- **`:unstable`** — pushes to `unstable` always rebuild. A daily cron (`0 5 * * *` UTC) also runs but the [`check_upstream`](.github/workflows/build.yml) gate skips the build when Bazzite's `:stable` digest has not changed since our last unstable build. Worst-case latency vs upstream: ~24h.
+- **`:testing`** — pushes to `testing` rebuild on demand. No cron — `testing` is only updated by a maintainer-opened promotion PR.
+- **`:stable`** — manual two-step promotion:
+  1. Run [`retag.yml`](.github/workflows/retag.yml) with the `:testing-<fedora>.<YYYYMMDD>` tag to promote. This re-points the digest to `:stable`, `:stable-<fedora>`, `:stable-<fedora>.<YYYYMMDD>` and `:latest` without rebuilding.
+  2. Run [`generate_release.yml`](.github/workflows/generate_release.yml) to publish the matching git tag + GitHub Release with auto-generated notes.
+
+There is no auto-promotion cron. Stable always requires a human button-press, by design.
+
+#### Retention
+
+GHCR is cleaned weekly by [`clean.yml`](.github/workflows/clean.yml) (Sundays 00:15 UTC): tags older than 90 days are deleted, keeping the most recent 7 tagged and 7 untagged manifests regardless of age.
+
+#### Client auto-update default
+
+`/etc/rpm-ostreed.conf` keeps `AutomaticUpdatePolicy=check` (the upstream Bazzite default). The bootc layer is notified of new images but the user decides when to deploy. Not changing this without an explicit decision tracked in an issue.
 
 Conventional Commits (`feat:`, `fix:`, `chore:`, etc.) are kept for readability and grep-ability of history, but no longer drive automatic version bumps — release-please has been removed (Bazzite does not use it).
+
+### Bumping custom apps (Yryvu, CapyDeploy, Godots, ...)
+
+Custom apps that are not yet packaged as RPMs or Flatpaks are pulled from GitHub Releases during the container build by [`build_files/install-custom-apps.sh`](build_files/install-custom-apps.sh). Each one has its version and asset checksum hardcoded.
+
+To bump one of them:
+
+1. Find the new release on the upstream repo (e.g. `gh release view --repo lobinuxsoft/yryvu`).
+2. Note the version tag and the checksum line for the Linux asset (each upstream publishes `checksums-sha256.txt` or `SHA512-SUMS.txt` alongside its assets).
+3. Edit `build_files/install-custom-apps.sh`: update the matching `<APP>_VERSION` and `<APP>_..._SHA256` (or `SHA512`) constants.
+4. Commit as `chore(apps): bump <app> <old> -> <new>`. One bump per commit, even when several apps move at once.
+5. Push to a `feat/` or `chore/` branch and open the PR against `unstable` like any other change.
+
+Wrong checksum = build fails fast at the `sha256sum --check --strict` line. Never disable the strict flag to "make it pass"; if the asset moved or was re-uploaded, investigate before bumping.
+
+This procedure is interim. Apps that stabilise should migrate to a proper RPM in the future `yaguarete-os` COPR (tracked in #16) or to Flatpak — both update independently of the system image and remove the manual bump step.
 
 ### Anti-patterns rejected
 

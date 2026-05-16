@@ -1,33 +1,63 @@
 ---
 name: Build container image
 on:
+  # Daily mirror of upstream Bazzite. The inline check_upstream step
+  # short-circuits per-variant when its digest has not changed.
+  schedule:
+    - cron: '0 5 * * *'
   pull_request:
     branches:
       - testing
       - unstable
+    # Mirror the `push` ignore-list so docs-only PRs do not pay the
+    # 4-variant matrix cost. Composes with the batch-CI-runs preference.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'installer/**'
   push:
     branches:
       - testing
       - unstable
     paths-ignore:
-      - '**/README.md'
+      - '**.md'
+      - 'docs/**'
+      - 'installer/**'
   workflow_dispatch:
 
 env:
   IMAGE_DESC: "YaguareteOS — distribución argentina soberana sobre Bazzite/Fedora Atomic"
   IMAGE_KEYWORDS: "bootc,ublue,universal-blue,bazzite,yaguarete,argentina,kde,gaming"
-  IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4"  # Put your own image here for a fancy profile on https://artifacthub.io/!
-  IMAGE_NAME: "${{ github.event.repository.name }}"  # output image name, usually same as repo name
-  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name}}-${{ inputs.stream_name }}
-  cancel-in-progress: true
+  IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4"
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
 
 jobs:
   build_push:
-    name: Build and push image
+    name: Build ${{ matrix.image_name }}
     runs-on: ubuntu-24.04
+    # Per-variant concurrency lives on the job: workflow-level concurrency
+    # cannot reference `matrix.*` (matrix context only exists inside jobs).
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ matrix.image_name }}
+      cancel-in-progress: true
+    strategy:
+      # Don't cancel sibling variants when one fails — independent images
+      # should produce independent CI results.
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: yaguarete_os
+            base_image: ghcr.io/ublue-os/bazzite:stable
+            variant_label: desktop
+          - image_name: yaguarete_os-nvidia
+            base_image: ghcr.io/ublue-os/bazzite-nvidia:stable
+            variant_label: nvidia
+          - image_name: yaguarete_os-nvidia-open
+            base_image: ghcr.io/ublue-os/bazzite-nvidia-open:stable
+            variant_label: nvidia-open
+          - image_name: yaguarete_os-deck
+            base_image: ghcr.io/ublue-os/bazzite-deck:stable
+            variant_label: deck
 
     permissions:
       contents: read
@@ -37,119 +67,182 @@ jobs:
     steps:
       - name: Prepare environment
         run: |
-          # Lowercase the image uri
-          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
-          echo "IMAGE_NAME=${IMAGE_NAME,,}" >> ${GITHUB_ENV}
+          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ matrix.image_name }}" >> $GITHUB_ENV
+          echo "BASE_IMAGE=${{ matrix.base_image }}" >> $GITHUB_ENV
+          echo "VARIANT_LABEL=${{ matrix.variant_label }}" >> $GITHUB_ENV
 
-      # These stage versions are pinned by https://github.com/renovatebot/renovate
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      # This is optional, but if you see that your builds are way too big for the runners, you can enable this by uncommenting the following lines:
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
 
+      # Per-variant digest gate. Only runs the cheap skopeo path on
+      # scheduled invocations; push / PR / workflow_dispatch always build.
+      - name: Check upstream digest
+        id: check
+        run: |
+          set -eo pipefail
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=event=${{ github.event_name }} (always build)" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          UPSTREAM_DIGEST=$(skopeo inspect "docker://${BASE_IMAGE}" 2>/dev/null | jq -r '.Digest')
+          if [ -z "$UPSTREAM_DIGEST" ] || [ "$UPSTREAM_DIGEST" = "null" ]; then
+            echo "::error::could not read upstream digest for ${BASE_IMAGE}"
+            exit 1
+          fi
+          OURS_DIGEST=$(skopeo inspect "docker://${IMAGE_REGISTRY}/${IMAGE_NAME}:unstable" 2>/dev/null \
+            | jq -r '.Labels["dev.yaguarete.base.digest"] // empty' 2>/dev/null || true)
+          if [ -z "$OURS_DIGEST" ] || [ "$UPSTREAM_DIGEST" != "$OURS_DIGEST" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "reason=upstream changed (${OURS_DIGEST:-none} -> ${UPSTREAM_DIGEST})" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "reason=upstream digest unchanged (${UPSTREAM_DIGEST})" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Report decision
+        run: |
+          echo "variant=${VARIANT_LABEL}"
+          echo "should_build=${{ steps.check.outputs.should_build }}"
+          echo "reason=${{ steps.check.outputs.reason }}"
+
       - name: Get current date
+        if: steps.check.outputs.should_build == 'true'
         id: date
         run: |
-          # This generates a timestamp like what is defined on the ArtifactHub documentation
-          # E.G: 2022-02-08T15:38:15Z'
-          # https://artifacthub.io/docs/topics/repositories/container-images/
-          # https://linux.die.net/man/1/date
           echo "date=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)" >> $GITHUB_OUTPUT
 
-      # Image metadata for https://artifacthub.io/ - This is optional but is highly recommended so we all can get a index of all the custom images
-      # The metadata by itself is not going to do anything, you choose if you want your image to be on ArtifactHub or not.
+      # Bazzite-literal tag derivation against this variant's base image.
+      - name: Derive upstream tag and image tags
+        if: steps.check.outputs.should_build == 'true'
+        id: derive
+        run: |
+          set -eo pipefail
+
+          skopeo inspect "docker://${BASE_IMAGE}" > source.json
+          UPSTREAM_TAG=$(jq -r '.Labels["org.opencontainers.image.version"]' source.json)
+          if [ -z "$UPSTREAM_TAG" ] || [ "$UPSTREAM_TAG" = "null" ]; then
+            echo "::error::base image ${BASE_IMAGE} has no org.opencontainers.image.version label"
+            exit 1
+          fi
+          UPSTREAM_TAG="${UPSTREAM_TAG%\.[0-9]}"
+          FEDORA_VERSION="${UPSTREAM_TAG%%.*}"
+          UPSTREAM_DIGEST=$(jq -r '.Digest' source.json)
+          SHA_SHORT="${GITHUB_SHA::7}"
+
+          REGISTRY_IMAGE="${IMAGE_REGISTRY}/${IMAGE_NAME}"
+
+          if [ -n "${{ github.event.pull_request.number }}" ]; then
+            VERSION="pr-${FEDORA_VERSION}-${{ github.event.pull_request.number }}"
+            CHANNEL="pr"
+            PRETTY="PR (#${{ github.event.pull_request.number }}, ${VARIANT_LABEL}, F${UPSTREAM_TAG})"
+          elif [[ "${{ github.ref_name }}" == "unstable" ]]; then
+            VERSION="unstable-${UPSTREAM_TAG}"
+            CHANNEL="unstable"
+            PRETTY="Unstable ${VARIANT_LABEL} (F${UPSTREAM_TAG}, #${SHA_SHORT})"
+          elif [[ "${{ github.ref_name }}" == "testing" ]]; then
+            VERSION="testing-${UPSTREAM_TAG}"
+            CHANNEL="testing"
+            PRETTY="Testing ${VARIANT_LABEL} (F${UPSTREAM_TAG}, #${SHA_SHORT})"
+          else
+            VERSION="dev-${{ github.ref_name }}-${UPSTREAM_TAG}"
+            CHANNEL="dev"
+            PRETTY="Dev ${VARIANT_LABEL} (${{ github.ref_name }}, F${UPSTREAM_TAG})"
+          fi
+
+          EXISTING=$(skopeo list-tags "docker://${REGISTRY_IMAGE}" 2>/dev/null | jq -r '.Tags[]' 2>/dev/null || true)
+          if printf '%s\n' "$EXISTING" | grep -qxF "$VERSION"; then
+            for n in 1 2 3 4 5 6 7 8 9; do
+              CANDIDATE="${VERSION}.${n}"
+              if ! printf '%s\n' "$EXISTING" | grep -qxF "$CANDIDATE"; then
+                VERSION="$CANDIDATE"
+                break
+              fi
+            done
+          fi
+
+          TAGS=("$VERSION")
+          case "$CHANNEL" in
+            unstable)
+              TAGS+=("unstable" "unstable-${FEDORA_VERSION}")
+              ;;
+            testing)
+              TAGS+=("testing" "testing-${FEDORA_VERSION}")
+              ;;
+          esac
+
+          {
+            echo "version=$VERSION"
+            echo "channel=$CHANNEL"
+            echo "fedora_version=$FEDORA_VERSION"
+            echo "upstream_tag=$UPSTREAM_TAG"
+            echo "upstream_digest=$UPSTREAM_DIGEST"
+            echo "pretty=$PRETTY"
+            echo "tags=${TAGS[*]}"
+          } >> $GITHUB_OUTPUT
+
       - name: Image Metadata
+        if: steps.check.outputs.should_build == 'true'
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         id: metadata
         with:
-          # Bazzite tag model: push to `unstable` → :unstable (rolling testing),
-          # push to `testing` → :stable (validated release channel). PRs get a
-          # sha and a pr-N tag so the build is reachable for smoke without
-          # contaminating either long-lived channel.
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=unstable,enable=${{ github.ref == 'refs/heads/unstable' }}
-            type=raw,value=unstable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' }}
-            type=raw,value=stable,enable=${{ github.ref == 'refs/heads/testing' }}
-            type=raw,value=stable.{{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/testing' }}
-            type=raw,value={{date 'YYYYMMDD'}},enable=${{ github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing' }}
-            type=sha,enable=${{ github.event_name == 'pull_request' }}
-            type=ref,event=pr
-            # Fallback so workflow_dispatch from feature branches (e.g. while
-            # validating workflow edits) still produces a buildable tag. Without
-            # this the metadata-action emits zero tags and buildah dies on
-            # `yaguarete_os:` (empty reference).
-            type=ref,event=branch,enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=${{ steps.derive.outputs.version }}
           labels: |
-            io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/${{ github.sha }}/README.md
+            io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ github.sha }}/README.md
             org.opencontainers.image.created=${{ steps.date.outputs.date }}
-            org.opencontainers.image.description=${{ env.IMAGE_DESC }}
-            org.opencontainers.image.documentation=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/${{ github.sha }}/README.md
-            org.opencontainers.image.source=https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/blob/${{ github.sha }}/Containerfile
+            org.opencontainers.image.description=${{ env.IMAGE_DESC }} (${{ env.VARIANT_LABEL }})
+            org.opencontainers.image.documentation=https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ github.sha }}/README.md
+            org.opencontainers.image.source=https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/blob/${{ github.sha }}/Containerfile
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}/tree/${{ github.sha }}
+            org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/tree/${{ github.sha }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.version={{date 'YYYYMMDD'}}
+            org.opencontainers.image.version=${{ steps.derive.outputs.upstream_tag }}
+            dev.yaguarete.variant=${{ env.VARIANT_LABEL }}
+            dev.yaguarete.base.image=${{ env.BASE_IMAGE }}
+            dev.yaguarete.base.digest=${{ steps.derive.outputs.upstream_digest }}
+            dev.yaguarete.channel=${{ steps.derive.outputs.channel }}
+            dev.yaguarete.pretty=${{ steps.derive.outputs.pretty }}
             io.artifacthub.package.deprecated=false
             io.artifacthub.package.keywords=${{ env.IMAGE_KEYWORDS }}
             io.artifacthub.package.license=Apache-2.0
             io.artifacthub.package.logo-url=${{ env.IMAGE_LOGO_URL }}
-            io.artifacthub.package.prerelease=false
+            io.artifacthub.package.prerelease=${{ steps.derive.outputs.channel != 'stable' }}
             containers.bootc=1
           sep-tags: " "
           sep-annotations: " "
 
       - name: Build Image
+        if: steps.check.outputs.should_build == 'true'
         id: build_image
         uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2
         with:
           containerfiles: |
             ./Containerfile
-          # Postfix image name with -custom to make it a little more descriptive
-          # Syntax: https://docs.github.com/en/actions/learn-github-actions/expressions#format
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.metadata.outputs.tags }}
+          tags: ${{ steps.derive.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+            IMAGE_NAME=${{ env.IMAGE_NAME }}
           oci: false
 
-      # Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
-      # This does not make your image faster to download, just provides better resumability and fixes a few errors.
-      # Documentation for Rechunk is provided on their github repository at https://github.com/hhd-dev/rechunk
-      # You can enable it by uncommenting the following lines:
-      # - name: Run Rechunker
-      #   id: rechunk
-      #   uses: ublue-os/legacy-rechunk@a925083d9af7cb04b3e2a6e8c01bfa495f38b710 # v1.0.0
-      #   with:
-      #     rechunk: 'ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64'
-      #     ref: "localhost/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
-      #     prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
-      #     skip_compression: true
-      #     version: ${{ env.CENTOS_VERSION }}
-      #     labels: ${{ steps.metadata.outputs.labels }} # Rechunk strips out all the labels during build, this needs to be reapplied here with newline separator
-
-      # This is necessary so that the podman socket can find the rechunked image on its storage
-      # - name: Load in podman and tag
-      #   run: |
-      #     IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
-      #     sudo rm -rf ${{ steps.rechunk.outputs.output }}
-      #     for tag in ${{ steps.metadata.outputs.tags }}; do
-      #       podman tag $IMAGE ${{ env.IMAGE_NAME }}:$tag
-      #     done
-
-      # Publish only for branch pushes (PRs stay in cache, never published).
-      # `unstable` → :unstable; `testing` → :stable.
       - name: Login to GitHub Container Registry
+        if: steps.check.outputs.should_build == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push To GHCR
+        if: steps.check.outputs.should_build == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         id: push
         env:
           REGISTRY_USER: ${{ github.actor }}
@@ -157,33 +250,44 @@ jobs:
         with:
           registry: ${{ env.IMAGE_REGISTRY }}
           image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.metadata.outputs.tags }}
+          tags: ${{ steps.derive.outputs.tags }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
 
-      # This section is optional and only needs to be enabled if you plan on distributing
-      # your project for others to consume. You will need to create a public and private key
-      # using Cosign and save the private key as a repository secret in Github for this workflow
-      # to consume. For more details, review the image signing section of the README.
       - name: Install Cosign
-        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
+        if: steps.check.outputs.should_build == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         with:
           cosign-release: 'v2.6.1'
 
       - name: Sign container image
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
+        if: steps.check.outputs.should_build == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
         run: |
           if [ -z "${COSIGN_PRIVATE_KEY}" ]; then
-            echo "::warning::SIGNING_SECRET is not set; skipping image signing. Tracked by #17."
+            echo "::warning::SIGNING_SECRET is not set; skipping image signing for ${IMAGE_NAME}. Tracked by #17."
             exit 0
           fi
-          IMAGE_FULL="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
-          for tag in ${{ steps.metadata.outputs.tags }}; do
+          IMAGE_FULL="${IMAGE_REGISTRY}/${IMAGE_NAME}"
+          for tag in ${{ steps.derive.outputs.tags }}; do
             cosign sign -y --key env://COSIGN_PRIVATE_KEY $IMAGE_FULL:$tag
           done
         env:
-          TAGS: ${{ steps.push.outputs.digest }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           COSIGN_PASSWORD: ""
+
+  # Chain build-iso after every variant in the matrix successfully pushes.
+  # This eliminates the race where build-iso pulled `:unstable` while
+  # build.yml was still pushing it. Runs only for branch pushes (PRs and
+  # cron-skipped variants do not produce ISOs).
+  call_iso:
+    name: Trigger ISO build
+    needs: [build_push]
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
+    uses: ./.github/workflows/build-iso.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    secrets: inherit

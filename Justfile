@@ -159,30 +159,45 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
     #!/usr/bin/env bash
     set -euo pipefail
 
+    # Prime sudo upfront so a stale or missing credential cache fails fast
+    # with a clear message instead of hanging the recipe halfway through
+    # waiting for a password prompt that nobody can answer (CI runners,
+    # SSH without -t, background pipelines). Once primed, every downstream
+    # `sudo -n` call reuses the cached credential.
+    if ! sudo -n true 2>/dev/null; then
+      if ! sudo -v; then
+        echo "::error:: _build-bib requires sudo. Run interactively or pre-cache credentials with 'sudo -v' before invoking this recipe." >&2
+        exit 1
+      fi
+    fi
+
     args="--type ${type} "
     args+="--use-librepo=True "
     args+="--rootfs=btrfs"
 
-    BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
+    # Bind-mount the host's output/ directly into the container so the
+    # bootc-image-builder writes its artefacts where we want them on the
+    # first try, eliminating the BUILDTMP → output/ relocation that used
+    # to need a separate `sudo mv` (and used to hang without a TTY).
+    mkdir -p output
 
-    sudo podman run \
+    sudo -n podman run \
       --rm \
-      -it \
       --privileged \
       --pull=newer \
       --net=host \
       --security-opt label=type:unconfined_t \
       -v $(pwd)/${config}:/config.toml:ro \
-      -v $BUILDTMP:/output \
+      -v $(pwd)/output:/output:Z \
       -v /var/lib/containers/storage:/var/lib/containers/storage \
       "${bib_image}" \
       ${args} \
       "${target_image}:${tag}"
 
-    mkdir -p output
-    sudo mv -f $BUILDTMP/* output/
-    sudo rmdir $BUILDTMP
-    sudo chown -R $USER:$USER output/
+    # bootc-image-builder writes as root inside the container; reclaim
+    # ownership on the host so the user can move / delete the artefacts
+    # without sudo afterwards.
+    sudo -n chown -R $USER:$USER output/
 
 # Podman builds the image from the Containerfile and creates a bootable image
 # Parameters:
@@ -297,6 +312,74 @@ run-vm-iso-local iso_path:
     (sleep 30 && xdg-open http://localhost:"$port") &
     podman run "${run_args[@]}"
 
+# Run a virtual machine from a local ISO file using host qemu-system-x86_64 directly.
+# Avoids the qemux/qemu Docker wrapper splash that prepends a "QEMU for Docker"
+# screen before GRUB. Requires qemu + edk2-ovmf installed on the host
+# (`rpm-ostree install qemu-system-x86 edk2-ovmf` on Fedora Atomic / Bazzite,
+# reboot after).
+[group('Run Virtal Machine')]
+run-vm-iso-bare iso_path disk_size="64G" ram="16G" cpus="4":
+    #!/usr/bin/bash
+    set -eoux pipefail
+
+    if [[ ! -f "{{ iso_path }}" ]]; then
+        echo "ISO not found at {{ iso_path }}. Download it from the GH Actions 'Build Live ISO' workflow artifact."
+        exit 1
+    fi
+
+    if ! command -v qemu-system-x86_64 >/dev/null; then
+        echo "qemu-system-x86_64 not found. Install with 'rpm-ostree install qemu-system-x86' (Fedora Atomic) and reboot."
+        exit 1
+    fi
+
+    iso_abs="$(realpath {{ iso_path }})"
+    iso_name="$(basename {{ iso_path }} .iso)"
+    disk="${TMPDIR:-/tmp}/yaguarete-bare-${iso_name}.qcow2"
+
+    if [[ ! -f "$disk" ]]; then
+        echo "Creating persistent disk at $disk ({{ disk_size }})"
+        qemu-img create -f qcow2 "$disk" "{{ disk_size }}"
+    fi
+
+    # OVMF firmware path varies by distro and qemu version. Try Fedora,
+    # Debian/Ubuntu and the bundled edk2 layout in that order.
+    ovmf_code=""
+    for candidate in \
+        /usr/share/edk2/ovmf/OVMF_CODE.fd \
+        /usr/share/edk2/ovmf/OVMF_CODE_4M.qcow2 \
+        /usr/share/OVMF/OVMF_CODE.fd \
+        /usr/share/qemu/edk2-x86_64-code.fd; do
+        if [[ -f "$candidate" ]]; then
+            ovmf_code="$candidate"
+            break
+        fi
+    done
+
+    if [[ -z "$ovmf_code" ]]; then
+        echo "OVMF firmware not found. Install with 'rpm-ostree install edk2-ovmf' (Fedora Atomic) and reboot."
+        exit 1
+    fi
+
+    # KVM + virtio everywhere. The persistent qcow2 means a second run will
+    # boot off the installed system, not the live ISO — match what real
+    # hardware does after the first install reboot.
+    qemu-system-x86_64 \
+        -enable-kvm \
+        -machine q35,smm=on,accel=kvm \
+        -cpu host \
+        -smp "{{ cpus }}" \
+        -m "{{ ram }}" \
+        -drive if=pflash,format=raw,readonly=on,file="$ovmf_code" \
+        -drive file="$disk",format=qcow2,if=virtio \
+        -cdrom "$iso_abs" \
+        -boot order=d,menu=on \
+        -vga virtio \
+        -display gtk,gl=on \
+        -device virtio-net,netdev=net0 \
+        -netdev user,id=net0 \
+        -device virtio-rng-pci \
+        -name "YaguareteOS smoke ($(basename {{ iso_path }}))"
+
 # Run a virtual machine using systemd-vmspawn
 [group('Run Virtal Machine')]
 spawn-vm rebuild="0" type="qcow2" ram="6G":
@@ -306,7 +389,14 @@ spawn-vm rebuild="0" type="qcow2" ram="6G":
 
     [ "{{ rebuild }}" -eq 1 ] && echo "Rebuilding the ISO" && just build-vm {{ rebuild }} {{ type }}
 
+    # systemd-vmspawn does NOT auto-discover OVMF and ships with no NVRAM
+    # vars preconfigured, so the guest used to drop into the UEFI Boot
+    # Manager every time. Pass --firmware=auto and let vmspawn locate
+    # the OVMF code blob on the host (edk2-ovmf package on Fedora) and
+    # spin up its own NVMRAM vars. On hosts where auto-discovery does
+    # not work, override with --firmware=/usr/share/edk2/ovmf/OVMF_CODE.fd.
     systemd-vmspawn \
+      --firmware=auto \
       -M "bootc-image" \
       --console=gui \
       --cpus=2 \

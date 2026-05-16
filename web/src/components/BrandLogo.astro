@@ -1,0 +1,21 @@
+---
+// YaguareteOS brand mark for the navbar. Renders the project vector logo as
+// an <img>; the SVG already carries its own palette (orange #DA561E +
+// neutrals), so no currentColor / Tailwind theming is wired on top.
+import logo from '@images/yaguarete_logo.svg';
+
+const { class: className } = Astro.props;
+
+interface Props {
+  class?: string;
+}
+---
+
+<img
+  src={logo.src}
+  width={logo.width}
+  height={logo.height}
+  class={className}
+  alt="YaguareteOS"
+  draggable="false"
+/>
