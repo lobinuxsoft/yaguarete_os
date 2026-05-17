@@ -63,18 +63,12 @@ jobs:
           fi
           FEDORA_VERSION="${UPSTREAM_TAG%%.*}"
 
-          # Stable git tag mirrors GHCR: `stable-<fedora>.<YYYYMMDD>[.N]`.
-          # `.N` collision against existing git tags only.
+          # Stable git tag mirrors the GHCR `:stable-<fedora>.<YYYYMMDD>`
+          # pointer retag.yml just published. Re-dispatching this workflow
+          # on the same testing digest re-creates the same tag — the
+          # `softprops/action-gh-release` step below is idempotent and
+          # updates the existing release in place (Bazzite pattern).
           STABLE_TAG="stable-${UPSTREAM_TAG}"
-          if git rev-parse "refs/tags/${STABLE_TAG}" >/dev/null 2>&1; then
-            for n in 1 2 3 4 5 6 7 8 9; do
-              CAND="${STABLE_TAG}.${n}"
-              if ! git rev-parse "refs/tags/${CAND}" >/dev/null 2>&1; then
-                STABLE_TAG="$CAND"
-                break
-              fi
-            done
-          fi
 
           {
             echo "stable_tag=$STABLE_TAG"
@@ -106,22 +100,20 @@ jobs:
           } >> "$NOTES"
           echo "notes_file=$NOTES" >> $GITHUB_OUTPUT
 
+      # Idempotent release upsert. Mirrors Bazzite upstream
+      # (ublue-os/bazzite/.github/workflows/generate_release.yml). Re-runs
+      # over an existing tag update the release in place — no `.N`
+      # collision suffix needed. `generate_release_notes: true` is the
+      # action's equivalent of `gh release create --generate-notes`.
       - name: Create git tag + GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          STABLE_TAG: ${{ steps.derive.outputs.stable_tag }}
-          TITLE: ${{ steps.derive.outputs.title }}
-          NOTES_FILE: ${{ steps.body.outputs.notes_file }}
-        run: |
-          set -eo pipefail
-          # `gh release create --generate-notes` autogenerates a section from
-          # commits/PRs since the previous tag and appends it to --notes-file.
-          gh release create "$STABLE_TAG" \
-            --target testing \
-            --title "$TITLE" \
-            --notes-file "$NOTES_FILE" \
-            --generate-notes \
-            --latest
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
+        with:
+          tag_name: ${{ steps.derive.outputs.stable_tag }}
+          target_commitish: testing
+          name: ${{ steps.derive.outputs.title }}
+          body_path: ${{ steps.body.outputs.notes_file }}
+          generate_release_notes: true
+          make_latest: 'true'
 
       # archive.org upload of the four stable ISOs. Each release gets its
       # own dated identifier (Garuda-style permanent history), so older
@@ -178,7 +170,9 @@ jobs:
           # 1024x1024 with the page background colour (#1A1A1A) baked in
           # so the thumbnail reads cleanly on archive.org's white listings
           # as well as our own black landing.
-          magick -background "#1A1A1A" -density 192 -resize 1024x1024 \
+          # `convert` is the IM6 binary (Ubuntu noble apt) and an alias in
+          # IM7; `magick` exists only in IM7 and is not available here.
+          convert -background "#1A1A1A" -density 192 -resize 1024x1024 \
             system_files/usr/share/yaguarete/branding/yaguarete_os_vector_01.svg \
             thumbs/__ia_thumb.png
           ls -lh thumbs/__ia_thumb.png
