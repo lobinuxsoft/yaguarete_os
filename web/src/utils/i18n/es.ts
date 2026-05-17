@@ -32,6 +32,8 @@ const es: Translations = {
         description:
           'Variante por defecto. Stack de gráficos open-source, funciona en la mayoría del hardware no-NVIDIA.',
         upstream: 'bazzite:stable',
+        downloadUrl:
+          'https://archive.org/download/yaguarete_os-stable-44.20260515/yaguarete_os-testing-44.20260515-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-nvidia',
@@ -39,6 +41,8 @@ const es: Translations = {
         description:
           'GPU NVIDIA con el driver propietario. Recomendado para gaming en hardware NVIDIA hoy.',
         upstream: 'bazzite-nvidia:stable',
+        downloadUrl:
+          'https://archive.org/download/yaguarete_os-nvidia-stable-44.20260515/yaguarete_os-nvidia-testing-44.20260515-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-nvidia-open',
@@ -46,6 +50,8 @@ const es: Translations = {
         description:
           'GPU NVIDIA con el módulo kernel abierto (Turing+). Orientado a workstations de desarrollo.',
         upstream: 'bazzite-nvidia-open:stable',
+        downloadUrl:
+          'https://archive.org/download/yaguarete_os-nvidia-open-stable-44.20260515/yaguarete_os-nvidia-open-testing-44.20260515-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-deck',
