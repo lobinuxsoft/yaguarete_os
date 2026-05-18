@@ -57,8 +57,10 @@ const es: Translations = {
         name: 'yaguarete_os-deck',
         tag: 'Handheld (Steam Deck, OneXFly, ROG Ally)',
         description:
-          'Bootea directo en game mode. ISO bloqueada por el issue #112; el rebase desde Bazzite-deck funciona hoy.',
+          'Bootea directo en game mode. Heredado de Bazzite-deck, todavía en Fedora 43.',
         upstream: 'bazzite-deck:stable',
+        downloadUrl:
+          'https://archive.org/download/yaguarete_os-deck-stable-43.20260420/yaguarete_os-deck-testing-43.20260420-live-amd64.iso',
       },
     ],
   },
@@ -100,7 +102,7 @@ const es: Translations = {
       {
         question: '¿Qué variante instalo?',
         answer:
-          'GPU AMD o Intel en desktop o laptop → yaguarete_os. NVIDIA con driver propietario → yaguarete_os-nvidia. NVIDIA con módulo kernel abierto (Turing+) → yaguarete_os-nvidia-open. Steam Deck, OneXFly o ROG Ally → yaguarete_os-deck (sólo por rebase por ahora; la build de ISO para deck está trackeada en el issue #112).',
+          'GPU AMD o Intel en desktop o laptop → yaguarete_os. NVIDIA con driver propietario → yaguarete_os-nvidia. NVIDIA con módulo kernel abierto (Turing+) → yaguarete_os-nvidia-open. Steam Deck, OneXFly o ROG Ally → yaguarete_os-deck (todavía en Fedora 43, lockstep con Bazzite-deck).',
       },
       {
         question: '¿Cómo hago rebase desde otro sistema bootc?',
