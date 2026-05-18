@@ -145,19 +145,72 @@ jobs:
             echo "filename_tag=${FILENAME_TAG}"
           } >> $GITHUB_OUTPUT
 
+      # Diagnostic instrumentation for #112: deck variant build kills the
+      # step silently (in_progress forever, conclusion=null) so we cannot
+      # see what stage of the podman build is failing. The sampler streams
+      # resource snapshots to stdout every 5s so GitHub Actions log buffer
+      # captures them even if the step is killed externally. The hard
+      # timeout converts a hung build into exit 124 with logs preserved.
       - name: Build Payload Container
+        shell: bash
         run: |
+          set -x
+          set -o pipefail
+
+          echo "::group::Pre-build diagnostics"
+          df -h
+          free -h
+          head -5 /proc/meminfo
+          lsblk
+          mount | grep -E "(mnt|containers)" || true
+          nproc
+          uname -a
+          echo "::endgroup::"
+
+          sample_loop() {
+            while true; do
+              ts=$(date -u +%H:%M:%S)
+              disk_root=$(df -h / 2>/dev/null | awk 'NR==2 {print $3"/"$2" ("$5")"}')
+              disk_mnt=$(df -h /mnt 2>/dev/null | awk 'NR==2 {print $3"/"$2" ("$5")"}')
+              mem=$(free -h | awk '/^Mem:/ {print $3"/"$2}')
+              podman_du=$(sudo du -sh /var/lib/containers/storage 2>/dev/null | awk '{print $1}')
+              printf '[SAMPLE %s] root: %s | mnt: %s | mem: %s | podman_storage: %s\n' \
+                "$ts" "$disk_root" "$disk_mnt" "$mem" "${podman_du:-n/a}"
+              sleep 5
+            done
+          }
+          stdbuf -oL -eL sample_loop &
+          SAMPLER_PID=$!
+          trap 'kill $SAMPLER_PID 2>/dev/null || true' EXIT
+
           BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ matrix.image_name }}:${{ steps.generate-tag.outputs.tag }}"
           INSTALL_IMAGE_PAYLOAD="$BASE_IMAGE"
           FLATPAK_DIR_SHORTNAME="kde_flatpaks"
 
-          sudo podman build \
+          set +e
+          sudo timeout --kill-after=60s 30m podman build \
+            --log-level=debug \
             --cap-add sys_admin \
             --security-opt label=disable \
             --build-arg BASE_IMAGE="$BASE_IMAGE" \
             --build-arg INSTALL_IMAGE_PAYLOAD="$INSTALL_IMAGE_PAYLOAD" \
             --build-arg FLATPAK_DIR_SHORTNAME="$FLATPAK_DIR_SHORTNAME" \
             -t localhost/payload:latest installer/
+          BUILD_EXIT=$?
+          set -e
+
+          kill $SAMPLER_PID 2>/dev/null || true
+          wait $SAMPLER_PID 2>/dev/null || true
+
+          echo "::group::Post-build diagnostics"
+          echo "podman build exit code: $BUILD_EXIT"
+          df -h
+          free -h
+          sudo du -sh /var/lib/containers/storage 2>/dev/null || true
+          sudo podman images 2>/dev/null | head -20 || true
+          echo "::endgroup::"
+
+          exit $BUILD_EXIT
 
       - name: Build ISO
         uses: Zeglius/titanoboa@revamp-pr
