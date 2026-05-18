@@ -145,10 +145,34 @@ jobs:
             echo "filename_tag=${FILENAME_TAG}"
           } >> $GITHUB_OUTPUT
 
-      - name: Build Payload Container
+      # The live ISO wrapper runs the lighter desktop variant while the
+      # variant-specific image is embedded as the install payload. Mirrors
+      # ublue-os/bazzite/.github/workflows/build_iso.yml `Obtain non-deck
+      # image ref` step. Without this, deck used itself as BASE_IMAGE *and*
+      # INSTALL_IMAGE_PAYLOAD in the same podman build and exhausted the
+      # 145 GB free-tier runner disk (#112).
+      - name: Obtain non-variant image ref
+        id: get-base-ref
         run: |
-          BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ matrix.image_name }}:${{ steps.generate-tag.outputs.tag }}"
-          INSTALL_IMAGE_PAYLOAD="$BASE_IMAGE"
+          ref="${{ matrix.image_name }}"
+          ref="${ref/-deck/}"
+          ref="${ref/-nvidia-open/}"
+          ref="${ref/-nvidia/}"
+          echo "ref=${ref}" >> $GITHUB_OUTPUT
+
+      - name: Build Payload Container
+        shell: bash
+        run: |
+          set -x
+          set -o pipefail
+
+          echo "::group::Pre-build diagnostics"
+          df -h
+          free -h
+          echo "::endgroup::"
+
+          BASE_IMAGE="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ steps.get-base-ref.outputs.ref }}:${{ steps.generate-tag.outputs.tag }}"
+          INSTALL_IMAGE_PAYLOAD="ghcr.io/${{ steps.repo_owner_case.outputs.lowercase }}/${{ matrix.image_name }}:${{ steps.generate-tag.outputs.tag }}"
           FLATPAK_DIR_SHORTNAME="kde_flatpaks"
 
           sudo podman build \
@@ -158,6 +182,13 @@ jobs:
             --build-arg INSTALL_IMAGE_PAYLOAD="$INSTALL_IMAGE_PAYLOAD" \
             --build-arg FLATPAK_DIR_SHORTNAME="$FLATPAK_DIR_SHORTNAME" \
             -t localhost/payload:latest installer/
+
+          echo "::group::Post-build diagnostics"
+          df -h
+          free -h
+          sudo du -sh /var/lib/containers/storage 2>/dev/null || true
+          sudo podman images 2>/dev/null | head -20 || true
+          echo "::endgroup::"
 
       - name: Build ISO
         uses: Zeglius/titanoboa@revamp-pr

@@ -54,18 +54,30 @@ const heroTitle = `<span class="text-orange-500 dark:text-orange-400">${t.hero.t
             <dd class="font-mono text-neutral-200">{variant.upstream}</dd>
           </dl>
           <div class="mt-5">
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title={t.variants.pendingNote}
-              class="inline-flex w-full cursor-not-allowed items-center justify-center gap-x-2 rounded-lg border border-neutral-700 bg-neutral-800/60 px-3 py-2 text-sm font-medium text-neutral-400"
-            >
-              {t.variants.downloadLabel}
-            </button>
-            <p class="mt-2 text-[0.7rem] leading-snug text-neutral-500">
-              {t.variants.pendingNote}
-            </p>
+            {variant.downloadUrl ? (
+              <a
+                href={variant.downloadUrl}
+                rel="noopener"
+                class="inline-flex w-full items-center justify-center gap-x-2 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-orange-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              >
+                {t.variants.downloadLabel}
+              </a>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title={t.variants.pendingNote}
+                  class="inline-flex w-full cursor-not-allowed items-center justify-center gap-x-2 rounded-lg border border-neutral-700 bg-neutral-800/60 px-3 py-2 text-sm font-medium text-neutral-400"
+                >
+                  {t.variants.downloadLabel}
+                </button>
+                <p class="mt-2 text-[0.7rem] leading-snug text-neutral-500">
+                  {t.variants.pendingNote}
+                </p>
+              </>
+            )}
           </div>
         </li>
       ))

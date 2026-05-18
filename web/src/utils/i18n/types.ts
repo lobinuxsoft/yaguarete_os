@@ -3,6 +3,10 @@ export interface VariantCard {
   tag: string;
   description: string;
   upstream: string;
+  // Direct .iso URL on archive.org. Absent on variants whose stable
+  // ISO is not yet published (e.g. deck blocked by #112) — the landing
+  // falls back to the disabled button + pendingNote.
+  downloadUrl?: string;
 }
 
 export interface FeatureCard {
