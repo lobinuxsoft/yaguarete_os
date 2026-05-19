@@ -175,10 +175,17 @@ ostreecontainer --url=$imageref:$imagetag --transport=containers-storage --no-si
 
 EOF
 
-# Switch the installed deployment to the public registry (signed by us later when we have a key)
+# Switch the installed deployment to the public registry (signed by us later when we have a key).
+# Use $imageref:$imagetag — set above from `podman images 'yaguarete*'` — so each variant ISO
+# (deck / nvidia / nvidia-open / desktop) lands on its own registry path rather than always
+# being rewritten to the desktop variant. Mirrors the upstream bazzite installer pattern; the
+# only difference is we omit --enforce-container-sigpolicy until cosign keys land in #59.
+# Without this, an ISO built from yaguarete_os-deck installs the deck payload (ostreecontainer
+# at line 170) but the bootc switch right after rewrites it back to yaguarete_os:stable, so the
+# first reboot drops the user on the desktop variant with no Game Mode session. See #158.
 cat <<EOF >>/usr/share/anaconda/post-scripts/install-configure-upgrade.ks
 %post --erroronfail --log=/tmp/anacoda_custom_logs/bootc-switch.log
-bootc switch --mutate-in-place --transport registry ghcr.io/lobinuxsoft/yaguarete_os:stable
+bootc switch --mutate-in-place --transport registry $imageref:$imagetag
 %end
 EOF
 
