@@ -1,0 +1,14 @@
+[Unit]
+Description=Enables YaguareteOS autologin
+Before=display-manager.service
+# Only run on the deck variant — the script needs the steamos sddm
+# drop-in shipped by bazzite-deck. Defense in depth (the script also
+# bails on its own if the file is missing).
+ConditionPathExists=/etc/sddm.conf.d/steamos.conf
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/yaguarete-autologin
+
+[Install]
+WantedBy=multi-user.target

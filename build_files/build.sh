@@ -51,6 +51,13 @@ dnf5 install -y \
 
 systemctl enable podman.socket
 
+### Game Mode autologin: patches /etc/sddm.conf.d/steamos.conf at boot
+# to wire User= to whatever username UID 1000 resolves to. Replicates
+# bazzite-deck's bazzite-autologin.service pattern verbatim. The service
+# is gated by ConditionPathExists on the steamos sddm drop-in, so it
+# silently no-ops on desktop/nvidia variants. See #151.
+systemctl enable yaguarete-autologin.service
+
 ### Localization: install Spanish langpack
 # Covers all es_* locales (es_AR, es_ES, es_MX, ...). LANG is set via
 # system_files/etc/locale.conf and timezone via system_files/etc/localtime.
