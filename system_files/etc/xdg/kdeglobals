@@ -9,10 +9,11 @@ smallestReadableFont=Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 toolBarFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 
 [KDE]
-# Layan-KDE supplies the glass / blur / acrylic structure; YaguareteOS.colors
-# stays selected above so the accent stays #FF4500 (Layan ships its own
-# tealish palette which would override the brand identity if used as-is).
-LookAndFeelPackage=com.github.vinceliuice.Layan
+# Aurorae/glass styling comes from kwinrc [org.kde.kdecoration2] — NOT from
+# LookAndFeelPackage. Bazzite never overrides LookAndFeelPackage either; it
+# stays at com.valve.vapor.desktop (the SteamOS look-and-feel) so the panel
+# layout, system tray applets, kickoff and splash all keep working. Setting
+# LookAndFeelPackage=...Layan here wipes the panel layout — see #156.
 contrast=4
 widgetStyle=kvantum-dark
 
