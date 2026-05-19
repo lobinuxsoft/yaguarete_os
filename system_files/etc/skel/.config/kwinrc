@@ -31,9 +31,9 @@ GLCore=true
 WindowsBlockCompositing=false
 
 [org.kde.kdecoration2]
-# Aurorae window decoration set to the Layan SVG theme. This is the
-# correct surface to override Aurorae: changing kdeglobals [KDE]
-# LookAndFeelPackage to switch decorations also rewrites the panel
-# layout, which is not what we want on the deck variant — see #156.
+# Aurorae window decoration set to the Layan SVG theme. Mirrors the
+# /etc/xdg/kwinrc default so newly-created users get the Layan glass
+# buttons on first login — defense in depth in case xdg fallback does
+# not apply for some flow.
 library=org.kde.kwin.aurorae
 theme=__aurorae__svg__Layan
