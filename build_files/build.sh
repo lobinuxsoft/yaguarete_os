@@ -15,12 +15,12 @@ dnf5 install -y tmux
 # Default pre-installed apps for all 4 variants. Maintained list — decisions
 # tracked in #93. Skip packages already shipped by upstream Bazzite
 # (mangohud, goverlay, lutris, ffmpeg-free) to avoid duplicate layers.
+#
+# Creative apps (vlc / gimp / inkscape / obs-studio / blender) moved to
+# Yaguareté Portal as Flathub installs in #154 — they pushed the deck
+# container past the 75 GB btrfs-zstd:2 runner budget and crashed the
+# titanoboa COMMIT step. Users opt in via Portal.
 dnf5 install -y \
-    vlc \
-    gimp \
-    inkscape \
-    obs-studio \
-    blender \
     git-lfs
 
 # Typography stack — decisions tracked in #12.

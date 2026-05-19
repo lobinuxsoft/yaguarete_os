@@ -248,6 +248,34 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: "ujust get-steamcmd uninstall"
+  - title: "Creative Apps"
+    description: "Multimedia creation suite (Flathub installs, per-user, no reboot)"
+    actions:
+      - id: "vlc"
+        title: "VLC"
+        description: "Multimedia player and converter"
+        default: false
+        script: 'flatpak install --user -y flathub org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "gimp"
+        title: "GIMP"
+        description: "Raster graphics editor"
+        default: false
+        script: 'flatpak install --user -y flathub org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "inkscape"
+        title: "Inkscape"
+        description: "Vector graphics editor"
+        default: false
+        script: 'flatpak install --user -y flathub org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "obs-studio"
+        title: "OBS Studio"
+        description: "Video recording and live streaming"
+        default: false
+        script: 'flatpak install --user -y flathub com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "blender"
+        title: "Blender"
+        description: "3D modeling, animation, and rendering"
+        default: false
+        script: 'flatpak install --user -y flathub org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "System Fixes"
     description: "System configurations and enhancements"
     actions:
