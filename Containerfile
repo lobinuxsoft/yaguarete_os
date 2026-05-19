@@ -28,8 +28,14 @@ FROM ${BASE_IMAGE}
 ARG IMAGE_NAME
 ENV YAGUARETE_IMAGE_NAME=${IMAGE_NAME}
 
-# Overlay system_files/ into rootfs (wallpapers, branding, configs)
-COPY system_files/ /
+# Overlay system_files/ into rootfs (wallpapers, branding, configs).
+# Top-level subdirs are copied individually so `system_files/overrides/`
+# (the in-place asset replacement layer, applied last — see end of file)
+# does not end up as a stray /overrides/ directory at the root of the
+# image. Mirrors the bazzite Containerfile pattern (Containerfile:62 for
+# desktop COPYs, :460 for the trailing overrides COPY).
+COPY system_files/etc /etc
+COPY system_files/usr /usr
 
 ### [IM]MUTABLE /opt
 ## Some bootable images, like Fedora, have /opt symlinked to /var/opt, in order to
@@ -51,7 +57,16 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build.sh
-    
+
+### Cleanup & Finalize
+# Apply asset overrides last so the contents of system_files/overrides/
+# overwrite the Fedora/bazzite-shipped pixmaps, hicolor logo PNGs, places
+# SVGs and favicon in-place. This is the canonical bazzite pattern (their
+# Containerfile:460 does the same trailing COPY). Anything in this overlay
+# replaces the same path that was provided earlier by the base image or by
+# packages installed in build.sh.
+COPY system_files/overrides /
+
 ### LINTING
 ## Verify final image and contents are correct.
 RUN bootc container lint
