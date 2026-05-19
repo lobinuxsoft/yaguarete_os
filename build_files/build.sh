@@ -232,3 +232,12 @@ rm -f "$TMP_IMAGE_INFO"
 # and added launchers (Instalar YaguareteOS, etc.) resolve correctly
 # in KDE / GTK lookups.
 gtk-update-icon-cache -f -t /usr/share/icons/hicolor
+
+### Plymouth: regenerate the initramfs so the yaguarete theme overlay
+# (system_files/etc/plymouth/plymouthd.conf + the theme files under
+# /usr/share/plymouth/themes/yaguarete/) actually reaches early boot.
+# Without this step, the inherited initramfs from the base image ships
+# unchanged and the splash shows the upstream default. Replicates the
+# pattern bazzite uses at Containerfile:755 → build_files/build-initramfs.
+# See #150.
+/ctx/build-initramfs
