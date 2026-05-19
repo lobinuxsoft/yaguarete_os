@@ -51,6 +51,13 @@ dnf5 install -y \
 
 systemctl enable podman.socket
 
+### Game Mode autologin: patches /etc/sddm.conf.d/steamos.conf at boot
+# to wire User= to whatever username UID 1000 resolves to. Replicates
+# bazzite-deck's bazzite-autologin.service pattern verbatim. The service
+# is gated by ConditionPathExists on the steamos sddm drop-in, so it
+# silently no-ops on desktop/nvidia variants. See #151.
+systemctl enable yaguarete-autologin.service
+
 ### Localization: install Spanish langpack
 # Covers all es_* locales (es_AR, es_ES, es_MX, ...). LANG is set via
 # system_files/etc/locale.conf and timezone via system_files/etc/localtime.
@@ -232,3 +239,12 @@ rm -f "$TMP_IMAGE_INFO"
 # and added launchers (Instalar YaguareteOS, etc.) resolve correctly
 # in KDE / GTK lookups.
 gtk-update-icon-cache -f -t /usr/share/icons/hicolor
+
+### Plymouth: regenerate the initramfs so the yaguarete theme overlay
+# (system_files/etc/plymouth/plymouthd.conf + the theme files under
+# /usr/share/plymouth/themes/yaguarete/) actually reaches early boot.
+# Without this step, the inherited initramfs from the base image ships
+# unchanged and the splash shows the upstream default. Replicates the
+# pattern bazzite uses at Containerfile:755 → build_files/build-initramfs.
+# See #150.
+/ctx/build-initramfs
