@@ -161,6 +161,7 @@ log "repacking asar"
 npx --yes @electron/asar pack app-extracted/ squashfs-root/resources/app.asar
 
 log "deploying extracted bundle to /opt/hhd-ui-yaguarete and replacing /usr/bin/hhd-ui with wrapper"
+mkdir -p /opt
 rm -rf /opt/hhd-ui-yaguarete
 mv squashfs-root /opt/hhd-ui-yaguarete
 chmod -R a+rX /opt/hhd-ui-yaguarete
