@@ -161,7 +161,10 @@ log "repacking asar"
 npx --yes @electron/asar pack app-extracted/ squashfs-root/resources/app.asar
 
 log "deploying extracted bundle to /opt/hhd-ui-yaguarete and replacing /usr/bin/hhd-ui with wrapper"
-mkdir -p /opt
+# bazzite-deck (and any OSTree-derived base) ships /opt as a symlink to
+# /var/opt, which is empty at container build time. Materialize the
+# symlink target so /opt resolves to a real dir.
+mkdir -p /var/opt
 rm -rf /opt/hhd-ui-yaguarete
 mv squashfs-root /opt/hhd-ui-yaguarete
 chmod -R a+rX /opt/hhd-ui-yaguarete
