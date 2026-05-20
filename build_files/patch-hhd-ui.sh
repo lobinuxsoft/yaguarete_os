@@ -73,6 +73,12 @@ fi
 log "installing transient build deps (nodejs + npm)"
 dnf5 install -y --setopt=install_weak_deps=False nodejs npm
 
+# bazzite-deck base image has /root as non-directory — redirect npm/npx
+# scratch state to $WORK_DIR so it never touches /root.
+export HOME="$WORK_DIR"
+export NPM_CONFIG_CACHE="$WORK_DIR/.npm-cache"
+export npm_config_cache="$WORK_DIR/.npm-cache"
+
 cd "$WORK_DIR"
 
 log "extracting AppImage"
