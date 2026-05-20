@@ -1,27 +1,12 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 #
-# Two ways this workflow runs:
-#
-#  1. As a reusable workflow chained off `build.yml`. After every variant
-#     in the build matrix successfully pushes its container, `build.yml`
-#     calls this with `workflow_call` so the ISO build sees the freshly
-#     pushed `:unstable` / `:testing` digest. This eliminates the prior
-#     race where build-iso pulled `:unstable` while build.yml was still
-#     pushing it.
-#
-#  2. Directly on installer-only changes (e.g. tweaks under installer/
-#     that do not invalidate the container image itself). In that case
-#     the trigger fires standalone — no container rebuild needed.
+# Manual-only. Trigger with `gh workflow run build-iso.yml --ref <branch>` after
+# the corresponding container image (`build.yml`) has finished pushing to GHCR.
+# Approved stable ISOs are archived externally via `generate_release.yml`.
 name: Build Live ISO
 
 on:
   workflow_dispatch:
-  workflow_call:
-  push:
-    branches: [unstable, testing]
-    paths:
-      - installer/**
-      - .github/workflows/build-iso.yml
 
 env:
   REPO_OWNER: ${{ github.repository_owner }}
@@ -244,6 +229,6 @@ jobs:
           name: ${{ matrix.image_name }}-${{ steps.generate-tag.outputs.filename_tag }}-iso
           path: ${{ steps.upload-directory.outputs.iso-upload-dir }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 2
           compression-level: 0
           overwrite: true
