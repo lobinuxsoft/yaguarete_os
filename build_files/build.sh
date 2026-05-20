@@ -240,6 +240,12 @@ rm -f "$TMP_IMAGE_INFO"
 # in KDE / GTK lookups.
 gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 
+### HHD-UI branding: replace bazzite logo + violet palette inside the
+# hhd-ui Electron AppImage with yaguareté assets, without forking
+# hhd-dev/hhd-ui. See patch-hhd-ui.sh header for the full rationale.
+# Non-fatal — exits 0 if /usr/bin/hhd-ui is absent in this variant.
+/ctx/patch-hhd-ui.sh
+
 ### Plymouth: set yaguarete as the default theme and regenerate the
 # initramfs so it reaches early boot.
 #
@@ -249,7 +255,11 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # to whichever theme it finds alphabetically (spinner, in our case — and
 # spinner's watermark.png is bazzite-branded by the bazzite-deck base, so
 # the user sees a bazzite logo instead of the yaguarete jaguar). Validated
-# on OneXFly F1 Pro real install — see #164.
+# on OneXFly F1 Pro real install — see #164. Plymouth in SHUTDOWN mode
+# loads `spinner` regardless of plymouthd.conf default (root cause not
+# fully diagnosed — possibly attach-to-session quirk). To cover that path
+# we ALSO ship our own spinner/watermark.png override (see system_files/
+# usr/share/plymouth/themes/spinner/watermark.png). See #170.
 #
 # `system_files/etc/plymouth/plymouthd.conf` already declares
 # `Theme=yaguarete`, but Plymouth checks the default.plymouth symlink

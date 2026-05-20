@@ -15,7 +15,8 @@
 //    explicitly applied, not on the first session a freshly-installed user
 //    opens. On HW (OneXFly, see #164) the result was that new users booted
 //    into the Vapor default wallpaper (Steam Deck Logo Default.jpg) instead
-//    of our jungle.
+//    of our jungle. After validation (see #170) user prefers yaguarete_future_punk
+//    (cyberpunk jaguar) over yaguarete_01 (jungle) as the seeded default.
 //
 // 2. Kickoff applet icon. Plasma defaults to start-here-kde.svg (the KDE
 //    breeze logo) for the application launcher. We swap it to yaguarete-logo
@@ -31,10 +32,10 @@ const allDesktops = desktops();
 for (let i = 0; i < allDesktops.length; ++i) {
     const desktop = allDesktops[i];
 
-    // Wallpaper: yaguarete_01 (jungle jaguar) via Plasma Wallpaper Package.
+    // Wallpaper: yaguarete_future_punk (cyberpunk jaguar) via Plasma Wallpaper Package.
     desktop.wallpaperPlugin = "org.kde.image";
     desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
-    desktop.writeConfig("Image", "/usr/share/wallpapers/yaguarete/yaguarete_01/");
+    desktop.writeConfig("Image", "/usr/share/wallpapers/yaguarete/yaguarete_future_punk/");
     // FillMode=2 = PreserveAspectCrop (Plasma label "Escalado y recortado").
     desktop.writeConfig("FillMode", "2");
     desktop.writeConfig("Color", "0,0,0");
