@@ -38,8 +38,17 @@ fi
 # Configure autologin session. Game mode by default; fall back to the
 # desktop session when /etc/yaguarete/desktop_autologin exists (set by
 # the user via ujust or manually to opt out of game mode).
+#
+# Session filename note: bazzite-deck:unstable ships the package
+# "gamescope-session-steam" (file: gamescope-session-steam.desktop). Older
+# bazzite-deck:stable shipped "gamescope-session-ogui-steam" — bazzite
+# upstream still uses that string in their autologin script for their own
+# build. We diverge here because validation on real HW (OneXFly F1 Pro)
+# showed SDDM logging "Unable to find autologin session entry
+# gamescope-session-ogui-steam.desktop" → autologin failed → password
+# prompt instead of dropping straight to Game Mode. See #164.
 if [[ ! -f ${DESKTOP_AUTOLOGIN} ]]; then
-  sed -i 's/.*Session=.*/Session=gamescope-session-ogui-steam.desktop/g' "${SDDM_CONF}"
+  sed -i 's/.*Session=.*/Session=gamescope-session-steam.desktop/g' "${SDDM_CONF}"
 elif [[ ${BASE_IMAGE_NAME} =~ "kinoite" ]]; then
   sed -i 's/.*Session=.*/Session=plasma.desktop/g' "${SDDM_CONF}"
 elif [[ ${BASE_IMAGE_NAME} =~ "silverblue" ]]; then
