@@ -240,11 +240,23 @@ rm -f "$TMP_IMAGE_INFO"
 # in KDE / GTK lookups.
 gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 
-### Plymouth: regenerate the initramfs so the yaguarete theme overlay
-# (system_files/etc/plymouth/plymouthd.conf + the theme files under
-# /usr/share/plymouth/themes/yaguarete/) actually reaches early boot.
-# Without this step, the inherited initramfs from the base image ships
-# unchanged and the splash shows the upstream default. Replicates the
-# pattern bazzite uses at Containerfile:755 → build_files/build-initramfs.
-# See #150.
+### Plymouth: set yaguarete as the default theme and regenerate the
+# initramfs so it reaches early boot.
+#
+# `plymouth-set-default-theme` creates the
+# /usr/share/plymouth/themes/default.plymouth symlink that points to the
+# requested theme. Without that symlink Plymouth in early boot falls back
+# to whichever theme it finds alphabetically (spinner, in our case — and
+# spinner's watermark.png is bazzite-branded by the bazzite-deck base, so
+# the user sees a bazzite logo instead of the yaguarete jaguar). Validated
+# on OneXFly F1 Pro real install — see #164.
+#
+# `system_files/etc/plymouth/plymouthd.conf` already declares
+# `Theme=yaguarete`, but Plymouth checks the default.plymouth symlink
+# regardless, so both pieces need to be in place.
+#
+# Then build-initramfs regenerates the initramfs the same way bazzite does
+# at Containerfile:755 → build_files/build-initramfs. See #150 for that
+# half of the fix.
+plymouth-set-default-theme yaguarete
 /ctx/build-initramfs
