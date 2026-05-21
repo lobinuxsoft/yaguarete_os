@@ -150,6 +150,20 @@ sed -i 's|^restore-bazzite-breeze-gtk-theme:|_restore-bazzite-breeze-gtk-theme:|
 sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION="":|' \
     /usr/share/ublue-os/just/91-bazzite-decky.just
 
+### Recipes: register YaguareteOS install recipes in the master justfile.
+# /usr/share/ublue-os/justfile imports recipe files explicitly by absolute
+# path; just/85-yaguarete-install-*.just files were shipped via system_files/
+# but never imported, so `ujust install-eden` (and the others) failed with
+# "Justfile does not contain recipe". Append the imports at the end of the
+# master file so they are visible to ujust + yafti's Portal YaguareteOS.
+cat >> /usr/share/ublue-os/justfile <<'EOF'
+
+# YaguareteOS-maintained custom installers (Portal "Yaguareté Apps" screen)
+import "/usr/share/ublue-os/just/85-yaguarete-install-eden.just"
+import "/usr/share/ublue-os/just/85-yaguarete-install-antigravity-ide.just"
+import "/usr/share/ublue-os/just/85-yaguarete-install-antigravity-cli.just"
+EOF
+
 ### Branding: yafti_gtk.py hardcodes APP_TITLE = 'Bazzite Portal' at line 18.
 # It is used both for the window title (Gtk.Window) and the
 # --title flag passed to the embedded webview. Patch in place so the

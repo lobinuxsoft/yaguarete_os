@@ -1,0 +1,13 @@
+[Unit]
+Description=Refresh Steam Game Mode branding (startup + suspend animations)
+Documentation=https://github.com/lobinuxsoft/yaguarete_os/pull/185
+ConditionPathExists=/usr/bin/bazzite-steam-brand
+After=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bazzite-steam-brand
+RemainAfterExit=no
+
+[Install]
+WantedBy=default.target
