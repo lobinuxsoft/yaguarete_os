@@ -75,7 +75,6 @@ install-antigravity-ide:
     yg_ok "Checksum verified"
 
     # Extract .deb (ar archive) without dpkg
-    yg_info "Extracting package into $YG_OPT_DIR/antigravity"
     pushd "$deb_tmp" >/dev/null
     ar -x antigravity.deb
 
@@ -87,52 +86,74 @@ install-antigravity-ide:
     fi
     popd >/dev/null
 
-    # Backup existing install (rotate latest only) and replace
+    # Extract the full payload into a staging tree, then DERIVE the layout
+    # by reading the .desktop's Exec= line (the package's own manifest)
+    # instead of hard-coding /opt/antigravity vs /usr/share/antigravity.
+    # Google has shipped both layouts across releases and may shift again.
+    yg_info "Extracting package into staging area"
+    stage="$(sudo mktemp -d)"
+    sudo tar $tar_opts -xf "$deb_tmp/$data_tar" -C "$stage"
+
+    desktop_src=$(sudo find "$stage" -path '*/applications/antigravity.desktop' 2>/dev/null | head -1)
+    if [[ -z "$desktop_src" ]]; then
+        yg_err "Could not locate antigravity.desktop in the package — layout unrecognised"
+        sudo rm -rf "$stage"; exit 1
+    fi
+
+    exec_target=$(grep -m1 '^Exec=' "$desktop_src" | sed 's/^Exec=//' | awk '{print $1}')
+    launcher_staged="${stage}${exec_target}"
+    if [[ ! -x "$launcher_staged" ]]; then
+        launcher_staged=$(sudo find "$stage" -type f -name "$(basename "$exec_target")" -executable 2>/dev/null | head -1)
+    fi
+    if [[ -z "$launcher_staged" || ! -x "$launcher_staged" ]]; then
+        yg_err "Could not locate the antigravity launcher (Exec=$exec_target)"
+        sudo rm -rf "$stage"; exit 1
+    fi
+
+    # The app payload = directory containing the launcher. If the launcher
+    # is inside a bin/ subdir, walk one level up to capture the full tree
+    # (Electron shared libs, locales, resources/).
+    payload_dir="$(dirname "$launcher_staged")"
+    [[ "$(basename "$payload_dir")" == "bin" ]] && payload_dir="$(dirname "$payload_dir")"
+
+    # Backup previous install + move new payload into place. /opt is a
+    # symlink to /var/opt on bootc systems, so we operate on $YG_OPT_DIR.
     if [[ -d "$YG_OPT_DIR/antigravity" ]]; then
         sudo mv "$YG_OPT_DIR/antigravity" "$YG_OPT_DIR/antigravity.bak-$(date +%Y%m%d-%H%M%S)"
     fi
-
-    sudo mkdir -p "$YG_OPT_DIR/antigravity"
-    # The deb lays out under /opt/antigravity by default in Google's package.
-    # Extract to / so paths land where the package expects.
-    sudo tar $tar_opts -xf "$deb_tmp/$data_tar" -C "$YG_OPT_DIR/.." \
-        ./opt/antigravity 2>/dev/null || \
-    sudo tar $tar_opts -xf "$deb_tmp/$data_tar" -C / ./opt/antigravity
+    sudo mkdir -p "$YG_OPT_DIR"
+    sudo mv "$payload_dir" "$YG_OPT_DIR/antigravity"
 
     # Stamp version for idempotency on re-runs
     echo "$deb_version" | sudo tee "$YG_OPT_DIR/antigravity/VERSION" >/dev/null
 
-    # Find the launcher binary (typical paths inside the deb)
-    launcher=""
-    for cand in "$YG_OPT_DIR/antigravity/antigravity" \
-                "$YG_OPT_DIR/antigravity/bin/antigravity" \
-                "$YG_OPT_DIR/antigravity/opt/Antigravity/antigravity"; do
-        [[ -x "$cand" ]] && launcher="$cand" && break
-    done
-    if [[ -z "$launcher" ]]; then
-        launcher=$(find "$YG_OPT_DIR/antigravity" -maxdepth 4 -type f -name 'antigravity' -executable 2>/dev/null | head -1)
+    # Re-derive the launcher's path inside its new home
+    launcher_rel="${launcher_staged#${payload_dir}/}"
+    launcher_final="$YG_OPT_DIR/antigravity/$launcher_rel"
+    if [[ ! -x "$launcher_final" ]]; then
+        launcher_final=$(sudo find "$YG_OPT_DIR/antigravity" -type f -name "$(basename "$exec_target")" -executable 2>/dev/null | head -1)
     fi
-    if [[ -n "$launcher" ]]; then
-        sudo ln -sf "$launcher" /usr/local/bin/antigravity
-        yg_ok "Symlinked /usr/local/bin/antigravity → $launcher"
-    else
-        yg_warn "Could not locate the antigravity binary inside the deb. Check $YG_OPT_DIR/antigravity manually."
-    fi
+    sudo ln -sf "$launcher_final" /usr/local/bin/antigravity
+    yg_ok "Symlinked /usr/local/bin/antigravity → $launcher_final"
 
-    # Locate + install .desktop + icon
-    desktop_src=$(find "$YG_OPT_DIR/antigravity" -maxdepth 6 -name '*antigravity*.desktop' 2>/dev/null | head -1)
-    if [[ -n "$desktop_src" ]]; then
-        mkdir -p "$YG_DESKTOP_DIR"
-        sed "s|^Exec=.*|Exec=/usr/local/bin/antigravity %F|" "$desktop_src" > "$YG_DESKTOP_DIR/antigravity.desktop"
-    fi
-    icon_src=$(find "$YG_OPT_DIR/antigravity" -maxdepth 6 \( -name 'antigravity.png' -o -name 'antigravity.svg' \) 2>/dev/null | head -1)
+    # Patch + install the .desktop (Exec= now points to /usr/local/bin/antigravity
+    # so it survives future layout shuffles inside /opt/antigravity).
+    mkdir -p "$YG_DESKTOP_DIR"
+    sed "s|^Exec=.*|Exec=/usr/local/bin/antigravity %F|" "$desktop_src" > "$YG_DESKTOP_DIR/antigravity.desktop"
+
+    # Icon: prefer /pixmaps/, fall back to hicolor, fall back to any
+    # antigravity.{png,svg} outside the app's internal resources/ (which
+    # holds UI assets, not launcher icons).
+    icon_src=$(sudo find "$stage" -path '*/pixmaps/antigravity.*' 2>/dev/null | head -1)
+    [[ -z "$icon_src" ]] && icon_src=$(sudo find "$stage" -path '*/icons/hicolor/*/apps/antigravity.*' 2>/dev/null | head -1)
+    [[ -z "$icon_src" ]] && icon_src=$(sudo find "$stage" \( -name 'antigravity.png' -o -name 'antigravity.svg' \) -not -path '*/resources/*' 2>/dev/null | head -1)
     if [[ -n "$icon_src" ]]; then
         mkdir -p "$YG_ICON_DIR"
         cp "$icon_src" "$YG_ICON_DIR/antigravity.${icon_src##*.}"
     fi
     yg_refresh_desktop_db
 
-    rm -rf "$deb_tmp"
+    sudo rm -rf "$stage" "$deb_tmp"
 
     echo
     yg_ok "Antigravity IDE $deb_version installed."
