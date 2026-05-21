@@ -51,6 +51,13 @@ dnf5 install -y \
 
 systemctl enable podman.socket
 
+### Auto-upgrade: weekly bootc pull from ghcr, applied on next reboot.
+# Inherits bootc's default OnUnitInactiveSec=24h schedule. No auto-reboot —
+# user controls when to apply. Opt-out:
+#   sudo systemctl disable --now bootc-fetch-apply-updates.timer
+# See #144.
+systemctl enable bootc-fetch-apply-updates.timer
+
 ### Game Mode autologin: patches /etc/sddm.conf.d/steamos.conf at boot
 # to wire User= to whatever username UID 1000 resolves to. Replicates
 # bazzite-deck's bazzite-autologin.service pattern verbatim. The service
