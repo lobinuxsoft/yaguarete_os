@@ -186,6 +186,24 @@ This swaps the boot order back to your previous image (e.g. Bazzite). The Yaguar
 
 To pin yourself permanently back to the source image, run `bootc switch` against its registry URL (e.g. `ghcr.io/ublue-os/bazzite:stable`) and reboot.
 
+## Automatic updates
+
+YaguareteOS enables `bootc-fetch-apply-updates.timer` by default. Once every 24 h the timer pulls the latest image of your current ref (`:stable`, `:testing` or `:unstable`) and stages it. The new deployment is applied on your next reboot — there is no auto-reboot.
+
+To opt out:
+
+```bash
+sudo systemctl disable --now bootc-fetch-apply-updates.timer
+```
+
+To re-enable later:
+
+```bash
+sudo systemctl enable --now bootc-fetch-apply-updates.timer
+```
+
+You can still pull on demand with `sudo bootc upgrade` regardless of the timer state.
+
 ## Verifying image signatures
 
 All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository, and is also reachable at `https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub`.
