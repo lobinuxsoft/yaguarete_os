@@ -1,0 +1,54 @@
+#!/usr/bin/bash
+# YaguareteOS install URL scheme handler.
+#
+# Receives URLs of the form:
+#   yaguarete://install/<app-id>
+#
+# Whitelists the app id, confirms with the user via zenity, then opens a
+# terminal that runs `ujust install-<app-id>`. Anything outside the
+# whitelist exits silently — no arbitrary command execution.
+#
+# Wired in by /usr/share/applications/yaguarete-install-handler.desktop
+# (MimeType=x-scheme-handler/yaguarete) so browsers route the URL here.
+
+set -euo pipefail
+
+URL="${1:-}"
+
+if [[ -z "$URL" ]]; then
+    exit 0
+fi
+
+# Strip the yaguarete:// prefix, then split into action/target.
+path="${URL#yaguarete://}"
+action="${path%%/*}"
+target="${path#*/}"
+
+# Whitelist of known apps. Update this when adding new ujust install-*
+# recipes. Anything else is dropped without notice.
+case "$target" in
+    eden|antigravity-ide|antigravity-cli) ;;
+    *) exit 0 ;;
+esac
+
+if [[ "$action" != "install" ]]; then
+    exit 0
+fi
+
+cmd="ujust install-${target}"
+
+if command -v zenity >/dev/null 2>&1; then
+    zenity --question --no-wrap --width=420 \
+        --title="YaguareteOS — install ${target}" \
+        --text="¿Ejecutar el siguiente comando?\n\n    ${cmd}\n\nSe va a abrir una terminal para que veas el progreso y respondas confirmaciones." \
+        || exit 0
+fi
+
+# Prefer Konsole (KDE) — fall back to xdg-terminal-exec / xterm.
+if command -v konsole >/dev/null 2>&1; then
+    exec konsole --hold -e bash -c "$cmd"
+elif command -v xdg-terminal-exec >/dev/null 2>&1; then
+    exec xdg-terminal-exec bash -c "$cmd"
+else
+    exec xterm -hold -e bash -c "$cmd"
+fi
