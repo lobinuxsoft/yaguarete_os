@@ -20,22 +20,6 @@ export interface FaqItem {
   answer: string;
 }
 
-export interface AppCard {
-  // Recipe id used by ujust + the URL scheme handler. Translated copy
-  // never touches this — it stays stable across locales.
-  id: string;
-  // Human-friendly product name. Localised.
-  name: string;
-  // One-line category tag (e.g. "Switch emulator", "AI coding IDE").
-  tag: string;
-  // Marketing blurb shown inside the card body. Localised.
-  description: string;
-  // Source / upstream identity (e.g. "git.eden-emu.dev", "antigravity.google").
-  upstream: string;
-  // Optional permalink to the upstream project page (logo target, etc).
-  upstreamUrl?: string;
-}
-
 export interface Translations {
   meta: {
     pageTitle: string;
@@ -57,18 +41,6 @@ export interface Translations {
     pendingNote: string;
     cosignNote: string;
     cards: VariantCard[];
-  };
-  tools: {
-    pageTitle: string;
-    pageMeta: string;
-    heading: string;
-    intro: string;
-    upstreamLabel: string;
-    installLabel: string;
-    copyLabel: string;
-    copiedLabel: string;
-    commandNote: string;
-    cards: AppCard[];
   };
   stack: {
     title: string;

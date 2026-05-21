@@ -248,6 +248,51 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: "ujust get-steamcmd uninstall"
+  - title: "Yaguareté Apps"
+    description: "Custom installers maintained by YaguareteOS (gaming and dev tools)"
+    actions:
+      - id: "eden"
+        title: "Eden (Switch Emulator)"
+        description: "Install Eden Nintendo Switch emulator. Optionally downloads firmware 22.x (THZoria) and prod.keys v20.3.0 (ProdKeys.net) for game compatibility. Auto-registers a Steam ROM Manager parser if EmuDeck is detected."
+        default: false
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "antigravity-ide"
+        title: "Antigravity IDE"
+        description: "Install Google Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification."
+        default: false
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "antigravity-cli"
+        title: "Antigravity CLI"
+        description: "Install Google Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern)."
+        default: false
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "Creative Apps"
     description: "Multimedia creation suite (Flathub installs, per-user, no reboot)"
     actions:
