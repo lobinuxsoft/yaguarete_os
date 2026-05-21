@@ -186,6 +186,23 @@ This swaps the boot order back to your previous image (e.g. Bazzite). The Yaguar
 
 To pin yourself permanently back to the source image, run `bootc switch` against its registry URL (e.g. `ghcr.io/ublue-os/bazzite:stable`) and reboot.
 
+### Lost YaguareteOS after an accidental switch?
+
+If you accidentally ran `sudo bootc switch` to a non-YaguareteOS ref (for example you typed `ghcr.io/ublue-os/bazzite-deck:stable` while testing) and want to come back without reinstalling from ISO, run:
+
+```bash
+ujust yaguarete-rescue
+```
+
+The command detects your hardware (handheld → deck, NVIDIA GPU → nvidia, otherwise base), shows you the target image, asks for confirmation, then stages the switch. Reboot to apply. Optional argument selects the ref (`stable` by default):
+
+```bash
+ujust yaguarete-rescue testing    # pre-release
+ujust yaguarete-rescue unstable   # rolling
+```
+
+If you're already on YaguareteOS, the command is a no-op and points you at `sudo bootc upgrade` instead.
+
 ## Automatic updates
 
 YaguareteOS enables `bootc-fetch-apply-updates.timer` by default. Once every 24 h the timer pulls the latest image of your current ref (`:stable`, `:testing` or `:unstable`) and stages it. The new deployment is applied on your next reboot — there is no auto-reboot.
