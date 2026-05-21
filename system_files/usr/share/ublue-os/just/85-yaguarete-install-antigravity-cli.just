@@ -77,7 +77,20 @@ remove-antigravity-cli:
     yg_warn "(shared with the IDE — remove-antigravity-ide does not touch it either)."
     yg_confirm "Continue?" || { yg_info "Aborted."; exit 0; }
 
-    rm -f "$YG_BIN_DIR/agy"
+    # Locate the binary via PATH instead of assuming $YG_BIN_DIR/agy — the
+    # upstream installer is free to land it anywhere (default ~/.local/bin
+    # but configurable). Resolve symlinks too, in case install.sh stashes
+    # the real binary under ~/.local/share/agy/ and symlinks into bin/.
+    agy_bin=$(command -v agy 2>/dev/null || true)
+    if [[ -n "$agy_bin" ]]; then
+        agy_real=$(readlink -f "$agy_bin")
+        rm -f "$agy_bin"
+        [[ "$agy_real" != "$agy_bin" && -f "$agy_real" ]] && rm -f "$agy_real"
+        yg_ok "Removed $agy_bin${agy_real:+ (real: $agy_real)}"
+    else
+        yg_warn "agy not found in \$PATH — nothing to remove (was it installed by this recipe?)."
+    fi
+
     rm -f "$YG_DATA_DIR/bash-completion/completions/agy"
     rm -f "$YG_DATA_DIR/fish/vendor_completions.d/agy.fish"
     rm -f "$YG_DATA_DIR/zsh/site-functions/_agy"

@@ -86,17 +86,39 @@ install-eden:
         yg_ok "prod.keys installed (v20.3.0 from files.prodkeys.net — forward-compatible with newer firmware)"
     fi
 
-    # 4. .desktop entry + icon (extracted from the AppImage)
+    # 4. .desktop entry + icon — derive both from the AppImage's manifest
+    # rather than hard-coding `dev.eden_emu.eden.{desktop,svg}` (the app id
+    # already changed once during the yuzu → sudachi → eden lineage and is
+    # not part of any contract).
     extract_dir=$(mktemp -d)
     pushd "$extract_dir" >/dev/null
     "$EDEN_BIN" --appimage-extract >/dev/null 2>&1
-    if [[ -f squashfs-root/dev.eden_emu.eden.desktop ]]; then
+
+    desktop_src=$(find squashfs-root -maxdepth 2 -name '*.desktop' 2>/dev/null | head -1)
+    if [[ -n "$desktop_src" ]]; then
+        # The AppImage's Icon= line tells us the icon stem; locate the
+        # matching file at any depth (typical paths: squashfs-root/<id>.svg
+        # or squashfs-root/usr/share/icons/hicolor/<size>/apps/<id>.png).
+        icon_name=$(grep -m1 '^Icon=' "$desktop_src" | sed 's/^Icon=//')
+        icon_src=""
+        if [[ -n "$icon_name" ]]; then
+            icon_src=$(find squashfs-root \( -name "${icon_name}.svg" -o -name "${icon_name}.png" \) 2>/dev/null | head -1)
+        fi
+
         mkdir -p "$YG_DESKTOP_DIR" "$YG_ICON_DIR"
+        # Rewrite Exec= to point at our AppImage; rename Icon= to a stable
+        # `eden` slug so we install one canonical icon file.
         sed "s|^Exec=.*|Exec=$EDEN_BIN %f|; s|^Icon=.*|Icon=eden|" \
-            squashfs-root/dev.eden_emu.eden.desktop > "$YG_DESKTOP_DIR/Eden.desktop"
-        cp squashfs-root/dev.eden_emu.eden.svg "$YG_ICON_DIR/eden.svg"
+            "$desktop_src" > "$YG_DESKTOP_DIR/Eden.desktop"
+        if [[ -n "$icon_src" ]]; then
+            cp "$icon_src" "$YG_ICON_DIR/eden.${icon_src##*.}"
+        else
+            yg_warn "No icon matching Icon=$icon_name in the AppImage — Eden will show a generic launcher icon."
+        fi
         yg_refresh_desktop_db
-        yg_ok "Desktop entry + icon installed"
+        yg_ok "Desktop entry + icon installed (id: ${icon_name:-unknown})"
+    else
+        yg_warn "No .desktop file in the AppImage — Eden will not appear in the KDE menu (run $EDEN_BIN by hand)."
     fi
     popd >/dev/null
     rm -rf "$extract_dir"
