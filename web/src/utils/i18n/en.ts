@@ -64,49 +64,6 @@ const en: Translations = {
       },
     ],
   },
-  tools: {
-    pageTitle: 'YaguareteOS — Tools and emulators',
-    pageMeta:
-      'Install emulators, IDEs and tooling on YaguareteOS in one click. Each button runs a ujust recipe that downloads, configures and integrates the app into your bootc system.',
-    heading: 'Tools',
-    intro:
-      'Each card runs a ujust recipe that downloads the official binary, sets up firmware / keys / paths and integrates with Steam Game Mode when applicable. If you prefer to run it by hand, copy the command — the result is identical.',
-    upstreamLabel: 'Upstream',
-    installLabel: 'Install',
-    copyLabel: 'Copy command',
-    copiedLabel: 'Copied ✓',
-    commandNote:
-      'The Install button opens a yaguarete:// handler that confirms before executing. If your browser does not have the handler registered, copy the command and paste it into a terminal — the result is identical.',
-    cards: [
-      {
-        id: 'eden',
-        name: 'Eden',
-        tag: 'Nintendo Switch emulator',
-        description:
-          'Actively maintained community fork of Yuzu / Sudachi. Includes automatic download of firmware (THZoria) and keys (ProdKeys.net), plus a Steam ROM Manager parser so your ROMs show up in Game Mode without touching any config.',
-        upstream: 'eden-emu.dev',
-        upstreamUrl: 'https://git.eden-emu.dev/eden-emu/eden',
-      },
-      {
-        id: 'antigravity-ide',
-        name: 'Antigravity IDE',
-        tag: 'Google IDE with AI agents',
-        description:
-          "Google's official IDE with built-in AI agents. Installs from the official Linux tarball at antigravity.google, lands in /opt/antigravity and registers a KDE menu launcher.",
-        upstream: 'antigravity.google',
-        upstreamUrl: 'https://antigravity.google',
-      },
-      {
-        id: 'antigravity-cli',
-        name: 'Antigravity CLI',
-        tag: 'Terminal agent (agy)',
-        description:
-          'Companion CLI for the IDE: work with AI agents straight from the terminal. Binary at ~/.local/bin/agy plus bash / fish / zsh completions. Shares authentication with the IDE via the system keyring.',
-        upstream: 'antigravity.google',
-        upstreamUrl: 'https://antigravity.google',
-      },
-    ],
-  },
   stack: {
     title: 'Bazzite underneath, dev and gaming on top',
     subTitle:
