@@ -73,6 +73,12 @@ fi
 log "installing transient build deps (nodejs + npm)"
 dnf5 install -y --setopt=install_weak_deps=False nodejs npm
 
+# bazzite-deck base image has /root as non-directory — redirect npm/npx
+# scratch state to $WORK_DIR so it never touches /root.
+export HOME="$WORK_DIR"
+export NPM_CONFIG_CACHE="$WORK_DIR/.npm-cache"
+export npm_config_cache="$WORK_DIR/.npm-cache"
+
 cd "$WORK_DIR"
 
 log "extracting AppImage"
@@ -155,6 +161,10 @@ log "repacking asar"
 npx --yes @electron/asar pack app-extracted/ squashfs-root/resources/app.asar
 
 log "deploying extracted bundle to /opt/hhd-ui-yaguarete and replacing /usr/bin/hhd-ui with wrapper"
+# bazzite-deck (and any OSTree-derived base) ships /opt as a symlink to
+# /var/opt, which is empty at container build time. Materialize the
+# symlink target so /opt resolves to a real dir.
+mkdir -p /var/opt
 rm -rf /opt/hhd-ui-yaguarete
 mv squashfs-root /opt/hhd-ui-yaguarete
 chmod -R a+rX /opt/hhd-ui-yaguarete
