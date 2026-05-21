@@ -150,6 +150,21 @@ sed -i 's|^restore-bazzite-breeze-gtk-theme:|_restore-bazzite-breeze-gtk-theme:|
 sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION="":|' \
     /usr/share/ublue-os/just/91-bazzite-decky.just
 
+### Recipes: register every YaguareteOS-shipped recipe file in the master
+# justfile. /usr/share/ublue-os/justfile uses explicit `import` lines per
+# file; any recipe dropped under /usr/share/ublue-os/just/ that the master
+# does not import is invisible to `ujust` (and therefore to yafti's Portal,
+# the yaguarete-rescue command, and the renamed Bazzite aliases). Glob all
+# files matching the `*yaguarete*.just` pattern so future recipes register
+# automatically without touching this script.
+echo "" >> /usr/share/ublue-os/justfile
+echo "# YaguareteOS-maintained recipes (install-eden, yaguarete-rescue, yaguarete-cli, etc.)" \
+    >> /usr/share/ublue-os/justfile
+for just_file in /usr/share/ublue-os/just/*yaguarete*.just; do
+    [ -e "$just_file" ] || continue
+    echo "import \"$just_file\"" >> /usr/share/ublue-os/justfile
+done
+
 ### Branding: yafti_gtk.py hardcodes APP_TITLE = 'Bazzite Portal' at line 18.
 # It is used both for the window title (Gtk.Window) and the
 # --title flag passed to the embedded webview. Patch in place so the
