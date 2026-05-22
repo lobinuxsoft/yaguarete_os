@@ -56,23 +56,23 @@ jobs:
           REGISTRY_IMAGE="ghcr.io/${OWNER_LC}/${IMAGE_LC}"
 
           skopeo inspect "docker://${REGISTRY_IMAGE}:testing" > testing.json
-          UPSTREAM_TAG=$(jq -r '.Labels["org.opencontainers.image.version"]' testing.json)
-          if [ -z "$UPSTREAM_TAG" ] || [ "$UPSTREAM_TAG" = "null" ]; then
+          DISPLAY_VERSION=$(jq -r '.Labels["org.opencontainers.image.version"]' testing.json)
+          if [ -z "$DISPLAY_VERSION" ] || [ "$DISPLAY_VERSION" = "null" ]; then
             echo "::error:::testing image lacks org.opencontainers.image.version label — run retag.yml first or wait for next testing build"
             exit 1
           fi
-          FEDORA_VERSION="${UPSTREAM_TAG%%.*}"
+          FEDORA_VERSION="${DISPLAY_VERSION%%.*}"
 
           # Stable git tag mirrors the GHCR `:stable-<fedora>.<YYYYMMDD>`
           # pointer retag.yml just published. Re-dispatching this workflow
           # on the same testing digest re-creates the same tag — the
           # `softprops/action-gh-release` step below is idempotent and
           # updates the existing release in place (Bazzite pattern).
-          STABLE_TAG="stable-${UPSTREAM_TAG}"
+          STABLE_TAG="stable-${DISPLAY_VERSION}"
 
           {
             echo "stable_tag=$STABLE_TAG"
-            echo "upstream_tag=$UPSTREAM_TAG"
+            echo "display_version=$DISPLAY_VERSION"
             echo "fedora_version=$FEDORA_VERSION"
             echo "registry_image=$REGISTRY_IMAGE"
             echo "title=YaguareteOS Stable F${FEDORA_VERSION} (${STABLE_TAG#stable-})"
@@ -83,7 +83,7 @@ jobs:
         env:
           HANDWRITTEN: ${{ inputs.handwritten }}
           STABLE_TAG: ${{ steps.derive.outputs.stable_tag }}
-          UPSTREAM_TAG: ${{ steps.derive.outputs.upstream_tag }}
+          DISPLAY_VERSION: ${{ steps.derive.outputs.display_version }}
           FEDORA: ${{ steps.derive.outputs.fedora_version }}
           REGISTRY_IMAGE: ${{ steps.derive.outputs.registry_image }}
         run: |
@@ -96,7 +96,7 @@ jobs:
             printf '## Image\n\n'
             printf -- '- Pull: `%s:%s`\n' "$REGISTRY_IMAGE" "$STABLE_TAG"
             printf -- '- Channel pointers: `%s:stable`, `%s:latest`, `%s:stable-%s`\n' "$REGISTRY_IMAGE" "$REGISTRY_IMAGE" "$REGISTRY_IMAGE" "$FEDORA"
-            printf -- '- Base: `ghcr.io/ublue-os/bazzite:stable` (Bazzite `%s`, Fedora %s)\n\n' "$UPSTREAM_TAG" "$FEDORA"
+            printf -- '- Build: YaguareteOS `%s` (Fedora %s), tracking `ghcr.io/ublue-os/bazzite:stable`\n\n' "$DISPLAY_VERSION" "$FEDORA"
           } >> "$NOTES"
           echo "notes_file=$NOTES" >> $GITHUB_OUTPUT
 
@@ -181,7 +181,7 @@ jobs:
         env:
           IA_ACCESS_KEY: ${{ secrets.ARCHIVE_ORG_ACCESS_KEY }}
           IA_SECRET_KEY: ${{ secrets.ARCHIVE_ORG_SECRET_KEY }}
-          UPSTREAM_TAG: ${{ steps.derive.outputs.upstream_tag }}
+          DISPLAY_VERSION: ${{ steps.derive.outputs.display_version }}
           FEDORA: ${{ steps.derive.outputs.fedora_version }}
           STABLE_TAG: ${{ steps.derive.outputs.stable_tag }}
         run: |
@@ -223,7 +223,7 @@ jobs:
               continue
             fi
 
-            identifier="${variant}-stable-${UPSTREAM_TAG}"
+            identifier="${variant}-stable-${DISPLAY_VERSION}"
             iso_file=$(ls "$iso_dir"/*.iso | head -1)
             sum_file="${iso_file}-CHECKSUM"
             meta_file="${iso_file}.json"

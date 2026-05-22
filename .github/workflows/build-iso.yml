@@ -119,9 +119,9 @@ jobs:
           fi
           REGISTRY_IMAGE="ghcr.io/${OWNER}/${IMAGE}"
           DATED=""
-          if UPSTREAM_TAG=$(skopeo inspect "docker://${REGISTRY_IMAGE}:${CHANNEL}" 2>/dev/null \
+          if DISPLAY_VERSION=$(skopeo inspect "docker://${REGISTRY_IMAGE}:${CHANNEL}" 2>/dev/null \
               | jq -er '.Labels["org.opencontainers.image.version"]'); then
-            DATED="${CHANNEL}-${UPSTREAM_TAG}"
+            DATED="${CHANNEL}-${DISPLAY_VERSION}"
           fi
           FILENAME_TAG="${DATED:-$CHANNEL}"
           {
