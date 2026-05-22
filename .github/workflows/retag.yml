@@ -110,19 +110,19 @@ jobs:
           REGISTRY_IMAGE="ghcr.io/${OWNER}/${IMAGE}"
           skopeo inspect "docker://${REGISTRY_IMAGE}:testing" > testing.json
           DIGEST=$(jq -r '.Digest' testing.json)
-          UPSTREAM_TAG=$(jq -r '.Labels["org.opencontainers.image.version"]' testing.json)
-          if [ -z "$UPSTREAM_TAG" ] || [ "$UPSTREAM_TAG" = "null" ]; then
+          DISPLAY_VERSION=$(jq -r '.Labels["org.opencontainers.image.version"]' testing.json)
+          if [ -z "$DISPLAY_VERSION" ] || [ "$DISPLAY_VERSION" = "null" ]; then
             echo "::error:::testing of ${IMAGE} lacks org.opencontainers.image.version label"
             exit 1
           fi
-          FEDORA="${UPSTREAM_TAG%%.*}"
+          FEDORA="${DISPLAY_VERSION%%.*}"
           {
             echo "registry_image=$REGISTRY_IMAGE"
             echo "digest=$DIGEST"
-            echo "upstream_tag=$UPSTREAM_TAG"
+            echo "display_version=$DISPLAY_VERSION"
             echo "fedora=$FEDORA"
           } >> $GITHUB_OUTPUT
-          echo "::notice::will retag ${IMAGE}@${DIGEST:0:19}... → stable-${UPSTREAM_TAG}, stable, stable-${FEDORA}, latest"
+          echo "::notice::will retag ${IMAGE}@${DIGEST:0:19}... → stable-${DISPLAY_VERSION}, stable, stable-${FEDORA}, latest"
 
       - name: Login to GHCR
         if: steps.gate.outputs.include == 'true'
@@ -137,12 +137,12 @@ jobs:
         env:
           REGISTRY_IMAGE: ${{ steps.resolve.outputs.registry_image }}
           DIGEST: ${{ steps.resolve.outputs.digest }}
-          UPSTREAM_TAG: ${{ steps.resolve.outputs.upstream_tag }}
+          DISPLAY_VERSION: ${{ steps.resolve.outputs.display_version }}
           FEDORA: ${{ steps.resolve.outputs.fedora }}
         run: |
           set -eo pipefail
           SRC="docker://${REGISTRY_IMAGE}@${DIGEST}"
-          for tag in "stable-${UPSTREAM_TAG}" "stable" "stable-${FEDORA}" "latest"; do
+          for tag in "stable-${DISPLAY_VERSION}" "stable" "stable-${FEDORA}" "latest"; do
             echo ":: ${REGISTRY_IMAGE}:${tag}"
             skopeo copy --multi-arch all "$SRC" "docker://${REGISTRY_IMAGE}:${tag}"
           done
