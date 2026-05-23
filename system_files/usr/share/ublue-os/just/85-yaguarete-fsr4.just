@@ -45,18 +45,37 @@ yaguarete-fsr4 ACTION="enable":
         log "HOME was unset, defaulted to $HOME"
     fi
 
-    # GPU identification. glxinfo gives a readable name including the RADV
-    # codename (GFX1201 / STRIX1 / PHX1 / NAVI31 etc.); lspci is the fallback
-    # when mesa-demos / glx-utils is missing.
+    # GPU identification. vulkaninfo is the canonical source on Bazzite
+    # (always shipped via mesa-vulkan-drivers, no extra package) and exposes
+    # the RADV codename (GFX1201 / STRIX1 / PHX1 / NAVI31 etc.) right in the
+    # deviceName line — skipping the llvmpipe software fallback. lspci is the
+    # second-best fallback BUT must run WITHOUT the `-d ::0300` class filter:
+    # integrated GPUs on Strix/Phoenix/Steam Deck report class 0x0380
+    # (Display controller, other), NOT 0x0300 (VGA), so filtering for VGA
+    # silently misses them. /sys/class/drm uevent is the final hardware
+    # source when neither tool is around.
     gpu_name=""
-    if command -v glxinfo >/dev/null 2>&1; then
-        gpu_name=$(glxinfo -B 2>/dev/null | grep -m1 '^Device:' | sed 's/^Device:[[:space:]]*//' || true)
+    if command -v vulkaninfo >/dev/null 2>&1; then
+        gpu_name=$(vulkaninfo --summary 2>/dev/null \
+            | awk '/deviceName/ && !/llvmpipe/ { sub(/^[[:space:]]*deviceName[[:space:]]*=[[:space:]]*/, ""); print; exit }')
     fi
     if [[ -z "$gpu_name" ]]; then
-        gpu_name=$(lspci -nn -d ::0300 2>/dev/null | head -1 || true)
+        gpu_name=$(lspci -nn 2>/dev/null | grep -iE 'VGA|Display|3D' | grep -iE 'AMD|ATI|Radeon' | head -1 || true)
     fi
     if [[ -z "$gpu_name" ]]; then
-        log "ERROR: could not detect any VGA controller (glxinfo + lspci both empty)"
+        for uev in /sys/class/drm/card*/device/uevent; do
+            [[ -r "$uev" ]] || continue
+            if grep -q '^DRIVER=amdgpu' "$uev"; then
+                pci_id=$(awk -F'=' '/^PCI_ID=/ { print tolower($2); exit }' "$uev")
+                if [[ -n "$pci_id" ]]; then
+                    gpu_name="AMD PCI $pci_id"
+                    break
+                fi
+            fi
+        done
+    fi
+    if [[ -z "$gpu_name" ]]; then
+        log "ERROR: could not detect GPU (tried vulkaninfo, lspci, /sys/class/drm)"
         exit 3
     fi
     log "Detected GPU: $gpu_name"
