@@ -1,4 +1,15 @@
 title: Portal YaguareteOS
+# Run-once gating. yafti writes a sha256 of this config to
+# ~/.config/yafti/last-run when the user reaches the final screen
+# (save_state: last-screen) and silently skips on subsequent launches
+# when mode = run-once. The XDG autostart entry shipped under
+# /etc/xdg/autostart/yaguarete-firstboot.desktop relies on this guard;
+# manual launches via the Apps menu use yafti_gtk.py which ignores
+# the guard on purpose (user explicitly asked to open the portal).
+properties:
+  mode: run-once
+  save_state: last-screen
+  path: ~/.config/yafti/last-run
 screens:
   - title: "App Install"
     description: "Core system components and utilities"

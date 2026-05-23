@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Portal YaguareteOS (first-boot)
+Comment=Welcome wizard. Shown on first login only; yafti gates redisplays.
+Exec=/usr/share/yaguarete/firstboot/launcher/autostart.sh
+Icon=yaguarete-portal
+Terminal=false
+StartupNotify=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=KDE;GNOME;
