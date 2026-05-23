@@ -1,5 +1,5 @@
 # YaguareteOS — auto-detect GPU and call the matching upstream Bazzite
-# FSR4 upgrade recipe (`global-fsr4` for RDNA4, `global-fsr4-rdna3` for
+# FSR4 upgrade recipe (`toggle-global-fsr4` for RDNA4, `toggle-global-fsr4-rdna3` for
 # RDNA 3 / 3.5).
 #
 # Why this wrapper exists:
@@ -29,65 +29,38 @@
 #      RDNA 3/3.5 path needs one of these — vanilla Proton has no FSR4
 #      RDNA3 patch and the env flag is a no-op without them.
 #   4. Logs every step to `journalctl --user -t yaguarete-fsr4` so the
-#      silent fail is traceable after the fact — even when yafti hides
-#      stderr.
+#      silent fail is traceable after the fact.
 #   5. Post-write validation: confirms the env flag file actually landed
 #      under `$HOME/.config/environment.d/` and aborts loudly otherwise.
-#   6. Shows a kdialog (zenity / notify-send / journal fallbacks) at the
-#      end with: detected GPU, family, recipe invoked, flag file path,
-#      Proton forks present, and the exact next steps the user has to
-#      take in Steam to actually see FSR4 kick in.
+#   6. Prints the full summary to stdout and pauses the konsole with
+#      `read -n 1` so the user actually sees: detected GPU, family,
+#      recipe invoked, flag file path, Proton forks present, and the
+#      exact next steps to take in Steam. No GUI dependencies — works
+#      in Plasma desktop and gamescope alike.
 
 yaguarete-fsr4 ACTION="enable":
     #!/usr/bin/bash
     set -euo pipefail
 
     tag=yaguarete-fsr4
-    log() { logger -t "$tag" -- "$*" 2>/dev/null || true; printf '[%s] %s\n' "$tag" "$*"; }
+    log() { logger -t "$tag" -- "$*" 2>/dev/null || true; }
 
-    # GUI feedback helpers. yafti spawns the recipe in a konsole that
-    # closes the instant the script exits, so the journal trail alone is
-    # useless to the user. Fall back through kdialog → zenity →
-    # notify-send → log-only so we cover Plasma desktop, GNOME-ish
-    # sessions, and gamescope (where only notify-send via libnotify
-    # might reach the overlay).
-    notify_success() {
-        local title="YaguareteOS — FSR4 Upgrade"
-        local body="$1"
-        log "GUI feedback (success): showing summary"
-        if command -v kdialog >/dev/null 2>&1; then
-            kdialog --title "$title" --msgbox "$body" >/dev/null 2>&1 && return 0
-        fi
-        if command -v zenity >/dev/null 2>&1; then
-            zenity --info --title="$title" --no-wrap --text="$body" >/dev/null 2>&1 && return 0
-        fi
-        if command -v notify-send >/dev/null 2>&1; then
-            notify-send -t 30000 "$title" "$body" >/dev/null 2>&1 && return 0
-        fi
-        log "GUI feedback unavailable — journal log is the only record."
-    }
-
-    notify_error() {
-        local title="YaguareteOS — FSR4 Upgrade FAILED"
-        local body="$1"
-        log "GUI feedback (error): $body"
-        if command -v kdialog >/dev/null 2>&1; then
-            kdialog --title "$title" --error "$body" >/dev/null 2>&1 && return 0
-        fi
-        if command -v zenity >/dev/null 2>&1; then
-            zenity --error --title="$title" --text="$body" >/dev/null 2>&1 && return 0
-        fi
-        if command -v notify-send >/dev/null 2>&1; then
-            notify-send -u critical -t 60000 "$title" "$body" >/dev/null 2>&1 && return 0
+    # Pause so the konsole yafti spawns doesn't vanish before the user
+    # reads the summary. Skips the pause when not on a TTY (e.g. direct
+    # ssh non-interactive) so headless invocations still work.
+    pause() {
+        if [[ -t 0 ]]; then
+            printf '\n'
+            read -n 1 -s -r -p "Press any key to close this window..."
+            printf '\n'
         fi
     }
 
     # Walk both Steam compatibilitytools.d locations and pick directories
-    # that look like Proton GE / EM forks. Returns a newline-separated
-    # bullet list, or empty if none.
+    # that look like Proton GE / EM forks. Echoes a newline-separated
+    # bullet list (or empty if none).
     detect_proton_forks() {
-        local found=""
-        local dir entry name
+        local found="" dir entry name
         for dir in "$HOME/.local/share/Steam/compatibilitytools.d" "$HOME/.steam/root/compatibilitytools.d"; do
             [[ -d "$dir" ]] || continue
             for entry in "$dir"/*; do
@@ -95,25 +68,26 @@ yaguarete-fsr4 ACTION="enable":
                 name=$(basename "$entry")
                 case "$name" in
                     GE-Proton*|Proton-GE*|Proton-EM*|ProtonEM*|*-EM-*|GE-Latest|EM-Latest)
-                        # Dedupe — both paths often point at the same dir via symlink.
                         case "$found" in
-                            *"  • $name"$'\n'*) ;;
+                            *"  • $name"*) ;;
                             *) found+="  • $name"$'\n' ;;
                         esac
                         ;;
                 esac
             done
         done
-        printf '%s' "$found"
+        printf '%s' "${found%$'\n'}"
     }
+
+    rule="=============================================================="
 
     action="{{ACTION}}"
     case "$action" in
         enable|disable) ;;
         *)
-            msg="Usage: ujust yaguarete-fsr4 {enable|disable}"$'\n'"Received: '$action'"
-            notify_error "$msg"
-            log "ERROR: $msg"
+            log "ERROR: usage: ujust yaguarete-fsr4 {enable|disable}"
+            printf '%s\n' "" "$rule" "  ERROR — invalid action: '$action'" "$rule" "" "Usage: ujust yaguarete-fsr4 {enable|disable}" ""
+            pause
             exit 2
             ;;
     esac
@@ -125,13 +99,27 @@ yaguarete-fsr4 ACTION="enable":
         log "HOME was unset, defaulted to $HOME"
     fi
 
+    # Note on awk style: we intentionally avoid `exit` inside the awk
+    # block. With `set -o pipefail`, the upstream `vulkaninfo` still
+    # has more bytes to write when awk closes its stdin, gets SIGPIPE,
+    # the whole pipeline returns 141, and `set -e` aborts the script
+    # before any log() call lands. Using a `found` sentinel processes
+    # the full input and emits only the first match — no SIGPIPE.
     gpu_name=""
     if command -v vulkaninfo >/dev/null 2>&1; then
-        gpu_name=$(vulkaninfo --summary 2>/dev/null \
-            | awk '/deviceName/ && !/llvmpipe/ { sub(/^[[:space:]]*deviceName[[:space:]]*=[[:space:]]*/, ""); print; exit }')
+        gpu_name=$(vulkaninfo --summary 2>/dev/null | awk '
+            /deviceName/ && !/llvmpipe/ && !found {
+                sub(/^[[:space:]]*deviceName[[:space:]]*=[[:space:]]*/, "")
+                print
+                found = 1
+            }
+        ' 2>/dev/null) || gpu_name=""
     fi
     if [[ -z "$gpu_name" ]]; then
-        gpu_name=$(lspci -nn 2>/dev/null | grep -iE 'VGA|Display|3D' | grep -iE 'AMD|ATI|Radeon' | head -1 || true)
+        # Same SIGPIPE risk with `head -1` upstream; wrap the whole
+        # substitution so a failure leaves gpu_name empty instead of
+        # aborting.
+        gpu_name=$(lspci -nn 2>/dev/null | grep -iE 'VGA|Display|3D' | grep -iE 'AMD|ATI|Radeon' | head -1 2>/dev/null) || gpu_name=""
     fi
     if [[ -z "$gpu_name" ]]; then
         for uev in /sys/class/drm/card*/device/uevent; do
@@ -146,15 +134,17 @@ yaguarete-fsr4 ACTION="enable":
         done
     fi
     if [[ -z "$gpu_name" ]]; then
-        msg="Could not detect any GPU."$'\n\n'"Tried vulkaninfo, lspci, /sys/class/drm/*/device/uevent — all empty."$'\n\n'"Diagnostics: journalctl --user -t yaguarete-fsr4"
-        notify_error "$msg"
+        log "ERROR: could not detect GPU (tried vulkaninfo, lspci, /sys/class/drm)"
+        printf '%s\n' "" "$rule" "  ERROR — Could not detect any GPU" "$rule" "" "Tried vulkaninfo, lspci, /sys/class/drm/*/device/uevent — all empty." "" "Diagnostics: journalctl --user -t yaguarete-fsr4" ""
+        pause
         exit 3
     fi
     log "Detected GPU: $gpu_name"
 
     if ! echo "$gpu_name" | grep -qiE 'AMD|ATI|Radeon|Ryzen|RADV'; then
-        msg="Non-AMD GPU detected: $gpu_name"$'\n\n'"FSR4 upgrade is AMD-only. NVIDIA users: see 'Global DLSS Upgrade' instead."
-        notify_error "$msg"
+        log "ERROR: non-AMD GPU detected: $gpu_name"
+        printf '%s\n' "" "$rule" "  ERROR — Non-AMD GPU detected" "$rule" "" "GPU: $gpu_name" "" "FSR4 upgrade is AMD-only." "NVIDIA users: see 'Global DLSS Upgrade' instead." ""
+        pause
         exit 4
     fi
 
@@ -163,25 +153,26 @@ yaguarete-fsr4 ACTION="enable":
     if echo "$gpu_name" | grep -qiE 'GFX120[0-9]|RDNA[_ ]?4|Navi 4[48]|RX[[:space:]]*9[0-9]{3}'; then
         family="RDNA 4 (native FSR4)"
         family_short=rdna4
-        recipe=global-fsr4
-        proton_requirement="RDNA 4 has native FSR4 — vanilla Proton 10+ is enough. Proton GE / EM forks work too but are not required."
+        recipe=toggle-global-fsr4
+        proton_req="RDNA 4 has native FSR4 — vanilla Proton 10+ is enough. Proton GE / EM forks work too but are not required."
     elif echo "$gpu_name" | grep -qiE 'GFX11[0-9]+|Strix|Phoenix|Hawk|NAVI[23][0-9]|RDNA[_ ]?[23]|RX[[:space:]]*[67][0-9]{3}|Radeon[[:space:]]*[78][0-9]{2}M?'; then
         family="RDNA 3 / 3.5 (FP8 emulation)"
         family_short=rdna3
-        recipe=global-fsr4-rdna3
-        proton_requirement="RDNA 3/3.5 REQUIRES Proton GE or Proton EM — vanilla Proton lacks the FSR4 RDNA3 patch and the env flag is a no-op without them."
+        recipe=toggle-global-fsr4-rdna3
+        proton_req="RDNA 3/3.5 REQUIRES Proton GE or Proton EM — vanilla Proton lacks the FSR4 RDNA3 patch and the env flag is a no-op without them."
     else
         family="Unknown AMD silicon (defaulting to RDNA 3 path)"
         family_short=rdna3-fallback
-        recipe=global-fsr4-rdna3
-        proton_requirement="Unknown AMD GPU — defaulted to the RDNA 3 path, which REQUIRES Proton GE or EM. If your card is actually RDNA 4, run 'ujust global-fsr4 enable' manually."
+        recipe=toggle-global-fsr4-rdna3
+        proton_req="Unknown AMD GPU — defaulted to the RDNA 3 path, which REQUIRES Proton GE or EM. If your card is actually RDNA 4, run 'ujust toggle-global-fsr4 enable' manually."
         log "WARN: unknown AMD GPU, defaulting to RDNA3 path."
     fi
     log "GPU family: $family_short → ujust $recipe $action"
 
     if ! ujust "$recipe" "$action"; then
-        msg="Upstream recipe failed: ujust $recipe $action exited non-zero."$'\n\n'"GPU: $gpu_name"$'\n'"Family: $family"$'\n\n'"Diagnostics: journalctl --user -t yaguarete-fsr4"
-        notify_error "$msg"
+        log "ERROR: ujust $recipe $action exited non-zero"
+        printf '%s\n' "" "$rule" "  ERROR — Upstream recipe failed" "$rule" "" "Command: ujust $recipe $action" "GPU: $gpu_name" "Family: $family" "" "Diagnostics: journalctl --user -t yaguarete-fsr4" ""
+        pause
         exit 5
     fi
 
@@ -189,55 +180,84 @@ yaguarete-fsr4 ACTION="enable":
 
     if [[ "$action" == "disable" ]]; then
         log "OK: disable flow completed."
-        msg="FSR4 Upgrade disabled."$'\n\n'"GPU: $gpu_name"$'\n'"Family: $family"$'\n'"Recipe: ujust $recipe disable"$'\n\n'"Flag file removed from $env_dir/."$'\n\n'"Log out and back in (or reboot) for the change to propagate to Steam."$'\n\n'"Logs: journalctl --user -t yaguarete-fsr4"
-        notify_success "$msg"
+        printf '%s\n' "" "$rule" "  YaguareteOS — FSR4 Upgrade DISABLED" "$rule" "" "GPU detected:" "  $gpu_name" "" "Family:" "  $family" "" "Recipe invoked:" "  ujust $recipe disable" "" "Flag file removed from:" "  $env_dir/" "" "Next step:" "  Log out and back in (or reboot) for the change to" "  propagate to Steam." "" "Logs: journalctl --user -t yaguarete-fsr4" ""
+        pause
         exit 0
     fi
 
     # Enable path — validate the flag file actually landed.
     flag_files=$(ls -1 "$env_dir"/*proton-fsr4*.conf 2>/dev/null || true)
     if [[ -z "$flag_files" ]]; then
-        msg="The upstream recipe reported success but no FSR4 flag file landed in $env_dir/."$'\n\n'"Likely cause: yafti subprocess env stripped HOME or shell context."$'\n\n'"Re-run from a terminal:"$'\n'"  ujust yaguarete-fsr4 enable"$'\n\n'"Diagnostics: journalctl --user -t yaguarete-fsr4"
-        notify_error "$msg"
+        log "ERROR: $recipe reported success but no FSR4 flag file landed in $env_dir/"
+        printf '%s\n' "" "$rule" "  ERROR — Flag file did not land" "$rule" "" "$recipe reported success but no FSR4 flag file was found in:" "  $env_dir/" "" "Likely cause: yafti subprocess env stripped HOME or shell context." "" "Re-run from a terminal:" "  ujust yaguarete-fsr4 enable" "" "Diagnostics: journalctl --user -t yaguarete-fsr4" ""
+        pause
         exit 6
     fi
 
     proton_list=$(detect_proton_forks)
+    log "OK: wrote $(echo "$flag_files" | tr '\n' ' ')"
+
+    # Build the success block as a single printf argument list. Each
+    # quoted string becomes one output line; %s\n adds the newline.
+    printf '%s\n' \
+        "" \
+        "$rule" \
+        "  YaguareteOS — FSR4 Upgrade ENABLED" \
+        "$rule" \
+        "" \
+        "GPU detected:" \
+        "  $gpu_name" \
+        "" \
+        "Family:" \
+        "  $family" \
+        "" \
+        "Recipe invoked:" \
+        "  ujust $recipe enable" \
+        ""
+
+    printf '%s\n' "Flag file written:"
+    while IFS= read -r f; do
+        [[ -n "$f" ]] && printf '  %s\n' "$f"
+    done <<< "$flag_files"
+    printf '\n'
+
     if [[ -z "$proton_list" ]]; then
         if [[ "$family_short" == "rdna4" ]]; then
-            proton_block="Proton GE / EM forks installed:"$'\n'"  (none detected — optional for RDNA 4, vanilla Proton 10+ works)"
+            printf '%s\n' \
+                "Proton GE / EM forks installed:" \
+                "  (none detected — optional for RDNA 4, vanilla Proton 10+ works)" \
+                ""
         else
-            proton_block="Proton GE / EM forks installed:"$'\n'"  ⚠ NONE DETECTED."$'\n'"     RDNA 3/3.5 needs Proton GE or EM, the env flag alone is useless."$'\n'"     Install via:"$'\n'"       - Decky → ProtonGE plugin, OR"$'\n'"       - Drop a release into ~/.local/share/Steam/compatibilitytools.d/"
+            printf '%s\n' \
+                "Proton GE / EM forks installed:" \
+                "  ⚠ NONE DETECTED." \
+                "     RDNA 3/3.5 needs Proton GE or EM, the env flag alone is useless." \
+                "     Install via:" \
+                "       - Decky → ProtonGE plugin, OR" \
+                "       - Drop a release into ~/.local/share/Steam/compatibilitytools.d/" \
+                ""
         fi
     else
-        proton_block="Proton GE / EM forks installed:"$'\n'"${proton_list%$'\n'}"
+        printf '%s\n' "Proton GE / EM forks installed:"
+        printf '%s\n' "$proton_list"
+        printf '\n'
     fi
 
-    # Trim trailing newlines from flag_files for display.
-    flag_block=""
-    while IFS= read -r f; do
-        [[ -n "$f" ]] && flag_block+="  $f"$'\n'
-    done <<< "$flag_files"
-    flag_block="${flag_block%$'\n'}"
+    printf '%s\n' \
+        "Proton requirement:" \
+        "  $proton_req" \
+        "" \
+        "Next steps:" \
+        "  1. Log out and back in (or reboot) — Steam reads environment.d/" \
+        "     only at session start. Without this, Steam keeps the OLD env." \
+        "  2. In each game's Properties → Compatibility, force a Proton GE" \
+        "     or Proton EM fork (vanilla Proton lacks the FSR4 RDNA3 patch)." \
+        "  3. The game must use FSR 3.1 or higher upscaler — FSR4 hijacks" \
+        "     the FSR 3.1+ DLL. Games using DLSS / FSR 2 / no upscaler are" \
+        "     unaffected by this flag." \
+        "" \
+        "Logs: journalctl --user -t yaguarete-fsr4" \
+        ""
 
-    log "OK: wrote $(echo "$flag_files" | tr '\n' ' ')"
     log "Log out and back in for environment.d/ to be picked up by the session."
-
-    msg="FSR4 Upgrade enabled."$'\n\n'\
-"GPU detected:"$'\n'"  $gpu_name"$'\n\n'\
-"Family:"$'\n'"  $family"$'\n\n'\
-"Recipe invoked:"$'\n'"  ujust $recipe enable"$'\n\n'\
-"Flag file written:"$'\n'"$flag_block"$'\n\n'\
-"$proton_block"$'\n\n'\
-"Proton requirement:"$'\n'"  $proton_requirement"$'\n\n'\
-"Next steps:"$'\n'\
-"  1. Log out and back in (or reboot) — Steam reads environment.d/"$'\n'\
-"     only at session start. Without this, Steam keeps the OLD env."$'\n'\
-"  2. In each game's Properties → Compatibility, force a Proton GE"$'\n'\
-"     or Proton EM fork (vanilla Proton lacks the FSR4 RDNA3 patch)."$'\n'\
-"  3. The game must use FSR 3.1 or higher upscaler — FSR4 hijacks"$'\n'\
-"     the FSR 3.1+ DLL. Games using DLSS / FSR 2 / no upscaler are"$'\n'\
-"     unaffected by this flag."$'\n\n'\
-"Logs: journalctl --user -t yaguarete-fsr4"
-
-    notify_success "$msg"
+    pause
