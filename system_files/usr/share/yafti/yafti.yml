@@ -262,6 +262,34 @@ screens:
   - title: "Yaguareté Apps"
     description: "Custom installers maintained by YaguareteOS (gaming and dev tools)"
     actions:
+      - id: "yryvu"
+        title: "Yryvu (Git client)"
+        description: "Install Yryvu, a Tauri 2 + SolidJS Git GUI by lobinuxsoft. AppImage from GitHub Releases, SHA256 verified, registered as a KDE launcher."
+        default: false
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "tatu"
+        title: "Tatu (Steam backlog tracker)"
+        description: "Install Tatu, the Steam backlog tracker by lobinuxsoft (Tauri 2 frontend). AppImage from GitHub Releases, SHA256 verified; the legacy Game Progress Tracker name is rewritten to Tatu in the KDE launcher. The Aurora-style Win32 cheats bridge is a separate Steam compat tool — see lobinuxsoft/tatu README."
+        default: false
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "eden"
         title: "Eden (Switch Emulator)"
         description: "Install Eden Nintendo Switch emulator. Optionally downloads firmware 22.x (THZoria) and prod.keys v20.3.0 (ProdKeys.net) for game compatibility. Auto-registers a Steam ROM Manager parser if EmuDeck is detected."
