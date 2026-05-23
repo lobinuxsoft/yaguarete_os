@@ -266,8 +266,8 @@ screens:
             label: "Remove"
             script: 'ujust remove-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "antigravity-ide"
-        title: "Antigravity IDE"
-        description: "Install Google Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification."
+        title: "Antigravity IDE (Google — Gemini)"
+        description: "Install Google's Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification. Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
         options:
           - id: "install"
@@ -280,8 +280,8 @@ screens:
             label: "Remove"
             script: 'ujust remove-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "antigravity-cli"
-        title: "Antigravity CLI"
-        description: "Install Google Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern)."
+        title: "Antigravity CLI (Google — Gemini)"
+        description: "Install Google's Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern). Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
         options:
           - id: "install"
@@ -655,28 +655,17 @@ screens:
           - id: "disable"
             label: "Disable"
             script: "ujust ssh disable"
-      - id: "global-fsr4"
-        title: "Global FSR4 Upgrade (RDNA4)"
-        description: "Enable or disable the global Proton FSR4 upgrade on RDNA4 GPUs; upgrades FSR 3.1+ to FSR 4 on Proton 10 or GE 10-25 or later."
+      - id: "yaguarete-fsr4"
+        title: "Global FSR4 Upgrade (auto-detect GPU)"
+        description: "Enable or disable the Proton FSR4 upgrade. Auto-detects RDNA 3 / 3.5 (FP8 emulation, requires Proton GE / EM) vs RDNA 4 (native, Proton 10+) and applies the matching env flag. Logs every step to 'journalctl --user -t yaguarete-fsr4' and validates the flag file actually landed on disk (Bazzite's recipe silently no-ops when yafti strips HOME from the subprocess env)."
         default: false
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust global-fsr4 enable"
+            script: "ujust yaguarete-fsr4 enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust global-fsr4 disable"
-      - id: "global-fsr4-rdna3"
-        title: "Global FSR4 Upgrade (RDNA3)"
-        description: "Enable or disable the global Proton FSR4 upgrade on RDNA3 GPUs, such as the RX 7900 XTX; upgrades FSR 3.1+ to FSR 4. Only compatible with Proton GE, Proton EM, or similar forks."
-        default: false
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: "ujust global-fsr4-rdna3 enable"
-          - id: "disable"
-            label: "Disable"
-            script: "ujust global-fsr4-rdna3 disable"
+            script: "ujust yaguarete-fsr4 disable"
       - id: "global-dlss"
         title: "Global DLSS Upgrade"
         description: "Enable or disable the global Proton DLSS upgrade, which updates DLSS DLLs. Only compatible with Proton GE, Proton EM, or similar forks."
@@ -746,87 +735,23 @@ screens:
         description: "Media server client"
         default: false
         script: "ujust get-media-app \"Jellyfin Media Player\""
-      - id: "amazon-luna"
-        title: "Amazon Luna"
-        description: "Cloud gaming service"
+      - id: "stremio"
+        title: "Stremio"
+        description: "Media center with community add-ons (Flathub)"
         default: false
-        script: "ujust get-media-app \"Amazon Luna\""
-      - id: "disney-plus"
-        title: "Disney Plus"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Disney Plus\""
-      - id: "amazon-prime-video"
-        title: "Amazon Prime Video"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Amazon Prime Video\""
-      - id: "apple-tv"
-        title: "Apple TV"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Apple TV\""
-      - id: "curiosity-stream"
-        title: "Curiosity Stream"
-        description: "Documentary streaming service"
-        default: false
-        script: "ujust get-media-app \"Curiosity Stream\""
-      - id: "crunchyroll"
-        title: "Crunchyroll"
-        description: "Anime streaming service"
-        default: false
-        script: "ujust get-media-app \"Crunchyroll\""
-      - id: "hbo-max"
-        title: "HBO Max"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"HBO Max\""
-      - id: "hulu"
-        title: "Hulu"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Hulu\""
-      - id: "paramount-plus"
-        title: "Paramount Plus"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Paramount Plus\""
-      - id: "peacock"
-        title: "Peacock"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Peacock\""
-      - id: "sling-tv"
-        title: "Sling TV"
-        description: "Live TV streaming service"
-        default: false
-        script: "ujust get-media-app \"Sling TV\""
-      - id: "vimeo"
-        title: "Vimeo"
-        description: "Video sharing platform"
-        default: false
-        script: "ujust get-media-app \"Vimeo\""
-      - id: "youtube-music"
-        title: "YouTube Music"
-        description: "Music streaming service"
-        default: false
-        script: "ujust get-media-app \"YouTube Music\""
-      - id: "youtube-tv"
-        title: "YouTube TV"
-        description: "Live TV streaming service"
-        default: false
-        script: "ujust get-media-app \"YouTube TV\""
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "browse-addons"
+            label: "Browse add-ons catalogue"
+            script: 'xdg-open https://stremio-addons.net/addons'
   - title: "Brew"
     description: "Brew Taps and Casks"
     actions:
-      - id: "visual-studio-code-linux"
-        title: "Install Visual Studio Code"
-        description: "Installs Visual Studio Code editor"
-        default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask visual-studio-code-linux'
       - id: "antigravity-linux"
-        title: "Install Antigravity"
-        description: "Installs Antigravity"
+        title: "Install Antigravity (Google — Gemini)"
+        description: "Installs Google's Antigravity IDE via Homebrew cask. Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
         script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask antigravity-linux'
       - id: "lm-studio-linux"
