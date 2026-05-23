@@ -1,0 +1,136 @@
+# YaguareteOS — install / update / remove Tatu (Steam backlog tracker).
+#
+# Tatu is a Tauri 2 frontend + Aurora-style Win32 bridge backend maintained
+# at lobinuxsoft/tatu. The repo was renamed from game-progress-tracker on
+# 2026-05-20 (PR #107) but the release asset filenames still carry the
+# legacy slug — these recipes rename them to "Tatu" at install time so the
+# user-visible launcher matches the project's current identity.
+#
+# Release naming (lobinuxsoft/tatu releases):
+#   - Tag pattern:  v<MAJOR>.<MINOR>.<PATCH>   (no `tatu-` prefix yet)
+#   - Linux asset:  Game_Progress_Tracker.AppImage   (frontend only; the
+#                   Win32 cheats bridge ships as game-progress-tracker-
+#                   linux-amd64.tar.gz and is configured separately via
+#                   Steam compat tool — out of scope for this recipe)
+#   - Sidecar:      checksums-sha256.txt
+#
+# Override knobs:
+#   YAGUARETE_APPS_DIR  where Tatu.AppImage lives (default ~/Applications)
+
+install-tatu:
+    #!/usr/bin/bash
+    set -euo pipefail
+    source /usr/libexec/yaguarete/emu-helpers.sh
+
+    yg_info "Tatu — Steam backlog tracker install"
+    yg_check_internet
+    yg_check_disk 200
+
+    mkdir -p "$YG_APPS_DIR"
+    TATU_BIN="$YG_APPS_DIR/Tatu.AppImage"
+    ASSET_NAME="Game_Progress_Tracker.AppImage"
+
+    yg_info "Resolving latest Tatu release"
+    release=$(gh api repos/lobinuxsoft/tatu/releases/latest 2>/dev/null \
+        || curl -fsSL https://api.github.com/repos/lobinuxsoft/tatu/releases/latest)
+    tag=$(echo "$release" | jq -r '.tag_name')
+    asset_url=$(echo "$release" | jq -r --arg n "$ASSET_NAME" '.assets[] | select(.name == $n) | .browser_download_url')
+    checksums_url=$(echo "$release" | jq -r '.assets[] | select(.name == "checksums-sha256.txt") | .browser_download_url')
+    if [[ -z "$asset_url" || "$asset_url" == "null" ]]; then
+        yg_err "Asset $ASSET_NAME not found in release $tag. Available: $(echo "$release" | jq -r '.assets[].name' | tr '\n' ' ')"
+        exit 1
+    fi
+
+    tmp_bin="$(mktemp --tmpdir Tatu.XXXXXX.AppImage)"
+    yg_download "$asset_url" "$tmp_bin"
+    if [[ -n "$checksums_url" && "$checksums_url" != "null" ]]; then
+        sums="$(mktemp)"
+        yg_download "$checksums_url" "$sums"
+        expected=$(awk -v n="$ASSET_NAME" '$2 == n || $2 == "*"n {print $1}' "$sums")
+        if [[ -n "$expected" ]]; then
+            actual=$(sha256sum "$tmp_bin" | awk '{print $1}')
+            if [[ "$expected" != "$actual" ]]; then
+                yg_err "SHA256 mismatch for $ASSET_NAME (expected $expected, got $actual)"
+                rm -f "$tmp_bin" "$sums"
+                exit 2
+            fi
+            yg_ok "SHA256 verified."
+        else
+            yg_warn "No entry for $ASSET_NAME in checksums-sha256.txt — skipping verify."
+        fi
+        rm -f "$sums"
+    fi
+    mv "$tmp_bin" "$TATU_BIN"
+    chmod +x "$TATU_BIN"
+    yg_ok "Tatu $tag installed at $TATU_BIN"
+
+    # Extract .desktop + icon. The AppImage still bakes the legacy
+    # "Game Progress Tracker" name and app id; rewrite Name= / Icon= /
+    # Exec= so the KDE launcher reads "Tatu" with our installed path.
+    extract_dir=$(mktemp -d)
+    pushd "$extract_dir" >/dev/null
+    "$TATU_BIN" --appimage-extract >/dev/null 2>&1
+    desktop_src=$(find squashfs-root -maxdepth 2 -name '*.desktop' 2>/dev/null | head -1)
+    if [[ -n "$desktop_src" ]]; then
+        icon_name=$(grep -m1 '^Icon=' "$desktop_src" | sed 's/^Icon=//')
+        icon_src=""
+        if [[ -n "$icon_name" ]]; then
+            icon_src=$(find squashfs-root \( -name "${icon_name}.svg" -o -name "${icon_name}.png" \) 2>/dev/null | head -1)
+        fi
+        mkdir -p "$YG_DESKTOP_DIR" "$YG_ICON_DIR"
+        sed "s|^Name=.*|Name=Tatu|; s|^Exec=.*|Exec=$TATU_BIN %f|; s|^Icon=.*|Icon=tatu|; s|^Comment=.*|Comment=Steam backlog tracker (Tatu)|" \
+            "$desktop_src" > "$YG_DESKTOP_DIR/Tatu.desktop"
+        if [[ -n "$icon_src" ]]; then
+            cp "$icon_src" "$YG_ICON_DIR/tatu.${icon_src##*.}"
+        else
+            yg_warn "No icon matching Icon=$icon_name in the AppImage — Tatu will show a generic launcher icon."
+        fi
+        yg_refresh_desktop_db
+        yg_ok "Desktop entry + icon installed (renamed Game Progress Tracker → Tatu)"
+    else
+        yg_warn "No .desktop file in the AppImage — Tatu will not appear in the KDE menu (run $TATU_BIN by hand)."
+    fi
+    popd >/dev/null
+    rm -rf "$extract_dir"
+
+    echo
+    yg_ok "Tatu install complete."
+    yg_info "Launch from the KDE menu or run: $TATU_BIN"
+    yg_info "Win32 cheats bridge (Aurora-style) is a separate Steam compat tool — see lobinuxsoft/tatu README."
+
+update-tatu:
+    #!/usr/bin/bash
+    set -euo pipefail
+    source /usr/libexec/yaguarete/emu-helpers.sh
+    yg_info "Refreshing Tatu (keeps user library and config)"
+    yg_check_internet
+
+    TATU_BIN="$YG_APPS_DIR/Tatu.AppImage"
+    ASSET_NAME="Game_Progress_Tracker.AppImage"
+    release=$(gh api repos/lobinuxsoft/tatu/releases/latest 2>/dev/null \
+        || curl -fsSL https://api.github.com/repos/lobinuxsoft/tatu/releases/latest)
+    tag=$(echo "$release" | jq -r '.tag_name')
+    asset_url=$(echo "$release" | jq -r --arg n "$ASSET_NAME" '.assets[] | select(.name == $n) | .browser_download_url')
+    if [[ -z "$asset_url" || "$asset_url" == "null" ]]; then
+        yg_err "Asset $ASSET_NAME not found in release $tag."
+        exit 1
+    fi
+    tmp_bin="$(mktemp --tmpdir Tatu.XXXXXX.AppImage)"
+    yg_download "$asset_url" "$tmp_bin"
+    mv "$tmp_bin" "$TATU_BIN"
+    chmod +x "$TATU_BIN"
+    yg_ok "Tatu refreshed to $tag"
+
+remove-tatu:
+    #!/usr/bin/bash
+    set -euo pipefail
+    source /usr/libexec/yaguarete/emu-helpers.sh
+    yg_warn "About to remove Tatu binary + .desktop + icon."
+    yg_warn "Your library / config in $YG_CONFIG_DIR/tatu (or legacy $YG_CONFIG_DIR/game-progress-tracker) are preserved."
+    yg_confirm "Continue?" || { yg_info "Aborted."; exit 0; }
+
+    rm -f "$YG_APPS_DIR/Tatu.AppImage"
+    rm -f "$YG_DESKTOP_DIR/Tatu.desktop"
+    rm -f "$YG_ICON_DIR/tatu.svg" "$YG_ICON_DIR/tatu.png"
+    yg_refresh_desktop_db
+    yg_ok "Tatu uninstalled. User data preserved."
