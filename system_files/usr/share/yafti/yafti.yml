@@ -403,14 +403,14 @@ screens:
         title: "iwd"
         description: "Enable or disable iwd as the Wi-Fi backend instead of wpa_supplicant."
         default: false
-        status_script: "ujust iwd status"
+        status_script: "ujust toggle-iwd status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust iwd enable"
+            script: "ujust toggle-iwd enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust iwd disable"
+            script: "ujust toggle-iwd disable"
       - id: "add-input-group"
         title: "Add input group to current user"
         description: "Adds the input group to your current user. Required by certain controller drivers."
@@ -423,18 +423,6 @@ screens:
           - id: "remove"
             label: "Remove"
             script: "ujust add-user-to-input-group remove"
-      - id: "restore-input-remapper"
-        title: "Input Remapper"
-        description: "Manage Input Remapper and make its launcher visible on non-desktop images."
-        default: false
-        status_script: "ujust restore-input-remapper status"
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: 'ujust restore-input-remapper enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable"
-            script: 'ujust restore-input-remapper disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "password-asterisks"
         title: "Visible Password Asterisks"
         description: "Show or hide password asterisks in sudo prompts."
@@ -457,18 +445,6 @@ screens:
           - id: "disable"
             label: "Disable"
             script: 'ujust yaguarete-cli disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-      - id: "asus"
-        title: "asusctl and ROG Control Center"
-        description: "Install asusctl and ROG Control Center, ASUS ROG hardware managing tools."
-        default: false
-        status_script: "ujust asus status"
-        options:
-          - id: "install"
-            label: "Install"
-            script: 'ujust asus install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "uninstall"
-            label: "Uninstall"
-            script: 'ujust asus uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "hide-grub"
         title: "GRUB Menu Visibility"
         description: "Choose when the GRUB menu appears at boot."
@@ -543,45 +519,6 @@ screens:
           - id: "disable"
             label: "Disable"
             script: 'ujust setup-virtual-surround disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-      - id: "bluetooth-headset-mic"
-        title: "Bluetooth Headset Audio Fix"
-        description: "Prevent Bluetooth devices from switching to low-quality headset mode by disabling their mic profile."
-        default: false
-        status_script: "ujust toggle-bt-mic status"
-        options:
-          - id: "enable"
-            label: "Enable Fix"
-            script: 'ujust toggle-bt-mic enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable Fix"
-            script: 'ujust toggle-bt-mic disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-      - id: "intel-i915-sleep-fix"
-        title: "Intel i915 Sleep Fix"
-        description: "Manage the i915.enable_dc power-saving setting for older Intel GPUs with suspend issues."
-        default: false
-        status_script: "ujust toggle-i915-sleep-fix status"
-        options:
-          - id: "auto"
-            label: "Set to Auto (i915.enable_dc=-1)"
-            script: 'ujust toggle-i915-sleep-fix auto; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable Power Saving (i915.enable_dc=0)"
-            script: 'ujust toggle-i915-sleep-fix disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-1"
-            label: "Set to Level 1 (i915.enable_dc=1)"
-            script: 'ujust toggle-i915-sleep-fix level-1; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-2"
-            label: "Set to Level 2 (i915.enable_dc=2)"
-            script: 'ujust toggle-i915-sleep-fix level-2; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-3"
-            label: "Set to Level 3 (i915.enable_dc=3)"
-            script: 'ujust toggle-i915-sleep-fix level-3; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-4"
-            label: "Set to Level 4 (i915.enable_dc=4)"
-            script: 'ujust toggle-i915-sleep-fix level-4; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "unset"
-            label: "Unset Parameter"
-            script: 'ujust toggle-i915-sleep-fix unset; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "virtualization"
         title: "Virtualization"
         description: "Install or remove virt-manager and configure host virtualization support."
@@ -644,53 +581,53 @@ screens:
         title: "Automounting"
         description: "Enable or disable automounting of labeled BTRFS/EXT4 partitions under /run/media/system."
         default: false
-        status_script: "ujust automounting status"
+        status_script: "ujust enable-automounting status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust automounting enable"
+            script: "ujust enable-automounting enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust automounting disable"
+            script: "ujust enable-automounting disable"
       - id: "steamos-automount"
         title: "SteamOS Automounting"
         description: "Enable or disable SteamOS automounting, useful when NTFS partitions get mounted automatically."
         default: false
-        status_script: "ujust steamos-automount status"
+        status_script: "ujust enable-steamos-automount status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust steamos-automount enable"
+            script: "ujust enable-steamos-automount enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust steamos-automount disable"
+            script: "ujust enable-steamos-automount disable"
       - id: "wake-on-lan"
         title: "Wake-on-LAN"
         description: "Enable Wake-on-LAN functionality to power on your device remotely"
         default: false
-        status_script: "ujust wol status"
+        status_script: "ujust toggle-wol status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust wol enable"
+            script: "ujust toggle-wol enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust wol disable"
+            script: "ujust toggle-wol disable"
           - id: "force-enable"
             label: "Force Enable"
-            script: "ujust wol force-enable"
+            script: "ujust toggle-wol force-enable"
       - id: "cec-sleep-standby"
         title: "CEC Sleep Standby"
         description: "Put TV to standby when system sleeps via HDMI-CEC. Requires a CEC-compatible Device, or Pulse 8 HDMI-CEC adapter."
         default: false
-        status_script: "ujust cec-sleep status"
+        status_script: "ujust toggle-cec-sleep status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust cec-sleep enable"
+            script: "ujust toggle-cec-sleep enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust cec-sleep disable"
+            script: "ujust toggle-cec-sleep disable"
       - id: "steam-icons"
         title: "Clean Steam Shortcuts"
         description: "Automatically removes Steam shortcuts from the desktop on boot, useful for keeping the desktop clean when installing games via game mode."
@@ -710,26 +647,26 @@ screens:
         title: "OpenTabletDriver"
         description: "Open source, cross-platform, user-mode tablet driver"
         default: false
-        status_script: "ujust opentabletdriver status"
+        status_script: "ujust install-opentabletdriver status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust opentabletdriver install"
+            script: "ujust install-opentabletdriver install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust opentabletdriver uninstall"
+            script: "ujust install-opentabletdriver uninstall"
       - id: "ssh-service"
         title: "SSH Service"
         description: "Enable SSH remote access service on boot"
         default: false
-        status_script: "ujust ssh status"
+        status_script: "ujust toggle-ssh status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust ssh enable"
+            script: "ujust toggle-ssh enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust ssh disable"
+            script: "ujust toggle-ssh disable"
       - id: "yaguarete-fsr4"
         title: "Global FSR4 Upgrade (auto-detect GPU)"
         description: "Enable or disable the Proton FSR4 upgrade. Auto-detects RDNA 3 / 3.5 (FP8 emulation, requires Proton GE / EM) vs RDNA 4 (native, Proton 10+) and applies the matching env flag. Logs every step to 'journalctl --user -t yaguarete-fsr4' and validates the flag file actually landed on disk (Bazzite's recipe silently no-ops when yafti strips HOME from the subprocess env)."
@@ -756,14 +693,14 @@ screens:
         title: "REISUB"
         description: "Toggle the Magic SysRq key and allow using the REISUB shortcut to force-reboot your computer slightly more safely. Note that it is insecure to have it enabled since you can use it to bypass some stuff"
         default: false
-        status_script: "ujust reisub status"
+        status_script: "ujust toggle-reisub status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust reisub enable"
+            script: "ujust toggle-reisub enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust reisub disable"
+            script: "ujust toggle-reisub disable"
   - title: "Media Apps"
     description: "Entertainment and streaming services"
     actions:
