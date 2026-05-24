@@ -216,6 +216,21 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: "ujust get-steamcmd uninstall"
+      - id: "lact"
+        title: "LACT (Linux AMDGPU Controller)"
+        description: "Manual control panel for AMD GPUs: fan curve, overclock/undervolt, power profiles, real-time metrics. Cross-variant (desktop + handheld). AMD only — no-op on NVIDIA variants."
+        default: false
+        status_script: 'flatpak info --user io.github.ilya_zlobintsev.LACT >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "Yaguareté Apps"
     description: "Custom installers maintained by YaguareteOS (gaming and dev tools)"
     actions:
