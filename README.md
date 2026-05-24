@@ -14,7 +14,22 @@ YaguareteOS combines:
 
 ## Status
 
-Early scaffolding. Project pivoted from Archiso to Universal Blue / bootc on 2026-05-06.
+Production. Four image variants live on `ghcr.io/lobinuxsoft/yaguarete_os{,-deck,-nvidia,-nvidia-open}` with automated stable promotion from `unstable → testing → stable`. Weekly cadence. Pipeline includes signed container builds (cosign), ISO/qcow2 generation via `bootc-image-builder`, and permanent archival of every `:stable` release to archive.org.
+
+## What's in the box
+
+Beyond the Bazzite-inherited gaming stack, YaguareteOS ships:
+
+- **Portal yafti** — first-boot welcome wizard (run-once gated) plus an Apps page with install/update/uninstall for every component below. ~80 items across 8 tabs, all normalised to `install/update/uninstall` with status badges where the underlying recipe supports it.
+- **Yaguareté Apps suite** — custom installers for [Yryvu](https://github.com/lobinuxsoft/yryvu) (Tauri 2 Git client), [Tatu](https://github.com/lobinuxsoft/tatu) (Steam backlog tracker), [Eden](https://eden-emu.dev) (Switch emulator with firmware + prod.keys automation + EmuDeck SRM integration), [Antigravity IDE](https://antigravity.google/) (Google Gemini, APT repo with SHA256 verify), and Antigravity CLI.
+- **`ujust yaguarete-fsr4`** — auto-detect GPU (RDNA 3 / RDNA 4) and wire FSR4 upgrade with the correct Proton fork. Useful upgrade path for OneXFly / RDNA 3 handhelds.
+- **Aurora-style image versioning** — `rpm-ostree status` reports a human-readable `<fedora>.<YYYYMMDD>` so users can correlate updates with the release calendar.
+- **LACT integration** — manual AMDGPU control (fan curve, OC/UV, live metrics) via Flathub, one-click from the Portal.
+- **Multi-device target** — desktop AMD (RX 9070 XT class), handhelds (Steam Deck, OneXFly, ROG Ally), NVIDIA proprietary and open kernel module variants — single source tree, one Containerfile, matrix CI across the four.
+
+## Roadmap
+
+Tracked via GitHub Issues. Open items: see [milestones](https://github.com/lobinuxsoft/yaguarete_os/milestones) and the [`next-session` label](https://github.com/lobinuxsoft/yaguarete_os/issues?q=is%3Aissue+is%3Aopen+label%3Anext-session) for what is queued next. Sesión V (2026-05-23) brainstorm settled the post-pivot positioning on handheld-first multi-device with the Yaguareté apps ecosystem and Argentine cultural identity at the surface.
 
 ## Lineage and upstream attribution
 
@@ -101,7 +116,7 @@ Justfile                  task runner (build, test, run-vm, clean, etc.)
 
 If you already run a `bootc`-based system (Bazzite, Bluefin, Aurora, or any Fedora Atomic image), you can rebase to YaguareteOS without reinstalling.
 
-> **Phase 0 caveat.** The image today is functionally Bazzite with our pipeline, signing key and registry. Argentine branding (logo, Plymouth, theme, locale defaults) lands in Phase 1. If you rebase now, expect a Bazzite-looking desktop until those issues close.
+> **Branding state.** Argentine branding (Plymouth boot splash, Guaraní wallpapers, locale defaults, motd) is shipped today. Visual polish (custom Plasma theme, refined press kit assets) is still in progress under [#20](https://github.com/lobinuxsoft/yaguarete_os/issues/20). Expect a Bazzite-derived but YaguareteOS-branded desktop.
 
 ### Prerequisites
 
