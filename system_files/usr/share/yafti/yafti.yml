@@ -709,14 +709,6 @@ screens:
           - id: "disable"
             label: "Disable"
             script: "ujust reisub disable"
-  - title: "Game Fixes"
-    description: "Fixes for specific games"
-    actions:
-      - id: "fix-gmod"
-        title: "Garry's Mod Patch Tool"
-        description: "Patch Garry's Mod's 64-bit beta to work properly on Linux."
-        default: false
-        script: "ujust fix-gmod"
   - title: "Media Apps"
     description: "Entertainment and streaming services"
     actions:
@@ -769,16 +761,6 @@ screens:
   - title: "Brew"
     description: "Brew Taps and Casks"
     actions:
-      - id: "antigravity-linux"
-        title: "Install Antigravity (Google — Gemini)"
-        description: "Installs Google's Antigravity IDE via Homebrew cask. Not to be confused with YaguareteOS' built-in Antigravity assistant."
-        default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask antigravity-linux'
-      - id: "lm-studio-linux"
-        title: "Install LM Studio"
-        description: "Installs LM Studio"
-        default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask lm-studio-linux'
       - id: "jetbrains-toolbox-linux"
         title: "Install JetBrains Toolbox"
         description: "Installs JetBrains Toolbox"
