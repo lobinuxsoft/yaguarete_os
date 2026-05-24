@@ -313,4 +313,14 @@ Append one row per session — what was audited, what changed.
 | Date | Session | Recipes touched | Result | PRs |
 |---|---|---|---|---|
 | 2026-05-23 | VI | `yaguarete-fsr4 {enable,disable}` on `-deck` | `PASS` after 3 cascading fixes | #203, #204 |
-| 2026-05-24 | VII (this PR) | Matrix scaffolding — no recipe audited yet | — | (this PR) |
+| 2026-05-24 | VII | Matrix scaffolding + hardening campaign | 11 PRs merged | #205, #206, #208 |
+| 2026-05-24 | VII | Tab 1 (App Install) — 9 items procesados | 3 PASS via SSH, 2 PASS via yafti GUI (user), 2 ya-instalados, 2 dropeados broken | #207, #214 |
+| 2026-05-24 | VII | Tab 2 (Yaguareté Apps) — 5/5 items end-to-end | All PASS (install + update + uninstall ciclos) | — |
+| 2026-05-24 | VII | Tab 3 (Creative Apps) — 5/5 items | All PASS (install + flatpak uninstall) | — |
+| 2026-05-24 | VII | Tab 5 (Game Fixes) — REMOVED entirely | 1 NEEDS-USER-GUI; tab dropeado | #209 |
+| 2026-05-24 | VII | Tab 6 (Media Apps) — 7/7 items | 3 PASS via SSH (webapp), 3 NEEDS-GUI (Flatpak system polkit), 1 PASS-by-existing (Stremio) | — |
+| 2026-05-24 | VII | Tab 4 (System Fixes) — 11 items procesados | 8 PASS (cycle toggles), 4 NEEDS-GUI (pkexec), 11+ drift items renamed/dropped | #211, #212, #213 |
+| 2026-05-24 | VII | Tab 9 (Troubleshooting) — 4/6 items | 3 PASS (restart-pipewire, fix-proton-hang, benchmark), 2 NEEDS-GUI (get-logs, bazzite-discord), 1 SKIPPED destructivo (fix-reset-steam) | — |
+| 2026-05-24 | VII | yafti.yml normalization | 20 items (Tab 2/3/6/7) ganaron `install/update/uninstall` consistente + status_script. Cobertura status_script 28/80 → 48/80 | #210 |
+| 2026-05-24 | VII | Brew tab cleanup | dropped Antigravity (duplicado) + LM Studio | #209 |
+| 2026-05-24 | VII | OneXFly residue cleanup | 6 plugin orphans, 2 Antigravity/Eden backups, /tmp QA files, hrtf-sofa, input group restored | — |
