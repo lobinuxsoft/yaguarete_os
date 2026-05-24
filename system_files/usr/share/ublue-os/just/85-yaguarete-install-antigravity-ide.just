@@ -94,7 +94,7 @@ install-antigravity-ide:
     stage="$(sudo mktemp -d)"
     sudo tar $tar_opts -xf "$deb_tmp/$data_tar" -C "$stage"
 
-    desktop_src=$(sudo find "$stage" -path '*/applications/antigravity.desktop' 2>/dev/null | head -1)
+    desktop_src=$(sudo find "$stage" -path '*/applications/antigravity.desktop' -print -quit 2>/dev/null)
     if [[ -z "$desktop_src" ]]; then
         yg_err "Could not locate antigravity.desktop in the package — layout unrecognised"
         sudo rm -rf "$stage"; exit 1
@@ -103,7 +103,7 @@ install-antigravity-ide:
     exec_target=$(grep -m1 '^Exec=' "$desktop_src" | sed 's/^Exec=//' | awk '{print $1}')
     launcher_staged="${stage}${exec_target}"
     if [[ ! -x "$launcher_staged" ]]; then
-        launcher_staged=$(sudo find "$stage" -type f -name "$(basename "$exec_target")" -executable 2>/dev/null | head -1)
+        launcher_staged=$(sudo find "$stage" -type f -name "$(basename "$exec_target")" -executable -print -quit 2>/dev/null)
     fi
     if [[ -z "$launcher_staged" || ! -x "$launcher_staged" ]]; then
         yg_err "Could not locate the antigravity launcher (Exec=$exec_target)"
@@ -131,7 +131,7 @@ install-antigravity-ide:
     launcher_rel="${launcher_staged#${payload_dir}/}"
     launcher_final="$YG_OPT_DIR/antigravity/$launcher_rel"
     if [[ ! -x "$launcher_final" ]]; then
-        launcher_final=$(sudo find "$YG_OPT_DIR/antigravity" -type f -name "$(basename "$exec_target")" -executable 2>/dev/null | head -1)
+        launcher_final=$(sudo find "$YG_OPT_DIR/antigravity" -type f -name "$(basename "$exec_target")" -executable -print -quit 2>/dev/null)
     fi
     sudo ln -sf "$launcher_final" /usr/local/bin/antigravity
     yg_ok "Symlinked /usr/local/bin/antigravity → $launcher_final"
@@ -144,9 +144,9 @@ install-antigravity-ide:
     # Icon: prefer /pixmaps/, fall back to hicolor, fall back to any
     # antigravity.{png,svg} outside the app's internal resources/ (which
     # holds UI assets, not launcher icons).
-    icon_src=$(sudo find "$stage" -path '*/pixmaps/antigravity.*' 2>/dev/null | head -1)
-    [[ -z "$icon_src" ]] && icon_src=$(sudo find "$stage" -path '*/icons/hicolor/*/apps/antigravity.*' 2>/dev/null | head -1)
-    [[ -z "$icon_src" ]] && icon_src=$(sudo find "$stage" \( -name 'antigravity.png' -o -name 'antigravity.svg' \) -not -path '*/resources/*' 2>/dev/null | head -1)
+    icon_src=$(sudo find "$stage" -path '*/pixmaps/antigravity.*' -print -quit 2>/dev/null)
+    [[ -z "$icon_src" ]] && icon_src=$(sudo find "$stage" -path '*/icons/hicolor/*/apps/antigravity.*' -print -quit 2>/dev/null)
+    [[ -z "$icon_src" ]] && icon_src=$(sudo find "$stage" \( -name 'antigravity.png' -o -name 'antigravity.svg' \) -not -path '*/resources/*' -print -quit 2>/dev/null)
     if [[ -n "$icon_src" ]]; then
         mkdir -p "$YG_ICON_DIR"
         cp "$icon_src" "$YG_ICON_DIR/antigravity.${icon_src##*.}"
@@ -159,6 +159,7 @@ install-antigravity-ide:
     yg_ok "Antigravity IDE $deb_version installed."
     yg_info "Launch it from the KDE menu or by running: antigravity"
     yg_info "First launch will prompt Google OAuth in your browser."
+    yg_pause
 
 update-antigravity-ide:
     @just install-antigravity-ide

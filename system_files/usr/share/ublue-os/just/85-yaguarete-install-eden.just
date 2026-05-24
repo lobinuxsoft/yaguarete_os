@@ -32,9 +32,11 @@ install-eden:
     # 1. Eden AppImage (latest nightly, amd64-clang-pgo for x86, aarch64-clang-pgo for arm)
     yg_info "Resolving latest Eden release"
     pattern="Linux.*${arch}-clang-pgo\\.AppImage\$"
+    # jq's first() avoids the SIGPIPE that `jq … | head -1` triggers under
+    # `set -o pipefail` when the stream emits more than one match. `// empty`
+    # turns a no-match into "" instead of jq's literal "null" string.
     eden_url=$(curl -fsSL "https://git.eden-emu.dev/api/v1/repos/eden-ci/nightly/releases?limit=1" \
-        | jq -r --arg pat "$pattern" '.[0].assets[] | select(.name | test($pat)) | .browser_download_url' \
-        | head -1)
+        | jq -r --arg pat "$pattern" 'first(.[0].assets[] | select(.name | test($pat)) | .browser_download_url) // empty')
     if [[ -z "$eden_url" ]]; then
         yg_err "No Eden AppImage matching $pattern in the latest release."
         exit 1
@@ -94,7 +96,9 @@ install-eden:
     pushd "$extract_dir" >/dev/null
     "$EDEN_BIN" --appimage-extract >/dev/null 2>&1
 
-    desktop_src=$(find squashfs-root -maxdepth 2 -name '*.desktop' 2>/dev/null | head -1)
+    # find -print -quit avoids SIGPIPE under `set -o pipefail` — `find … | head -1`
+    # aborts the recipe with exit 141 when find emits more matches than head reads.
+    desktop_src=$(find squashfs-root -maxdepth 2 -name '*.desktop' -print -quit 2>/dev/null)
     if [[ -n "$desktop_src" ]]; then
         # The AppImage's Icon= line tells us the icon stem; locate the
         # matching file at any depth (typical paths: squashfs-root/<id>.svg
@@ -102,7 +106,7 @@ install-eden:
         icon_name=$(grep -m1 '^Icon=' "$desktop_src" | sed 's/^Icon=//')
         icon_src=""
         if [[ -n "$icon_name" ]]; then
-            icon_src=$(find squashfs-root \( -name "${icon_name}.svg" -o -name "${icon_name}.png" \) 2>/dev/null | head -1)
+            icon_src=$(find squashfs-root \( -name "${icon_name}.svg" -o -name "${icon_name}.png" \) -print -quit 2>/dev/null)
         fi
 
         mkdir -p "$YG_DESKTOP_DIR" "$YG_ICON_DIR"
@@ -163,6 +167,7 @@ install-eden:
     echo "    • Launch Eden from the KDE menu (or run $EDEN_BIN)."
     echo "    • Drop ROMs (.nsp/.xci) in $roms_dir."
     [[ -f "$srm_cfg" ]] && echo "    • Open Steam ROM Manager and click 'Add Games' to push them to Steam."
+    yg_pause
 
 update-eden:
     #!/usr/bin/bash
@@ -175,7 +180,7 @@ update-eden:
     EDEN_BIN="$YG_APPS_DIR/Eden.AppImage"
     pattern="Linux.*${arch}-clang-pgo\\.AppImage\$"
     eden_url=$(curl -fsSL "https://git.eden-emu.dev/api/v1/repos/eden-ci/nightly/releases?limit=1" \
-        | jq -r --arg pat "$pattern" '.[0].assets[] | select(.name | test($pat)) | .browser_download_url' | head -1)
+        | jq -r --arg pat "$pattern" 'first(.[0].assets[] | select(.name | test($pat)) | .browser_download_url) // empty')
     yg_download "$eden_url" "$EDEN_BIN"
     chmod +x "$EDEN_BIN"
     yg_ok "Eden AppImage refreshed"
@@ -191,6 +196,7 @@ update-eden:
     unzip -q -o "$fw_zip" -d "$reg_dir"
     rm -rf "$(dirname "$fw_zip")"
     yg_ok "Firmware updated to $fw_tag (previous backed up at ${bak})"
+    yg_pause
 
 remove-eden:
     #!/usr/bin/bash

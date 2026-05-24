@@ -64,6 +64,7 @@ install-antigravity-cli:
     echo
     yg_ok "Antigravity CLI installed."
     yg_info "Authenticate with: agy login (opens a browser, or prints a URL on SSH)."
+    yg_pause
 
 update-antigravity-cli:
     @just install-antigravity-cli
