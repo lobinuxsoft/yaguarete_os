@@ -69,7 +69,6 @@ screens:
         title: "Lossless Scaling Vulkan Layer"
         description: "Install the lsfg-vk Vulkan layer for Lossless Scaling compatibility in Linux."
         default: false
-        status_script: "ujust get-lsfg status"
         options:
           - id: "install"
             label: "Install"
@@ -81,7 +80,6 @@ screens:
         title: "Boxtron"
         description: "Installs Boxtron on a Fedora distrobox and exports it."
         default: false
-        status_script: "ujust install-boxtron status"
         options:
           - id: "install"
             label: "Install"
@@ -125,18 +123,6 @@ screens:
           - id: "portal"
             label: "Open Portal"
             script: "ujust setup-sunshine portal"
-      - id: "cockpit"
-        title: "Cockpit"
-        description: "Enable or disable the Cockpit web interface for system management."
-        default: false
-        status_script: "ujust cockpit status"
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: "ujust cockpit enable"
-          - id: "disable"
-            label: "Disable"
-            script: "ujust cockpit disable"
       - id: "waydroid"
         title: "Waydroid"
         description: "Android app compatibility layer for Linux"
@@ -161,7 +147,6 @@ screens:
         title: "CoolerControl"
         description: "View sensors and create fan and pump profiles from available temperature sensors."
         default: false
-        status_script: "ujust install-coolercontrol status"
         options:
           - id: "install"
             label: "Install"
@@ -173,7 +158,6 @@ screens:
         title: "DisplayLink"
         description: "Install DisplayLink support for laptop docks and USB display adapters."
         default: false
-        status_script: "ujust install-displaylink status"
         options:
           - id: "install"
             label: "Install"
@@ -185,7 +169,6 @@ screens:
         title: "OpenRazer"
         description: "Install OpenRazer support for Razer gaming hardware."
         default: false
-        status_script: "ujust install-openrazer status"
         options:
           - id: "install-razer-genie"
             label: "Install with Razer Genie"
@@ -203,31 +186,30 @@ screens:
         title: "OpenRGB"
         description: "Open source RGB lighting control that doesn't depend on manufacturer software"
         default: false
-        status_script: "ujust openrgb status"
+        status_script: "ujust install-openrgb status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust openrgb install"
+            script: "ujust install-openrgb install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust openrgb uninstall"
+            script: "ujust install-openrgb uninstall"
       - id: "resilio-sync"
         title: "Resilio Sync"
         description: "A file synchronization utility powered by BitTorrent"
         default: false
-        status_script: "ujust resilio-sync status"
+        status_script: "ujust install-resilio-sync status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust resilio-sync install"
+            script: "ujust install-resilio-sync install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust resilio-sync uninstall"
+            script: "ujust install-resilio-sync uninstall"
       - id: "davinci-resolve"
         title: "DaVinci Resolve"
         description: "Install or remove DaVinci Resolve through davincibox."
         default: false
-        status_script: "ujust install-davinci status"
         options:
           - id: "install"
             label: "Install/Upgrade"
@@ -239,14 +221,13 @@ screens:
         title: "Tailscale"
         description: "Enable or disable the Tailscale service for mesh VPN support."
         default: false
-        status_script: "ujust tailscale status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust tailscale enable"
+            script: "ujust enable-tailscale"
           - id: "disable"
             label: "Disable"
-            script: "ujust tailscale disable"
+            script: "sudo systemctl disable --now tailscaled.service"
       - id: "steamcmd"
         title: "SteamCMD"
         description: "Command-line version of the Steam client for dedicated servers and game downloads"
