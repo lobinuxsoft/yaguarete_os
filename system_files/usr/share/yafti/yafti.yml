@@ -709,14 +709,6 @@ screens:
           - id: "disable"
             label: "Disable"
             script: "ujust reisub disable"
-  - title: "Game Fixes"
-    description: "Fixes for specific games"
-    actions:
-      - id: "fix-gmod"
-        title: "Garry's Mod Patch Tool"
-        description: "Patch Garry's Mod's 64-bit beta to work properly on Linux."
-        default: false
-        script: "ujust fix-gmod"
   - title: "Media Apps"
     description: "Entertainment and streaming services"
     actions:
