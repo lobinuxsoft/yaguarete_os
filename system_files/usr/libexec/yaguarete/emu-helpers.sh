@@ -102,6 +102,17 @@ yg_confirm() {
     esac
 }
 
+# Pause until any key is pressed, but only if stdin is a TTY. yafti spawns
+# recipes via `xdg-terminal-exec ... bash -lc <script>` and konsole closes
+# immediately on script exit, hiding the final summary. SSH/non-interactive
+# invocations skip the pause and return without blocking.
+yg_pause() {
+    [[ -t 0 ]] || return 0
+    local msg="${1:-Press any key to close this window...}"
+    read -n 1 -s -r -p "$msg"
+    echo
+}
+
 # ---------------------------------------------------------------------
 # Download + desktop integration
 # ---------------------------------------------------------------------
@@ -155,7 +166,7 @@ Exports: YG_APPS_DIR YG_BIN_DIR YG_DATA_DIR YG_CONFIG_DIR
 Provides: yg_info yg_ok yg_warn yg_err
           yg_arch yg_supports_v3 yg_is_handheld
           yg_check_internet yg_check_disk
-          yg_confirm yg_download yg_refresh_desktop_db
+          yg_confirm yg_pause yg_download yg_refresh_desktop_db
           yg_has_emudeck yg_emudeck_setting
 USAGE
 fi

@@ -75,12 +75,14 @@ install-yryvu:
     extract_dir=$(mktemp -d)
     pushd "$extract_dir" >/dev/null
     "$YRYVU_BIN" --appimage-extract >/dev/null 2>&1
-    desktop_src=$(find squashfs-root -maxdepth 2 -name '*.desktop' 2>/dev/null | head -1)
+    # find -print -quit avoids SIGPIPE under `set -o pipefail` — `find … | head -1`
+    # aborts the recipe with exit 141 when find emits more matches than head reads.
+    desktop_src=$(find squashfs-root -maxdepth 2 -name '*.desktop' -print -quit 2>/dev/null)
     if [[ -n "$desktop_src" ]]; then
         icon_name=$(grep -m1 '^Icon=' "$desktop_src" | sed 's/^Icon=//')
         icon_src=""
         if [[ -n "$icon_name" ]]; then
-            icon_src=$(find squashfs-root \( -name "${icon_name}.svg" -o -name "${icon_name}.png" \) 2>/dev/null | head -1)
+            icon_src=$(find squashfs-root \( -name "${icon_name}.svg" -o -name "${icon_name}.png" \) -print -quit 2>/dev/null)
         fi
         mkdir -p "$YG_DESKTOP_DIR" "$YG_ICON_DIR"
         sed "s|^Exec=.*|Exec=$YRYVU_BIN %f|; s|^Icon=.*|Icon=yryvu|" \
@@ -101,6 +103,7 @@ install-yryvu:
     echo
     yg_ok "Yryvu install complete."
     yg_info "Launch from the KDE menu or run: $YRYVU_BIN"
+    yg_pause
 
 update-yryvu:
     #!/usr/bin/bash
@@ -125,6 +128,7 @@ update-yryvu:
     mv "$tmp_bin" "$YRYVU_BIN"
     chmod +x "$YRYVU_BIN"
     yg_ok "Yryvu refreshed to $version"
+    yg_pause
 
 remove-yryvu:
     #!/usr/bin/bash
