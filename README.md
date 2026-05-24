@@ -220,21 +220,23 @@ If you're already on YaguareteOS, the command is a no-op and points you at `sudo
 
 ## Automatic updates
 
-YaguareteOS enables `bootc-fetch-apply-updates.timer` by default. Once every 24 h the timer pulls the latest image of your current ref (`:stable`, `:testing` or `:unstable`) and stages it. The new deployment is applied on your next reboot — there is no auto-reboot.
+YaguareteOS enables `uupd.timer` (Universal Blue updater) by default. Once a day at 04:00 the timer runs hardware pre-flight checks (battery, network, memory, CPU load) and, if they pass, pulls the latest image of your current ref (`:stable`, `:testing` or `:unstable`) and stages it. The new deployment is applied on **your next reboot** — there is no forced reboot. If the system is off or suspended at 04:00, the timer fires on resume (`Persistent=true`).
 
-To opt out:
+The upstream `bootc-fetch-apply-updates.timer` is masked on purpose: its service runs `bootc upgrade --apply` which reboots the moment a new image is staged, which on `:unstable` (frequent CI builds) caused unexpected reboots every 1-3 h on handheld hardware.
+
+To opt out of automatic updates:
 
 ```bash
-sudo systemctl disable --now bootc-fetch-apply-updates.timer
+sudo systemctl disable --now uupd.timer
 ```
 
 To re-enable later:
 
 ```bash
-sudo systemctl enable --now bootc-fetch-apply-updates.timer
+sudo systemctl enable --now uupd.timer
 ```
 
-You can still pull on demand with `sudo bootc upgrade` regardless of the timer state.
+You can still pull on demand with `sudo bootc upgrade` or `uupd` regardless of the timer state.
 
 ## Verifying image signatures
 

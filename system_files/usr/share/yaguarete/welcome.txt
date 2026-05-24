@@ -30,8 +30,7 @@
 
       System maintenance:
         sudo bootc upgrade              # pull the latest image immediately
-        systemctl status bootc-fetch-apply-updates.timer
-                                        # automatic upgrades run daily
+        systemctl status uupd.timer     # daily uupd run, no auto-reboot
 
       GUI alternative:
         Open "Portal YaguareteOS" from the application menu
