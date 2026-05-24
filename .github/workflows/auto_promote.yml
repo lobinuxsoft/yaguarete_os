@@ -161,8 +161,10 @@ jobs:
             # Plymouth theme
             test -d /usr/share/plymouth/themes/yaguarete
 
-            # bootc auto-upgrade timer enabled by build.sh
-            test -L /etc/systemd/system/timers.target.wants/bootc-fetch-apply-updates.timer
+            # uupd auto-upgrade timer enabled by build.sh (replaces bootc
+            # auto-apply timer to avoid forced reboots on :unstable churn)
+            test -L /etc/systemd/system/timers.target.wants/uupd.timer
+            test -L /etc/systemd/system/bootc-fetch-apply-updates.timer  # masked
 
             # autologin service shipped by us
             test -f /usr/lib/systemd/system/yaguarete-autologin.service

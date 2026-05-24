@@ -51,12 +51,20 @@ dnf5 install -y \
 
 systemctl enable podman.socket
 
-### Auto-upgrade: weekly bootc pull from ghcr, applied on next reboot.
-# Inherits bootc's default OnUnitInactiveSec=24h schedule. No auto-reboot —
-# user controls when to apply. Opt-out:
-#   sudo systemctl disable --now bootc-fetch-apply-updates.timer
-# See #144.
-systemctl enable bootc-fetch-apply-updates.timer
+### Auto-upgrade: daily uupd (Universal Blue updater) at 04:00 with HW
+# pre-flight checks (battery / network / memory / CPU) and NO forced reboot.
+# Upgrade is staged for the next reboot the user picks. Upstream Bazzite
+# pattern — uupd is already in the inherited image, we only flip the timer.
+#
+# bootc-fetch-apply-updates.timer is MASKED on purpose: its service runs
+# `bootc upgrade --apply --quiet`, and `--apply` reboots whenever a new
+# image is staged. With the timer's OnBootSec=1h + OnUnitInactiveSec=8h +
+# RandomizedDelaySec=2h schedule, CI builds on :unstable produced reboots
+# every 1-3h on handheld HW (regression of #144).
+#
+# Manual on-demand pull stays available with `sudo bootc upgrade` or `uupd`.
+systemctl mask bootc-fetch-apply-updates.timer
+systemctl enable uupd.timer
 
 ### Game Mode autologin: patches /etc/sddm.conf.d/steamos.conf at boot
 # to wire User= to whatever username UID 1000 resolves to. Replicates
