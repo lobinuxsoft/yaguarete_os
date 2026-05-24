@@ -24,4 +24,6 @@ These upstream recipes changed name in a recent Bazzite build without a release 
 
 ## Broken recipes
 
-Empty — populated as auditing progresses. Each entry: recipe, variant, symptom, upstream issue link (if any), downstream mitigation (override path or "wait upstream").
+| Recipe | File | Symptom | Upstream issue | Mitigation |
+|---|---|---|---|---|
+| `get-framegen` | `91-bazzite-decky.just` | `FILENAME="Decky.Framegen.zip"` (dot) but real asset is `Decky-Framegen.zip` (hyphen) since v0.15.5 at `xXJSONDeruloXx/Decky-Framegen`. Download 404s → `unzip` fails → recipe prints "installed successfully" anyway (`exit 0` lies). | not filed (no upstream PR without consent) | In-place `sed` patch in `build_files/build.sh` rewrites the FILENAME constant. No-op when upstream finally renames. |
