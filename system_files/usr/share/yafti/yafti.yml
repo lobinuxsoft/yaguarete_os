@@ -534,7 +534,6 @@ screens:
         title: "Save Kernel Panics"
         description: "Enable or disable ramoops so kernel panic details can be recovered after reboot."
         default: false
-        status_script: "ujust toggle-save-panics status"
         options:
           - id: "enable"
             label: "Enable"
@@ -551,7 +550,6 @@ screens:
         title: "Watchdog"
         description: "Enable or disable the hardware watchdog recovery mechanism."
         default: false
-        status_script: "ujust configure-watchdog status"
         options:
           - id: "enable"
             label: "Enable"
@@ -563,7 +561,6 @@ screens:
         title: "Snapshots"
         description: "Enable or disable Snapper snapshots for /var/home."
         default: false
-        status_script: "ujust configure-snapshots status"
         options:
           - id: "enable"
             label: "Enable"
