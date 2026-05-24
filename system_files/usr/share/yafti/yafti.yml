@@ -247,6 +247,7 @@ screens:
         title: "Yryvu (Git client)"
         description: "Install Yryvu, a Tauri 2 + SolidJS Git GUI by lobinuxsoft. AppImage from GitHub Releases, SHA256 verified, registered as a KDE launcher."
         default: false
+        status_script: '[[ -f "$HOME/Applications/Yryvu.AppImage" ]] && echo "install" || echo "remove"'
         options:
           - id: "install"
             label: "Install"
@@ -261,6 +262,7 @@ screens:
         title: "Tatu (Steam backlog tracker)"
         description: "Install Tatu, the Steam backlog tracker by lobinuxsoft (Tauri 2 frontend). AppImage from GitHub Releases, SHA256 verified; the legacy Game Progress Tracker name is rewritten to Tatu in the KDE launcher. The Aurora-style Win32 cheats bridge is a separate Steam compat tool — see lobinuxsoft/tatu README."
         default: false
+        status_script: '[[ -f "$HOME/Applications/Tatu.AppImage" ]] && echo "install" || echo "remove"'
         options:
           - id: "install"
             label: "Install"
@@ -275,6 +277,7 @@ screens:
         title: "Eden (Switch Emulator)"
         description: "Install Eden Nintendo Switch emulator. Optionally downloads firmware 22.x (THZoria) and prod.keys v20.3.0 (ProdKeys.net) for game compatibility. Auto-registers a Steam ROM Manager parser if EmuDeck is detected."
         default: false
+        status_script: '[[ -f "$HOME/Applications/Eden.AppImage" ]] && echo "install" || echo "remove"'
         options:
           - id: "install"
             label: "Install"
@@ -289,6 +292,7 @@ screens:
         title: "Antigravity IDE (Google — Gemini)"
         description: "Install Google's Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification. Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
+        status_script: '[[ -f /opt/antigravity/VERSION ]] && echo "install" || echo "remove"'
         options:
           - id: "install"
             label: "Install"
@@ -303,6 +307,7 @@ screens:
         title: "Antigravity CLI (Google — Gemini)"
         description: "Install Google's Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern). Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
+        status_script: 'command -v agy >/dev/null 2>&1 && echo "install" || echo "remove"'
         options:
           - id: "install"
             label: "Install"
@@ -320,27 +325,77 @@ screens:
         title: "VLC"
         description: "Multimedia player and converter"
         default: false
-        script: 'flatpak install --user -y flathub org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        status_script: 'flatpak info --user org.videolan.VLC >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "gimp"
         title: "GIMP"
         description: "Raster graphics editor"
         default: false
-        script: 'flatpak install --user -y flathub org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        status_script: 'flatpak info --user org.gimp.GIMP >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "inkscape"
         title: "Inkscape"
         description: "Vector graphics editor"
         default: false
-        script: 'flatpak install --user -y flathub org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        status_script: 'flatpak info --user org.inkscape.Inkscape >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "obs-studio"
         title: "OBS Studio"
         description: "Video recording and live streaming"
         default: false
-        script: 'flatpak install --user -y flathub com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        status_script: 'flatpak info --user com.obsproject.Studio >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "blender"
         title: "Blender"
         description: "3D modeling, animation, and rendering"
         default: false
-        script: 'flatpak install --user -y flathub org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        status_script: 'flatpak info --user org.blender.Blender >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "System Fixes"
     description: "System configurations and enhancements"
     actions:
@@ -716,7 +771,17 @@ screens:
         title: "Xbox Cloud Gaming"
         description: "Cloud gaming service"
         default: false
-        script: "ujust get-media-app \"Xbox Cloud Gaming\""
+        status_script: '[[ -f "$HOME/Applications/streaming_scripts/xbox-cloud" ]] && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Xbox Cloud Gaming"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Xbox Cloud Gaming"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'rm -f "$HOME/Applications/streaming_scripts/xbox-cloud"; echo "Xbox Cloud Gaming launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       # - id: "geforce-now"
       #   title: "GeForce Now"
       #   description: "Cloud gaming service"
@@ -724,37 +789,94 @@ screens:
       #   script: "ujust get-media-app \"GeForce Now\""
       - id: "youtube"
         title: "YouTube"
-        description: "Video sharing platform"
+        description: "Video sharing platform (native Flatpak via VacuumTube)"
         default: false
-        script: "ujust get-media-app \"YouTube\""
+        status_script: 'flatpak info rocks.shy.VacuumTube >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "YouTube"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "YouTube"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --system -y --noninteractive rocks.shy.VacuumTube 2>&1 || true; rm -f "$HOME/Applications/streaming_scripts/youtube"; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "spotify"
         title: "Spotify"
         description: "Music streaming service"
         default: false
-        script: "ujust get-media-app \"Spotify\""
+        status_script: '[[ -f "$HOME/Applications/streaming_scripts/spotify" ]] && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Spotify"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Spotify"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'rm -f "$HOME/Applications/streaming_scripts/spotify"; echo "Spotify launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "netflix"
         title: "Netflix"
         description: "Subscription streaming service"
         default: false
-        script: "ujust get-media-app \"Netflix\""
+        status_script: '[[ -f "$HOME/Applications/streaming_scripts/netflix" ]] && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Netflix"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Netflix"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'rm -f "$HOME/Applications/streaming_scripts/netflix"; echo "Netflix launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "plex-htpc"
         title: "Plex HTPC"
-        description: "Media server client"
+        description: "Media server client (native Flatpak)"
         default: false
-        script: "ujust get-media-app \"Plex HTPC\""
+        status_script: 'flatpak info tv.plex.PlexHTPC >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Plex HTPC"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Plex HTPC"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --system -y --noninteractive tv.plex.PlexHTPC 2>&1 || true; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "jellyfin"
         title: "JellyFin"
-        description: "Media server client"
+        description: "Media server client (native Flatpak)"
         default: false
-        script: "ujust get-media-app \"Jellyfin Media Player\""
+        status_script: 'flatpak info com.github.iwalton3.jellyfin-media-player >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Jellyfin Media Player"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Jellyfin Media Player"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --system -y --noninteractive com.github.iwalton3.jellyfin-media-player 2>&1 || true; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "stremio"
         title: "Stremio"
         description: "Media center with community add-ons (Flathub)"
         default: false
+        status_script: 'flatpak info --user com.stremio.Stremio >/dev/null 2>&1 && echo "install" || echo "uninstall"'
         options:
           - id: "install"
             label: "Install"
             script: 'flatpak install --user -y flathub com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
           - id: "browse-addons"
             label: "Browse add-ons catalogue"
             script: 'xdg-open https://stremio-addons.net/addons'
@@ -762,20 +884,50 @@ screens:
     description: "Brew Taps and Casks"
     actions:
       - id: "jetbrains-toolbox-linux"
-        title: "Install JetBrains Toolbox"
-        description: "Installs JetBrains Toolbox"
+        title: "JetBrains Toolbox"
+        description: "IDE manager for JetBrains products"
         default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux'
+        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx jetbrains-toolbox-linux && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "vscodium-linux"
-        title: "Install VSCodium"
-        description: "Installs VSCodium editor"
+        title: "VSCodium"
+        description: "Community build of VS Code without telemetry"
         default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask vscodium-linux'
+        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx vscodium-linux && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "android-platform-tools"
-        title: "Install Android Platform Tools"
-        description: "Installs Android Platform Tools"
+        title: "Android Platform Tools"
+        description: "adb, fastboot and friends from the Android SDK"
         default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install --cask android-platform-tools'
+        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx android-platform-tools && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "Manage PC"
     description: "System updates and configuration"
     actions:
