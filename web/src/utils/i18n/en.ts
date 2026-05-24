@@ -12,7 +12,7 @@ const en: Translations = {
     titlePrefix: 'Yaguarete',
     titleSuffix: 'OS',
     subTitle:
-      'Bazzite-based KDE distribution aimed at development and gaming. Image-based with bootc, atomic updates, signed by our own CI.',
+      'Handheld-first KDE distribution on top of Bazzite, with our own apps suite (Yryvu, Tatu, Eden) and FSR4 auto-configuration for AMD. Image-based with bootc, atomic updates, signed by our own CI.',
     primaryBtn: 'Read the README',
     primaryBtnUrl: 'https://github.com/lobinuxsoft/yaguarete_os#readme',
   },
@@ -97,7 +97,7 @@ const en: Translations = {
       {
         question: 'Is YaguareteOS just Bazzite with a new logo?',
         answer:
-          'In Phase 0, functionally yes — the image is Bazzite stable plus our pipeline, signing key and registry. Argentine branding (Plymouth, theme, locale defaults, wallpapers) lands incrementally in Phase 1. The value-add today is the pipeline itself: we build it, we sign it, we publish it to our registry.',
+          'No. On top of Bazzite we add: a yafti Portal with ~80 items normalised to install/update/uninstall, our own apps suite (Yryvu, Tatu, Eden, Antigravity), the ujust yaguarete-fsr4 wrapper that auto-detects GPU and applies the correct upgrade path, Aurora-style versioning in rpm-ostree status, and our own pipeline signed with cosign. We inherit the Bazzite gaming stack and extend it with the cultural identity and ecosystem that was missing.',
       },
       {
         question: 'Which variant should I install?',
@@ -112,7 +112,7 @@ const en: Translations = {
       {
         question: 'When will downloadable ISOs be available?',
         answer:
-          'As soon as the first :stable release is cut. The pipeline is already in place (build container → bootc-image-builder → archive.org); what remains is the manual promotion from unstable → testing → stable. The variant download buttons activate automatically when that release exists.',
+          'They already are. Each promotion from :testing to :stable produces a GitHub Release plus a permanent archive.org item. The download buttons in the variants section link to the latest published ISO per variant. For bootc users, rebase is direct: sudo bootc switch ghcr.io/lobinuxsoft/<variant>:stable.',
       },
       {
         question: 'Where will stable releases live?',
