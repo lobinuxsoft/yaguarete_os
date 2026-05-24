@@ -150,6 +150,17 @@ sed -i 's|^restore-bazzite-breeze-gtk-theme:|_restore-bazzite-breeze-gtk-theme:|
 sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION="":|' \
     /usr/share/ublue-os/just/91-bazzite-decky.just
 
+### Upstream Bazzite bug fix: the `get-framegen` recipe hardcodes
+# FILENAME="Decky.Framegen.zip" (with a dot) but the asset at
+# xXJSONDeruloXx/Decky-Framegen actually ships as "Decky-Framegen.zip"
+# (with a hyphen) since v0.15.5. The recipe's 404 fallback also points at
+# the wrong filename, so install fails with "cannot find zipfile directory"
+# while `exit 0` lies to the caller. Patch in-place; if upstream ever
+# renames, this sed becomes a no-op (no error) and we drop it. Tracked in
+# docs/qa/upstream-issues.md.
+sed -i 's|FILENAME="Decky\.Framegen\.zip"|FILENAME="Decky-Framegen.zip"|' \
+    /usr/share/ublue-os/just/91-bazzite-decky.just
+
 ### Recipes: register every YaguareteOS-shipped recipe file in the master
 # justfile. /usr/share/ublue-os/justfile uses explicit `import` lines per
 # file; any recipe dropped under /usr/share/ublue-os/just/ that the master
