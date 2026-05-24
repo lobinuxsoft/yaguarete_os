@@ -430,21 +430,10 @@ screens:
         options:
           - id: "on"
             label: "Show Password Asterisks"
-            script: "ujust password-feedback on"
+            script: "ujust toggle-password-feedback on"
           - id: "off"
             label: "Hide Password Asterisks"
-            script: "ujust password-feedback off"
-      - id: "bazzite-cli"
-        title: "YaguareteOS CLI"
-        description: "Enable a Bluefin-style CLI experience."
-        default: false
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && ujust yaguarete-cli enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable"
-            script: 'ujust yaguarete-cli disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "ujust toggle-password-feedback off"
       - id: "hide-grub"
         title: "GRUB Menu Visibility"
         description: "Choose when the GRUB menu appears at boot."
