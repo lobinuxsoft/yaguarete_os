@@ -324,3 +324,4 @@ Append one row per session — what was audited, what changed.
 | 2026-05-24 | VII | yafti.yml normalization | 20 items (Tab 2/3/6/7) ganaron `install/update/uninstall` consistente + status_script. Cobertura status_script 28/80 → 48/80 | #210 |
 | 2026-05-24 | VII | Brew tab cleanup | dropped Antigravity (duplicado) + LM Studio | #209 |
 | 2026-05-24 | VII | OneXFly residue cleanup | 6 plugin orphans, 2 Antigravity/Eden backups, /tmp QA files, hrtf-sofa, input group restored | — |
+| 2026-05-24 | VIII | LACT integration + README/landing refresh + backlog cleanup | 2 PRs merged, 5 issues closed | #217, #218 |
