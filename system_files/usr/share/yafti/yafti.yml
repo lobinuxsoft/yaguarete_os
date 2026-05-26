@@ -231,6 +231,21 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: 'flatpak uninstall --user -y --noninteractive io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "rssguard"
+        title: "RSS Guard (feed reader)"
+        description: "Qt6 RSS/Atom/JSON Feed reader with native KDE integration. Supports sync protocols (TT-RSS, Nextcloud News, Inoreader). Desktop notifications, categories, filtering rules. GPL, no telemetry, no cloud lock-in. Recomendado para trackear releases upstream (Bazzite, Fedora, etc.) sin GitHub Watch público."
+        default: false
+        status_script: 'flatpak info --user io.github.martinrotter.rssguard >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub io.github.martinrotter.rssguard; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y io.github.martinrotter.rssguard; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive io.github.martinrotter.rssguard; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "Yaguareté Apps"
     description: "Custom installers maintained by YaguareteOS (gaming and dev tools)"
     actions:
