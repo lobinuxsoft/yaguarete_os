@@ -1,0 +1,57 @@
+#!/usr/bin/bash
+#
+# YaguareteOS autologin patcher. Runs Before=display-manager.service
+# every boot and rewrites the User= line in /etc/sddm.conf.d/steamos.conf
+# to whatever account UID 1000 resolves to (the primary user created at
+# install time). The base bazzite-deck ships that file with User=
+# commented out, so without this hook the Steam Gaming Mode autologin
+# never fires for any username other than "deck".
+#
+# Cloned from ublue-os/bazzite/system_files/deck/shared/usr/libexec/
+# bazzite-autologin (rev ~2026-05). Logic is upstream-identical except
+# for the bail-out guard at the top: our system_files/ overlay applies
+# to every variant (desktop, nvidia, nvidia-open, deck), so the script
+# has to no-op on variants that do not include the steamos sddm drop-in.
+
+set -euo pipefail
+
+SDDM_CONF='/etc/sddm.conf.d/steamos.conf'
+# Bail gracefully on variants that do not ship the steamos sddm drop-in
+# (desktop, nvidia, nvidia-open). Only the deck variant inherits this
+# file from its bazzite-deck base.
+[[ -f ${SDDM_CONF} ]] || exit 0
+
+IMAGE_INFO="/usr/share/ublue-os/image-info.json"
+BASE_IMAGE_NAME=$(jq -r '."base-image-name"' < "$IMAGE_INFO")
+
+USER=$(id -nu 1000)
+HOME=$(getent passwd "$USER" | cut -d: -f6)
+
+AUTOLOGIN_CONF='/etc/sddm.conf.d/zz-steamos-autologin.conf'
+DESKTOP_AUTOLOGIN='/etc/yaguarete/desktop_autologin'
+
+# Avoid autologin conflict with stale drop-ins left by previous runs.
+if [[ -f ${AUTOLOGIN_CONF} ]]; then
+  rm -f "${AUTOLOGIN_CONF}"
+fi
+
+# Configure autologin session. Game mode by default; fall back to the
+# desktop session when /etc/yaguarete/desktop_autologin exists (set by
+# the user via ujust or manually to opt out of game mode).
+#
+# Session filename note: bazzite-deck:unstable ships the package
+# "gamescope-session-steam" (file: gamescope-session-steam.desktop). Older
+# bazzite-deck:stable shipped "gamescope-session-ogui-steam" — bazzite
+# upstream still uses that string in their autologin script for their own
+# build. We diverge here because validation on real HW (OneXFly F1 Pro)
+# showed SDDM logging "Unable to find autologin session entry
+# gamescope-session-ogui-steam.desktop" → autologin failed → password
+# prompt instead of dropping straight to Game Mode. See #164.
+if [[ ! -f ${DESKTOP_AUTOLOGIN} ]]; then
+  sed -i 's/.*Session=.*/Session=gamescope-session-steam.desktop/g' "${SDDM_CONF}"
+elif [[ ${BASE_IMAGE_NAME} =~ "kinoite" ]]; then
+  sed -i 's/.*Session=.*/Session=plasma.desktop/g' "${SDDM_CONF}"
+elif [[ ${BASE_IMAGE_NAME} =~ "silverblue" ]]; then
+  sed -i 's/.*Session=.*/Session=gnome-wayland.desktop/g' "${SDDM_CONF}"
+fi
+sed -i 's/.*User=.*/User='"${USER}"'/g' "${SDDM_CONF}"

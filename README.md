@@ -14,7 +14,22 @@ YaguareteOS combines:
 
 ## Status
 
-Early scaffolding. Project pivoted from Archiso to Universal Blue / bootc on 2026-05-06.
+Production. Four image variants live on `ghcr.io/lobinuxsoft/yaguarete_os{,-deck,-nvidia,-nvidia-open}` with automated stable promotion from `unstable → testing → stable`. Weekly cadence. Pipeline includes signed container builds (cosign), ISO/qcow2 generation via `bootc-image-builder`, and permanent archival of every `:stable` release to archive.org.
+
+## What's in the box
+
+Beyond the Bazzite-inherited gaming stack, YaguareteOS ships:
+
+- **Portal yafti** — first-boot welcome wizard (run-once gated) plus an Apps page with install/update/uninstall for every component below. ~80 items across 8 tabs, all normalised to `install/update/uninstall` with status badges where the underlying recipe supports it.
+- **Yaguareté Apps suite** — custom installers for [Yryvu](https://github.com/lobinuxsoft/yryvu) (Tauri 2 Git client), [Tatu](https://github.com/lobinuxsoft/tatu) (Steam backlog tracker), [Eden](https://eden-emu.dev) (Switch emulator with firmware + prod.keys automation + EmuDeck SRM integration), [Antigravity IDE](https://antigravity.google/) (Google Gemini, APT repo with SHA256 verify), and Antigravity CLI.
+- **`ujust yaguarete-fsr4`** — auto-detect GPU (RDNA 3 / RDNA 4) and wire FSR4 upgrade with the correct Proton fork. Useful upgrade path for OneXFly / RDNA 3 handhelds.
+- **Aurora-style image versioning** — `rpm-ostree status` reports a human-readable `<fedora>.<YYYYMMDD>` so users can correlate updates with the release calendar.
+- **LACT integration** — manual AMDGPU control (fan curve, OC/UV, live metrics) via Flathub, one-click from the Portal.
+- **Multi-device target** — desktop AMD (RX 9070 XT class), handhelds (Steam Deck, OneXFly, ROG Ally), NVIDIA proprietary and open kernel module variants — single source tree, one Containerfile, matrix CI across the four.
+
+## Roadmap
+
+Tracked via GitHub Issues. Open items: see [milestones](https://github.com/lobinuxsoft/yaguarete_os/milestones) and the [`next-session` label](https://github.com/lobinuxsoft/yaguarete_os/issues?q=is%3Aissue+is%3Aopen+label%3Anext-session) for what is queued next. Sesión V (2026-05-23) brainstorm settled the post-pivot positioning on handheld-first multi-device with the Yaguareté apps ecosystem and Argentine cultural identity at the surface.
 
 ## Lineage and upstream attribution
 
@@ -101,7 +116,7 @@ Justfile                  task runner (build, test, run-vm, clean, etc.)
 
 If you already run a `bootc`-based system (Bazzite, Bluefin, Aurora, or any Fedora Atomic image), you can rebase to YaguareteOS without reinstalling.
 
-> **Phase 0 caveat.** The image today is functionally Bazzite with our pipeline, signing key and registry. Argentine branding (logo, Plymouth, theme, locale defaults) lands in Phase 1. If you rebase now, expect a Bazzite-looking desktop until those issues close.
+> **Branding state.** Argentine branding (Plymouth boot splash, Guaraní wallpapers, locale defaults, motd) is shipped today. Visual polish (custom Plasma theme, refined press kit assets) is still in progress under [#20](https://github.com/lobinuxsoft/yaguarete_os/issues/20). Expect a Bazzite-derived but YaguareteOS-branded desktop.
 
 ### Prerequisites
 
@@ -185,6 +200,43 @@ sudo systemctl reboot
 This swaps the boot order back to your previous image (e.g. Bazzite). The YaguareteOS deployment is preserved on disk and can be re-promoted with `bootc rollback` again.
 
 To pin yourself permanently back to the source image, run `bootc switch` against its registry URL (e.g. `ghcr.io/ublue-os/bazzite:stable`) and reboot.
+
+### Lost YaguareteOS after an accidental switch?
+
+If you accidentally ran `sudo bootc switch` to a non-YaguareteOS ref (for example you typed `ghcr.io/ublue-os/bazzite-deck:stable` while testing) and want to come back without reinstalling from ISO, run:
+
+```bash
+ujust yaguarete-rescue
+```
+
+The command detects your hardware (handheld → deck, NVIDIA GPU → nvidia, otherwise base), shows you the target image, asks for confirmation, then stages the switch. Reboot to apply. Optional argument selects the ref (`stable` by default):
+
+```bash
+ujust yaguarete-rescue testing    # pre-release
+ujust yaguarete-rescue unstable   # rolling
+```
+
+If you're already on YaguareteOS, the command is a no-op and points you at `sudo bootc upgrade` instead.
+
+## Automatic updates
+
+YaguareteOS enables `uupd.timer` (Universal Blue updater) by default. Once a day at 04:00 the timer runs hardware pre-flight checks (battery, network, memory, CPU load) and, if they pass, pulls the latest image of your current ref (`:stable`, `:testing` or `:unstable`) and stages it. The new deployment is applied on **your next reboot** — there is no forced reboot. If the system is off or suspended at 04:00, the timer fires on resume (`Persistent=true`).
+
+The upstream `bootc-fetch-apply-updates.timer` is masked on purpose: its service runs `bootc upgrade --apply` which reboots the moment a new image is staged, which on `:unstable` (frequent CI builds) caused unexpected reboots every 1-3 h on handheld hardware.
+
+To opt out of automatic updates:
+
+```bash
+sudo systemctl disable --now uupd.timer
+```
+
+To re-enable later:
+
+```bash
+sudo systemctl enable --now uupd.timer
+```
+
+You can still pull on demand with `sudo bootc upgrade` or `uupd` regardless of the timer state.
 
 ## Verifying image signatures
 

@@ -1,4 +1,15 @@
 title: Portal YaguareteOS
+# Run-once gating. yafti writes a sha256 of this config to
+# ~/.config/yafti/last-run when the user reaches the final screen
+# (save_state: last-screen) and silently skips on subsequent launches
+# when mode = run-once. The XDG autostart entry shipped under
+# /etc/xdg/autostart/yaguarete-firstboot.desktop relies on this guard;
+# manual launches via the Apps menu use yafti_gtk.py which ignores
+# the guard on purpose (user explicitly asked to open the portal).
+properties:
+  mode: run-once
+  save_state: last-screen
+  path: ~/.config/yafti/last-run
 screens:
   - title: "App Install"
     description: "Core system components and utilities"
@@ -18,30 +29,6 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: "ujust setup-decky uninstall"
-      - id: "decky-bazzite-buddy"
-        title: "Decky YaguareteOS Buddy"
-        description: "A Decky plugin that lets you see system changelogs in Game Mode."
-        default: false
-        status_script: "ujust get-decky-yaguarete-buddy status"
-        options:
-          - id: "install"
-            label: "Install"
-            script: "ujust get-decky-yaguarete-buddy install"
-          - id: "uninstall"
-            label: "Uninstall"
-            script: "ujust get-decky-yaguarete-buddy uninstall"
-      - id: "decky-framegen"
-        title: "Decky Framegen"
-        description: "A Decky plugin that sets up OptiScaler for any Steam game."
-        default: false
-        status_script: "ujust get-framegen status"
-        options:
-          - id: "install"
-            label: "Install"
-            script: "ujust get-framegen install"
-          - id: "uninstall"
-            label: "Uninstall"
-            script: "ujust get-framegen uninstall"
       - id: "decky-lossless-scaling"
         title: "Decky Lossless Scaling"
         description: "A Decky plugin for lossless scaling compatibility in Linux"
@@ -58,7 +45,6 @@ screens:
         title: "Lossless Scaling Vulkan Layer"
         description: "Install the lsfg-vk Vulkan layer for Lossless Scaling compatibility in Linux."
         default: false
-        status_script: "ujust get-lsfg status"
         options:
           - id: "install"
             label: "Install"
@@ -70,7 +56,6 @@ screens:
         title: "Boxtron"
         description: "Installs Boxtron on a Fedora distrobox and exports it."
         default: false
-        status_script: "ujust install-boxtron status"
         options:
           - id: "install"
             label: "Install"
@@ -114,18 +99,6 @@ screens:
           - id: "portal"
             label: "Open Portal"
             script: "ujust setup-sunshine portal"
-      - id: "cockpit"
-        title: "Cockpit"
-        description: "Enable or disable the Cockpit web interface for system management."
-        default: false
-        status_script: "ujust cockpit status"
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: "ujust cockpit enable"
-          - id: "disable"
-            label: "Disable"
-            script: "ujust cockpit disable"
       - id: "waydroid"
         title: "Waydroid"
         description: "Android app compatibility layer for Linux"
@@ -150,7 +123,6 @@ screens:
         title: "CoolerControl"
         description: "View sensors and create fan and pump profiles from available temperature sensors."
         default: false
-        status_script: "ujust install-coolercontrol status"
         options:
           - id: "install"
             label: "Install"
@@ -162,7 +134,6 @@ screens:
         title: "DisplayLink"
         description: "Install DisplayLink support for laptop docks and USB display adapters."
         default: false
-        status_script: "ujust install-displaylink status"
         options:
           - id: "install"
             label: "Install"
@@ -174,7 +145,6 @@ screens:
         title: "OpenRazer"
         description: "Install OpenRazer support for Razer gaming hardware."
         default: false
-        status_script: "ujust install-openrazer status"
         options:
           - id: "install-razer-genie"
             label: "Install with Razer Genie"
@@ -192,31 +162,30 @@ screens:
         title: "OpenRGB"
         description: "Open source RGB lighting control that doesn't depend on manufacturer software"
         default: false
-        status_script: "ujust openrgb status"
+        status_script: "ujust install-openrgb status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust openrgb install"
+            script: "ujust install-openrgb install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust openrgb uninstall"
+            script: "ujust install-openrgb uninstall"
       - id: "resilio-sync"
         title: "Resilio Sync"
         description: "A file synchronization utility powered by BitTorrent"
         default: false
-        status_script: "ujust resilio-sync status"
+        status_script: "ujust install-resilio-sync status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust resilio-sync install"
+            script: "ujust install-resilio-sync install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust resilio-sync uninstall"
+            script: "ujust install-resilio-sync uninstall"
       - id: "davinci-resolve"
         title: "DaVinci Resolve"
         description: "Install or remove DaVinci Resolve through davincibox."
         default: false
-        status_script: "ujust install-davinci status"
         options:
           - id: "install"
             label: "Install/Upgrade"
@@ -228,14 +197,13 @@ screens:
         title: "Tailscale"
         description: "Enable or disable the Tailscale service for mesh VPN support."
         default: false
-        status_script: "ujust tailscale status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust tailscale enable"
+            script: "ujust enable-tailscale"
           - id: "disable"
             label: "Disable"
-            script: "ujust tailscale disable"
+            script: "sudo systemctl disable --now tailscaled.service"
       - id: "steamcmd"
         title: "SteamCMD"
         description: "Command-line version of the Steam client for dedicated servers and game downloads"
@@ -248,6 +216,177 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: "ujust get-steamcmd uninstall"
+      - id: "lact"
+        title: "LACT (Linux AMDGPU Controller)"
+        description: "Manual control panel for AMD GPUs: fan curve, overclock/undervolt, power profiles, real-time metrics. Cross-variant (desktop + handheld). AMD only — no-op on NVIDIA variants."
+        default: false
+        status_script: 'flatpak info --user io.github.ilya_zlobintsev.LACT >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+  - title: "Yaguareté Apps"
+    description: "Custom installers maintained by YaguareteOS (gaming and dev tools)"
+    actions:
+      - id: "yryvu"
+        title: "Yryvu (Git client)"
+        description: "Install Yryvu, a Tauri 2 + SolidJS Git GUI by lobinuxsoft. AppImage from GitHub Releases, SHA256 verified, registered as a KDE launcher."
+        default: false
+        status_script: '[[ -f "$HOME/Applications/Yryvu.AppImage" ]] && echo "install" || echo "remove"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "tatu"
+        title: "Tatu (Steam backlog tracker)"
+        description: "Install Tatu, the Steam backlog tracker by lobinuxsoft (Tauri 2 frontend). AppImage from GitHub Releases, SHA256 verified; the legacy Game Progress Tracker name is rewritten to Tatu in the KDE launcher. The Aurora-style Win32 cheats bridge is a separate Steam compat tool — see lobinuxsoft/tatu README."
+        default: false
+        status_script: '[[ -f "$HOME/Applications/Tatu.AppImage" ]] && echo "install" || echo "remove"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "eden"
+        title: "Eden (Switch Emulator)"
+        description: "Install Eden Nintendo Switch emulator. Optionally downloads firmware 22.x (THZoria) and prod.keys v20.3.0 (ProdKeys.net) for game compatibility. Auto-registers a Steam ROM Manager parser if EmuDeck is detected."
+        default: false
+        status_script: '[[ -f "$HOME/Applications/Eden.AppImage" ]] && echo "install" || echo "remove"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "antigravity-ide"
+        title: "Antigravity IDE (Google — Gemini)"
+        description: "Install Google's Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification. Not to be confused with YaguareteOS' built-in Antigravity assistant."
+        default: false
+        status_script: '[[ -f /opt/antigravity/VERSION ]] && echo "install" || echo "remove"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "antigravity-cli"
+        title: "Antigravity CLI (Google — Gemini)"
+        description: "Install Google's Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern). Not to be confused with YaguareteOS' built-in Antigravity assistant."
+        default: false
+        status_script: 'command -v agy >/dev/null 2>&1 && echo "install" || echo "remove"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust install-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust update-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "remove"
+            label: "Remove"
+            script: 'ujust remove-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+  - title: "Creative Apps"
+    description: "Multimedia creation suite (Flathub installs, per-user, no reboot)"
+    actions:
+      - id: "vlc"
+        title: "VLC"
+        description: "Multimedia player and converter"
+        default: false
+        status_script: 'flatpak info --user org.videolan.VLC >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "gimp"
+        title: "GIMP"
+        description: "Raster graphics editor"
+        default: false
+        status_script: 'flatpak info --user org.gimp.GIMP >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "inkscape"
+        title: "Inkscape"
+        description: "Vector graphics editor"
+        default: false
+        status_script: 'flatpak info --user org.inkscape.Inkscape >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "obs-studio"
+        title: "OBS Studio"
+        description: "Video recording and live streaming"
+        default: false
+        status_script: 'flatpak info --user com.obsproject.Studio >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "blender"
+        title: "Blender"
+        description: "3D modeling, animation, and rendering"
+        default: false
+        status_script: 'flatpak info --user org.blender.Blender >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "System Fixes"
     description: "System configurations and enhancements"
     actions:
@@ -255,14 +394,14 @@ screens:
         title: "iwd"
         description: "Enable or disable iwd as the Wi-Fi backend instead of wpa_supplicant."
         default: false
-        status_script: "ujust iwd status"
+        status_script: "ujust toggle-iwd status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust iwd enable"
+            script: "ujust toggle-iwd enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust iwd disable"
+            script: "ujust toggle-iwd disable"
       - id: "add-input-group"
         title: "Add input group to current user"
         description: "Adds the input group to your current user. Required by certain controller drivers."
@@ -275,18 +414,6 @@ screens:
           - id: "remove"
             label: "Remove"
             script: "ujust add-user-to-input-group remove"
-      - id: "restore-input-remapper"
-        title: "Input Remapper"
-        description: "Manage Input Remapper and make its launcher visible on non-desktop images."
-        default: false
-        status_script: "ujust restore-input-remapper status"
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: 'ujust restore-input-remapper enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable"
-            script: 'ujust restore-input-remapper disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "password-asterisks"
         title: "Visible Password Asterisks"
         description: "Show or hide password asterisks in sudo prompts."
@@ -294,33 +421,10 @@ screens:
         options:
           - id: "on"
             label: "Show Password Asterisks"
-            script: "ujust password-feedback on"
+            script: "ujust toggle-password-feedback on"
           - id: "off"
             label: "Hide Password Asterisks"
-            script: "ujust password-feedback off"
-      - id: "bazzite-cli"
-        title: "YaguareteOS CLI"
-        description: "Enable a Bluefin-style CLI experience."
-        default: false
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && ujust yaguarete-cli enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable"
-            script: 'ujust yaguarete-cli disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-      - id: "asus"
-        title: "asusctl and ROG Control Center"
-        description: "Install asusctl and ROG Control Center, ASUS ROG hardware managing tools."
-        default: false
-        status_script: "ujust asus status"
-        options:
-          - id: "install"
-            label: "Install"
-            script: 'ujust asus install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "uninstall"
-            label: "Uninstall"
-            script: 'ujust asus uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "ujust toggle-password-feedback off"
       - id: "hide-grub"
         title: "GRUB Menu Visibility"
         description: "Choose when the GRUB menu appears at boot."
@@ -395,45 +499,6 @@ screens:
           - id: "disable"
             label: "Disable"
             script: 'ujust setup-virtual-surround disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-      - id: "bluetooth-headset-mic"
-        title: "Bluetooth Headset Audio Fix"
-        description: "Prevent Bluetooth devices from switching to low-quality headset mode by disabling their mic profile."
-        default: false
-        status_script: "ujust toggle-bt-mic status"
-        options:
-          - id: "enable"
-            label: "Enable Fix"
-            script: 'ujust toggle-bt-mic enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable Fix"
-            script: 'ujust toggle-bt-mic disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-      - id: "intel-i915-sleep-fix"
-        title: "Intel i915 Sleep Fix"
-        description: "Manage the i915.enable_dc power-saving setting for older Intel GPUs with suspend issues."
-        default: false
-        status_script: "ujust toggle-i915-sleep-fix status"
-        options:
-          - id: "auto"
-            label: "Set to Auto (i915.enable_dc=-1)"
-            script: 'ujust toggle-i915-sleep-fix auto; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "disable"
-            label: "Disable Power Saving (i915.enable_dc=0)"
-            script: 'ujust toggle-i915-sleep-fix disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-1"
-            label: "Set to Level 1 (i915.enable_dc=1)"
-            script: 'ujust toggle-i915-sleep-fix level-1; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-2"
-            label: "Set to Level 2 (i915.enable_dc=2)"
-            script: 'ujust toggle-i915-sleep-fix level-2; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-3"
-            label: "Set to Level 3 (i915.enable_dc=3)"
-            script: 'ujust toggle-i915-sleep-fix level-3; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "level-4"
-            label: "Set to Level 4 (i915.enable_dc=4)"
-            script: 'ujust toggle-i915-sleep-fix level-4; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
-          - id: "unset"
-            label: "Unset Parameter"
-            script: 'ujust toggle-i915-sleep-fix unset; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "virtualization"
         title: "Virtualization"
         description: "Install or remove virt-manager and configure host virtualization support."
@@ -449,7 +514,6 @@ screens:
         title: "Save Kernel Panics"
         description: "Enable or disable ramoops so kernel panic details can be recovered after reboot."
         default: false
-        status_script: "ujust toggle-save-panics status"
         options:
           - id: "enable"
             label: "Enable"
@@ -466,7 +530,6 @@ screens:
         title: "Watchdog"
         description: "Enable or disable the hardware watchdog recovery mechanism."
         default: false
-        status_script: "ujust configure-watchdog status"
         options:
           - id: "enable"
             label: "Enable"
@@ -478,7 +541,6 @@ screens:
         title: "Snapshots"
         description: "Enable or disable Snapper snapshots for /var/home."
         default: false
-        status_script: "ujust configure-snapshots status"
         options:
           - id: "enable"
             label: "Enable"
@@ -496,53 +558,53 @@ screens:
         title: "Automounting"
         description: "Enable or disable automounting of labeled BTRFS/EXT4 partitions under /run/media/system."
         default: false
-        status_script: "ujust automounting status"
+        status_script: "ujust enable-automounting status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust automounting enable"
+            script: "ujust enable-automounting enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust automounting disable"
+            script: "ujust enable-automounting disable"
       - id: "steamos-automount"
         title: "SteamOS Automounting"
         description: "Enable or disable SteamOS automounting, useful when NTFS partitions get mounted automatically."
         default: false
-        status_script: "ujust steamos-automount status"
+        status_script: "ujust enable-steamos-automount status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust steamos-automount enable"
+            script: "ujust enable-steamos-automount enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust steamos-automount disable"
+            script: "ujust enable-steamos-automount disable"
       - id: "wake-on-lan"
         title: "Wake-on-LAN"
         description: "Enable Wake-on-LAN functionality to power on your device remotely"
         default: false
-        status_script: "ujust wol status"
+        status_script: "ujust toggle-wol status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust wol enable"
+            script: "ujust toggle-wol enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust wol disable"
+            script: "ujust toggle-wol disable"
           - id: "force-enable"
             label: "Force Enable"
-            script: "ujust wol force-enable"
+            script: "ujust toggle-wol force-enable"
       - id: "cec-sleep-standby"
         title: "CEC Sleep Standby"
         description: "Put TV to standby when system sleeps via HDMI-CEC. Requires a CEC-compatible Device, or Pulse 8 HDMI-CEC adapter."
         default: false
-        status_script: "ujust cec-sleep status"
+        status_script: "ujust toggle-cec-sleep status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust cec-sleep enable"
+            script: "ujust toggle-cec-sleep enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust cec-sleep disable"
+            script: "ujust toggle-cec-sleep disable"
       - id: "steam-icons"
         title: "Clean Steam Shortcuts"
         description: "Automatically removes Steam shortcuts from the desktop on boot, useful for keeping the desktop clean when installing games via game mode."
@@ -562,48 +624,37 @@ screens:
         title: "OpenTabletDriver"
         description: "Open source, cross-platform, user-mode tablet driver"
         default: false
-        status_script: "ujust opentabletdriver status"
+        status_script: "ujust install-opentabletdriver status"
         options:
           - id: "install"
             label: "Install"
-            script: "ujust opentabletdriver install"
+            script: "ujust install-opentabletdriver install"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust opentabletdriver uninstall"
+            script: "ujust install-opentabletdriver uninstall"
       - id: "ssh-service"
         title: "SSH Service"
         description: "Enable SSH remote access service on boot"
         default: false
-        status_script: "ujust ssh status"
+        status_script: "ujust toggle-ssh status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust ssh enable"
+            script: "ujust toggle-ssh enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust ssh disable"
-      - id: "global-fsr4"
-        title: "Global FSR4 Upgrade (RDNA4)"
-        description: "Enable or disable the global Proton FSR4 upgrade on RDNA4 GPUs; upgrades FSR 3.1+ to FSR 4 on Proton 10 or GE 10-25 or later."
+            script: "ujust toggle-ssh disable"
+      - id: "yaguarete-fsr4"
+        title: "Global FSR4 Upgrade (auto-detect GPU)"
+        description: "Enable or disable the Proton FSR4 upgrade. Auto-detects RDNA 3 / 3.5 (FP8 emulation, requires Proton GE / EM) vs RDNA 4 (native, Proton 10+) and applies the matching env flag. Logs every step to 'journalctl --user -t yaguarete-fsr4' and validates the flag file actually landed on disk (Bazzite's recipe silently no-ops when yafti strips HOME from the subprocess env)."
         default: false
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust global-fsr4 enable"
+            script: "ujust yaguarete-fsr4 enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust global-fsr4 disable"
-      - id: "global-fsr4-rdna3"
-        title: "Global FSR4 Upgrade (RDNA3)"
-        description: "Enable or disable the global Proton FSR4 upgrade on RDNA3 GPUs, such as the RX 7900 XTX; upgrades FSR 3.1+ to FSR 4. Only compatible with Proton GE, Proton EM, or similar forks."
-        default: false
-        options:
-          - id: "enable"
-            label: "Enable"
-            script: "ujust global-fsr4-rdna3 enable"
-          - id: "disable"
-            label: "Disable"
-            script: "ujust global-fsr4-rdna3 disable"
+            script: "ujust yaguarete-fsr4 disable"
       - id: "global-dlss"
         title: "Global DLSS Upgrade"
         description: "Enable or disable the global Proton DLSS upgrade, which updates DLSS DLLs. Only compatible with Proton GE, Proton EM, or similar forks."
@@ -619,22 +670,14 @@ screens:
         title: "REISUB"
         description: "Toggle the Magic SysRq key and allow using the REISUB shortcut to force-reboot your computer slightly more safely. Note that it is insecure to have it enabled since you can use it to bypass some stuff"
         default: false
-        status_script: "ujust reisub status"
+        status_script: "ujust toggle-reisub status"
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust reisub enable"
+            script: "ujust toggle-reisub enable"
           - id: "disable"
             label: "Disable"
-            script: "ujust reisub disable"
-  - title: "Game Fixes"
-    description: "Fixes for specific games"
-    actions:
-      - id: "fix-gmod"
-        title: "Garry's Mod Patch Tool"
-        description: "Patch Garry's Mod's 64-bit beta to work properly on Linux."
-        default: false
-        script: "ujust fix-gmod"
+            script: "ujust toggle-reisub disable"
   - title: "Media Apps"
     description: "Entertainment and streaming services"
     actions:
@@ -642,7 +685,17 @@ screens:
         title: "Xbox Cloud Gaming"
         description: "Cloud gaming service"
         default: false
-        script: "ujust get-media-app \"Xbox Cloud Gaming\""
+        status_script: '[[ -f "$HOME/Applications/streaming_scripts/xbox-cloud" ]] && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Xbox Cloud Gaming"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Xbox Cloud Gaming"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'rm -f "$HOME/Applications/streaming_scripts/xbox-cloud"; echo "Xbox Cloud Gaming launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       # - id: "geforce-now"
       #   title: "GeForce Now"
       #   description: "Cloud gaming service"
@@ -650,132 +703,145 @@ screens:
       #   script: "ujust get-media-app \"GeForce Now\""
       - id: "youtube"
         title: "YouTube"
-        description: "Video sharing platform"
+        description: "Video sharing platform (native Flatpak via VacuumTube)"
         default: false
-        script: "ujust get-media-app \"YouTube\""
+        status_script: 'flatpak info rocks.shy.VacuumTube >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "YouTube"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "YouTube"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --system -y --noninteractive rocks.shy.VacuumTube 2>&1 || true; rm -f "$HOME/Applications/streaming_scripts/youtube"; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "spotify"
         title: "Spotify"
         description: "Music streaming service"
         default: false
-        script: "ujust get-media-app \"Spotify\""
+        status_script: '[[ -f "$HOME/Applications/streaming_scripts/spotify" ]] && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Spotify"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Spotify"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'rm -f "$HOME/Applications/streaming_scripts/spotify"; echo "Spotify launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "netflix"
         title: "Netflix"
         description: "Subscription streaming service"
         default: false
-        script: "ujust get-media-app \"Netflix\""
+        status_script: '[[ -f "$HOME/Applications/streaming_scripts/netflix" ]] && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Netflix"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Netflix"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'rm -f "$HOME/Applications/streaming_scripts/netflix"; echo "Netflix launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "plex-htpc"
         title: "Plex HTPC"
-        description: "Media server client"
+        description: "Media server client (native Flatpak)"
         default: false
-        script: "ujust get-media-app \"Plex HTPC\""
+        status_script: 'flatpak info tv.plex.PlexHTPC >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Plex HTPC"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Plex HTPC"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --system -y --noninteractive tv.plex.PlexHTPC 2>&1 || true; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "jellyfin"
         title: "JellyFin"
-        description: "Media server client"
+        description: "Media server client (native Flatpak)"
         default: false
-        script: "ujust get-media-app \"Jellyfin Media Player\""
-      - id: "amazon-luna"
-        title: "Amazon Luna"
-        description: "Cloud gaming service"
+        status_script: 'flatpak info com.github.iwalton3.jellyfin-media-player >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'ujust get-media-app "Jellyfin Media Player"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'ujust get-media-app "Jellyfin Media Player"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --system -y --noninteractive com.github.iwalton3.jellyfin-media-player 2>&1 || true; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+      - id: "stremio"
+        title: "Stremio"
+        description: "Media center with community add-ons (Flathub)"
         default: false
-        script: "ujust get-media-app \"Amazon Luna\""
-      - id: "disney-plus"
-        title: "Disney Plus"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Disney Plus\""
-      - id: "amazon-prime-video"
-        title: "Amazon Prime Video"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Amazon Prime Video\""
-      - id: "apple-tv"
-        title: "Apple TV"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Apple TV\""
-      - id: "curiosity-stream"
-        title: "Curiosity Stream"
-        description: "Documentary streaming service"
-        default: false
-        script: "ujust get-media-app \"Curiosity Stream\""
-      - id: "crunchyroll"
-        title: "Crunchyroll"
-        description: "Anime streaming service"
-        default: false
-        script: "ujust get-media-app \"Crunchyroll\""
-      - id: "hbo-max"
-        title: "HBO Max"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"HBO Max\""
-      - id: "hulu"
-        title: "Hulu"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Hulu\""
-      - id: "paramount-plus"
-        title: "Paramount Plus"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Paramount Plus\""
-      - id: "peacock"
-        title: "Peacock"
-        description: "Subscription streaming service"
-        default: false
-        script: "ujust get-media-app \"Peacock\""
-      - id: "sling-tv"
-        title: "Sling TV"
-        description: "Live TV streaming service"
-        default: false
-        script: "ujust get-media-app \"Sling TV\""
-      - id: "vimeo"
-        title: "Vimeo"
-        description: "Video sharing platform"
-        default: false
-        script: "ujust get-media-app \"Vimeo\""
-      - id: "youtube-music"
-        title: "YouTube Music"
-        description: "Music streaming service"
-        default: false
-        script: "ujust get-media-app \"YouTube Music\""
-      - id: "youtube-tv"
-        title: "YouTube TV"
-        description: "Live TV streaming service"
-        default: false
-        script: "ujust get-media-app \"YouTube TV\""
+        status_script: 'flatpak info --user com.stremio.Stremio >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'flatpak install --user -y flathub com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'flatpak update --user -y com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'flatpak uninstall --user -y --noninteractive com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "browse-addons"
+            label: "Browse add-ons catalogue"
+            script: 'xdg-open https://stremio-addons.net/addons'
   - title: "Brew"
     description: "Brew Taps and Casks"
     actions:
-      - id: "visual-studio-code-linux"
-        title: "Install Visual Studio Code"
-        description: "Installs Visual Studio Code editor"
-        default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask visual-studio-code-linux'
-      - id: "antigravity-linux"
-        title: "Install Antigravity"
-        description: "Installs Antigravity"
-        default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask antigravity-linux'
-      - id: "lm-studio-linux"
-        title: "Install LM Studio"
-        description: "Installs LM Studio"
-        default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask lm-studio-linux'
       - id: "jetbrains-toolbox-linux"
-        title: "Install JetBrains Toolbox"
-        description: "Installs JetBrains Toolbox"
+        title: "JetBrains Toolbox"
+        description: "IDE manager for JetBrains products"
         default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux'
+        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx jetbrains-toolbox-linux && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "vscodium-linux"
-        title: "Install VSCodium"
-        description: "Installs VSCodium editor"
+        title: "VSCodium"
+        description: "Community build of VS Code without telemetry"
         default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask vscodium-linux'
+        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx vscodium-linux && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
       - id: "android-platform-tools"
-        title: "Install Android Platform Tools"
-        description: "Installs Android Platform Tools"
+        title: "Android Platform Tools"
+        description: "adb, fastboot and friends from the Android SDK"
         default: false
-        script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install --cask android-platform-tools'
+        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx android-platform-tools && echo "install" || echo "uninstall"'
+        options:
+          - id: "install"
+            label: "Install"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "update"
+            label: "Update"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+          - id: "uninstall"
+            label: "Uninstall"
+            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
   - title: "Manage PC"
     description: "System updates and configuration"
     actions:

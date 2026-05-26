@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=YaguareteOS install handler
+GenericName=Install YaguareteOS apps from the portal
+Comment=Handles yaguarete:// URLs from the YaguareteOS portal to launch ujust install recipes
+NoDisplay=true
+Exec=/usr/libexec/yaguarete/scheme-handler %u
+Icon=yaguarete_os
+Terminal=false
+Categories=System;
+MimeType=x-scheme-handler/yaguarete;

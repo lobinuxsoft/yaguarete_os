@@ -1,0 +1,40 @@
+
+         ▄▄▄                                                    ████
+        ██▀▀█                                                  ██▀▀██
+       ██   ██    █▌  █▌▄█▄ ▄▄  ▄▄  ▄▄ ▄▄▄    ▄▄▄  ▀██████  ████  ██
+       ██████    ▐█  ▐█▐█ ▐█▐██ ██ ▐██▀ ▀█▄  ██▀▀█▌  ██     ██  ▐██
+       ██   ██   ▐█  ▐█▐█ ▐███▐███▐█████████ ██████  ██     ██  ▐██
+       ██   ██    ▀██▀ ▐█ ▐██ ▀██▀ ▀█▄▄▄██▀  ▀█▄▄▄   ██      ████
+
+    YaguareteOS — Bazzite + dev + gaming + identidad guaraní.
+
+    Quick reference:
+
+      Per-app installers:
+        ujust install-eden / update-eden / remove-eden
+        ujust install-antigravity-ide / update / remove
+        ujust install-antigravity-cli / update / remove
+
+      Bundle installers (Flatpak pickers, user-level, no reboot):
+        ujust yaguarete-install-gaming   # Heroic, Bottles, Lutris, ProtonUp-Qt, Goverlay
+        ujust yaguarete-install-dev      # DBeaver, Bruno, Headlamp, GitHub Desktop, LocalSend
+
+      Recovery:
+        ujust yaguarete-rescue [stable|testing|unstable]
+            # Re-anchor bootc to YaguareteOS after switching distros by mistake.
+
+      Branded passthroughs (delegate to upstream Bazzite/UBlue tooling):
+        ujust yaguarete-cli enable | disable
+        ujust restore-yaguarete-breeze-gtk-theme
+        ujust get-decky-yaguarete-buddy status | install | uninstall
+
+      System maintenance:
+        sudo bootc upgrade              # pull the latest image immediately
+        systemctl status uupd.timer     # daily uupd run, no auto-reboot
+
+      GUI alternative:
+        Open "Portal YaguareteOS" from the application menu
+        for a graphical install / config flow.
+
+    Online: https://lobinuxsoft.github.io/yaguarete_os/
+

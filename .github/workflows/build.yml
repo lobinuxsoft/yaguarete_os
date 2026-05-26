@@ -166,21 +166,39 @@ jobs:
           fi
 
           TAGS=("$VERSION")
+          CHANNEL_POINTER=""
           case "$CHANNEL" in
             unstable)
               TAGS+=("unstable" "unstable-${FEDORA_VERSION}")
+              CHANNEL_POINTER="unstable"
               ;;
             testing)
               TAGS+=("testing" "testing-${FEDORA_VERSION}")
+              CHANNEL_POINTER="testing"
               ;;
           esac
+
+          # Aurora-style display version: <fedora_major>.<YYYYMMDD>, bumped per-channel
+          # when same UTC day produces >1 image. Surfaces in `rpm-ostree status` and
+          # Bazaar via the org.opencontainers.image.version label.
+          BUILD_DATE_YYYYMMDD=$(date -u +%Y%m%d)
+          DISPLAY_VERSION="${FEDORA_VERSION}.${BUILD_DATE_YYYYMMDD}"
+          if [ -n "$CHANNEL_POINTER" ]; then
+            PREV_VERSION=$(skopeo inspect "docker://${REGISTRY_IMAGE}:${CHANNEL_POINTER}" 2>/dev/null \
+              | jq -r '.Labels["org.opencontainers.image.version"] // empty' 2>/dev/null || true)
+            if [ "$PREV_VERSION" = "$DISPLAY_VERSION" ]; then
+              DISPLAY_VERSION="${DISPLAY_VERSION}.1"
+            elif [[ "$PREV_VERSION" =~ ^${DISPLAY_VERSION}\.([0-9]+)$ ]]; then
+              DISPLAY_VERSION="${DISPLAY_VERSION}.$((${BASH_REMATCH[1]} + 1))"
+            fi
+          fi
 
           {
             echo "version=$VERSION"
             echo "channel=$CHANNEL"
             echo "fedora_version=$FEDORA_VERSION"
-            echo "upstream_tag=$UPSTREAM_TAG"
             echo "upstream_digest=$UPSTREAM_DIGEST"
+            echo "display_version=$DISPLAY_VERSION"
             echo "pretty=$PRETTY"
             echo "tags=${TAGS[*]}"
           } >> $GITHUB_OUTPUT
@@ -202,7 +220,7 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.url=https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/tree/${{ github.sha }}
             org.opencontainers.image.vendor=${{ github.repository_owner }}
-            org.opencontainers.image.version=${{ steps.derive.outputs.upstream_tag }}
+            org.opencontainers.image.version=${{ steps.derive.outputs.display_version }}
             dev.yaguarete.variant=${{ env.VARIANT_LABEL }}
             dev.yaguarete.base.image=${{ env.BASE_IMAGE }}
             dev.yaguarete.base.digest=${{ steps.derive.outputs.upstream_digest }}
@@ -276,18 +294,3 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           COSIGN_PASSWORD: ""
 
-  # Chain build-iso after every variant in the matrix successfully pushes.
-  # This eliminates the race where build-iso pulled `:unstable` while
-  # build.yml was still pushing it. Runs only for branch pushes (PRs and
-  # cron-skipped variants do not produce ISOs).
-  call_iso:
-    name: Trigger ISO build
-    needs: [build_push]
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
-    uses: ./.github/workflows/build-iso.yml
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-      attestations: write
-    secrets: inherit

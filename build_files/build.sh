@@ -15,12 +15,12 @@ dnf5 install -y tmux
 # Default pre-installed apps for all 4 variants. Maintained list — decisions
 # tracked in #93. Skip packages already shipped by upstream Bazzite
 # (mangohud, goverlay, lutris, ffmpeg-free) to avoid duplicate layers.
+#
+# Creative apps (vlc / gimp / inkscape / obs-studio / blender) moved to
+# Yaguareté Portal as Flathub installs in #154 — they pushed the deck
+# container past the 75 GB btrfs-zstd:2 runner budget and crashed the
+# titanoboa COMMIT step. Users opt in via Portal.
 dnf5 install -y \
-    vlc \
-    gimp \
-    inkscape \
-    obs-studio \
-    blender \
     git-lfs
 
 # Typography stack — decisions tracked in #12.
@@ -50,6 +50,28 @@ dnf5 install -y \
 #### Example for enabling a System Unit File
 
 systemctl enable podman.socket
+
+### Auto-upgrade: daily uupd (Universal Blue updater) at 04:00 with HW
+# pre-flight checks (battery / network / memory / CPU) and NO forced reboot.
+# Upgrade is staged for the next reboot the user picks. Upstream Bazzite
+# pattern — uupd is already in the inherited image, we only flip the timer.
+#
+# bootc-fetch-apply-updates.timer is MASKED on purpose: its service runs
+# `bootc upgrade --apply --quiet`, and `--apply` reboots whenever a new
+# image is staged. With the timer's OnBootSec=1h + OnUnitInactiveSec=8h +
+# RandomizedDelaySec=2h schedule, CI builds on :unstable produced reboots
+# every 1-3h on handheld HW (regression of #144).
+#
+# Manual on-demand pull stays available with `sudo bootc upgrade` or `uupd`.
+systemctl mask bootc-fetch-apply-updates.timer
+systemctl enable uupd.timer
+
+### Game Mode autologin: patches /etc/sddm.conf.d/steamos.conf at boot
+# to wire User= to whatever username UID 1000 resolves to. Replicates
+# bazzite-deck's bazzite-autologin.service pattern verbatim. The service
+# is gated by ConditionPathExists on the steamos sddm drop-in, so it
+# silently no-ops on desktop/nvidia variants. See #151.
+systemctl enable yaguarete-autologin.service
 
 ### Localization: install Spanish langpack
 # Covers all es_* locales (es_AR, es_ES, es_MX, ...). LANG is set via
@@ -135,6 +157,32 @@ sed -i 's|^restore-bazzite-breeze-gtk-theme:|_restore-bazzite-breeze-gtk-theme:|
     /usr/share/ublue-os/just/90-bazzite-de.just
 sed -i 's|^get-decky-bazzite-buddy ACTION="":|_get-decky-bazzite-buddy ACTION="":|' \
     /usr/share/ublue-os/just/91-bazzite-decky.just
+
+### Upstream Bazzite bug fix: the `get-framegen` recipe hardcodes
+# FILENAME="Decky.Framegen.zip" (with a dot) but the asset at
+# xXJSONDeruloXx/Decky-Framegen actually ships as "Decky-Framegen.zip"
+# (with a hyphen) since v0.15.5. The recipe's 404 fallback also points at
+# the wrong filename, so install fails with "cannot find zipfile directory"
+# while `exit 0` lies to the caller. Patch in-place; if upstream ever
+# renames, this sed becomes a no-op (no error) and we drop it. Tracked in
+# docs/qa/upstream-issues.md.
+sed -i 's|FILENAME="Decky\.Framegen\.zip"|FILENAME="Decky-Framegen.zip"|' \
+    /usr/share/ublue-os/just/91-bazzite-decky.just
+
+### Recipes: register every YaguareteOS-shipped recipe file in the master
+# justfile. /usr/share/ublue-os/justfile uses explicit `import` lines per
+# file; any recipe dropped under /usr/share/ublue-os/just/ that the master
+# does not import is invisible to `ujust` (and therefore to yafti's Portal,
+# the yaguarete-rescue command, and the renamed Bazzite aliases). Glob all
+# files matching the `*yaguarete*.just` pattern so future recipes register
+# automatically without touching this script.
+echo "" >> /usr/share/ublue-os/justfile
+echo "# YaguareteOS-maintained recipes (install-eden, yaguarete-rescue, yaguarete-cli, etc.)" \
+    >> /usr/share/ublue-os/justfile
+for just_file in /usr/share/ublue-os/just/*yaguarete*.just; do
+    [ -e "$just_file" ] || continue
+    echo "import \"$just_file\"" >> /usr/share/ublue-os/justfile
+done
 
 ### Branding: yafti_gtk.py hardcodes APP_TITLE = 'Bazzite Portal' at line 18.
 # It is used both for the window title (Gtk.Window) and the
@@ -232,3 +280,34 @@ rm -f "$TMP_IMAGE_INFO"
 # and added launchers (Instalar YaguareteOS, etc.) resolve correctly
 # in KDE / GTK lookups.
 gtk-update-icon-cache -f -t /usr/share/icons/hicolor
+
+### HHD-UI branding: replace bazzite logo + violet palette inside the
+# hhd-ui Electron AppImage with yaguareté assets, without forking
+# hhd-dev/hhd-ui. See patch-hhd-ui.sh header for the full rationale.
+# Non-fatal — exits 0 if /usr/bin/hhd-ui is absent in this variant.
+/ctx/patch-hhd-ui.sh
+
+### Plymouth: set yaguarete as the default theme and regenerate the
+# initramfs so it reaches early boot.
+#
+# `plymouth-set-default-theme` creates the
+# /usr/share/plymouth/themes/default.plymouth symlink that points to the
+# requested theme. Without that symlink Plymouth in early boot falls back
+# to whichever theme it finds alphabetically (spinner, in our case — and
+# spinner's watermark.png is bazzite-branded by the bazzite-deck base, so
+# the user sees a bazzite logo instead of the yaguarete jaguar). Validated
+# on OneXFly F1 Pro real install — see #164. Plymouth in SHUTDOWN mode
+# loads `spinner` regardless of plymouthd.conf default (root cause not
+# fully diagnosed — possibly attach-to-session quirk). To cover that path
+# we ALSO ship our own spinner/watermark.png override (see system_files/
+# usr/share/plymouth/themes/spinner/watermark.png). See #170.
+#
+# `system_files/etc/plymouth/plymouthd.conf` already declares
+# `Theme=yaguarete`, but Plymouth checks the default.plymouth symlink
+# regardless, so both pieces need to be in place.
+#
+# Then build-initramfs regenerates the initramfs the same way bazzite does
+# at Containerfile:755 → build_files/build-initramfs. See #150 for that
+# half of the fix.
+plymouth-set-default-theme yaguarete
+/ctx/build-initramfs
