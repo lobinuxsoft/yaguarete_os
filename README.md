@@ -1,7 +1,7 @@
 # YaguareteOS
 
 > 📖 **Landing pública:** **<https://lobinuxsoft.github.io/yaguarete_os/>**
-> Las ISOs de cada release `:stable` se publican como GitHub Release + items dated permanentes en archive.org bajo creator `lobinuxsoft` ([listado](https://archive.org/details/@matias_galarza_lobinuxsoft_)). Identifier pattern: `<image>-stable-<fedora>.<YYYYMMDD>`. Para usuarios bootc, `bootc switch ghcr.io/lobinuxsoft/<image>:stable` (o `:unstable` para rolling).
+> Las ISOs de cada release `:stable` se publican como GitHub Release + se acumulan en items permanentes per-variant en archive.org bajo creator `lobinuxsoft` ([listado](https://archive.org/details/@matias_galarza_lobinuxsoft_)). Items: `yaguarete-os-{base,nvidia,nvidia-open,deck}`; cada nuevo stable agrega un file dated dentro del item (`yaguarete_os[-VARIANT]-testing-<F>.<YYYYMMDD>-live-amd64.iso`). Para usuarios bootc, `bootc switch ghcr.io/lobinuxsoft/<image>:stable` (o `:unstable` para rolling).
 
 A bootable, image-based Linux distribution built on top of [Bazzite](https://bazzite.gg/) using the [Universal Blue](https://universal-blue.org/) toolchain.
 
