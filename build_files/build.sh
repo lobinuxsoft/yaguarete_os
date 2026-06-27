@@ -302,7 +302,11 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # and fails. Installs to /usr site-packages so HHD discovers it by entry point
 # with no drop-in or PYTHONPATH.
 if python3 -c "import hhd" 2>/dev/null; then
-    python3 -m pip install --no-deps --break-system-packages /ctx/hhd-vram
+    # /ctx is a read-only bind mount; setuptools writes .egg-info in-tree
+    # while building, so copy the source to writable tmpfs (/tmp) first.
+    cp -r /ctx/hhd-vram /tmp/hhd-vram-src
+    python3 -m pip install --no-deps --break-system-packages /tmp/hhd-vram-src
+    rm -rf /tmp/hhd-vram-src
 fi
 
 ### Plymouth: set yaguarete as the default theme and regenerate the
