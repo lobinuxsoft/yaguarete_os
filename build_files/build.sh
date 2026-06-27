@@ -305,7 +305,10 @@ if python3 -c "import hhd" 2>/dev/null; then
     # /ctx is a read-only bind mount; setuptools writes .egg-info in-tree
     # while building, so copy the source to writable tmpfs (/tmp) first.
     cp -r /ctx/hhd-vram /tmp/hhd-vram-src
-    python3 -m pip install --no-deps --break-system-packages /tmp/hhd-vram-src
+    # --prefix=/usr so pip lands in /usr/lib/pythonX.Y/site-packages (where HHD
+    # discovers plugins, next to adjustor) instead of Fedora pip's default
+    # /usr/local, which does not exist in the image and is off HHD's path.
+    python3 -m pip install --no-deps --break-system-packages --prefix=/usr /tmp/hhd-vram-src
     rm -rf /tmp/hhd-vram-src
 fi
 
