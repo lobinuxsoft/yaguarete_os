@@ -1,0 +1,44 @@
+type: container
+tags: [vram]
+title: VRAM / GTT Allocation
+hint: >-
+  Reserve a share of system RAM as graphics memory (GTT) for the GPU. Useful for
+  large textures and on-device LLM inference on unified-memory APUs. Takes effect
+  after a reboot.
+
+children:
+  info:
+    type: display
+    tags: [slim]
+    title: Current
+
+  percent:
+    type: int
+    title: GTT Share of RAM
+    hint: >-
+      Percentage of system RAM the GPU may map as graphics memory. An OS floor is
+      always reserved to prevent out-of-memory. Requires a reboot.
+    min: 25
+    max: 90
+    smin: 25
+    smax: 75
+    step: 5
+    unit: "%"
+    default: 50
+
+  preview:
+    type: display
+    tags: [slim, bold]
+    title: Will allocate
+
+  apply:
+    type: action
+    title: Apply and Reboot
+    tags: [verify]
+    hint: >-
+      Write the kernel argument and reboot now to apply. Are you sure?
+
+  status:
+    type: display
+    tags: [slim]
+    title: Status
