@@ -287,6 +287,31 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # Non-fatal — exits 0 if /usr/bin/hhd-ui is absent in this variant.
 /ctx/patch-hhd-ui.sh
 
+### HHD plugin: hhd-vram — GTT (graphics memory) allocation slider for AMD APUs.
+# Adds a slider to the HHD overlay that maps a chosen % of system RAM as GPU
+# graphics memory (GTT) via the ttm.pages_limit kernel argument, applied with
+# rpm-ostree kargs + reboot. On unified-memory APUs GTT shares the same DDR as
+# the BIOS UMA carveout at full bandwidth, so this is the Linux-native
+# equivalent of OneXConsole's VRAM tuning on Windows — no BIOS trip required.
+#
+# Source is vendored under build_files/hhd-vram/ (self-contained with its own
+# pyproject; extract to a standalone repo later if it ever ships to the wider
+# handheld community). Gated on Handheld Daemon being present so it only lands
+# on the deck variant and no-ops on desktop/nvidia. --no-deps because hhd is
+# already in the deck base; without it pip rebuilds pycairo (needs cairo/cmake)
+# and fails. Installs to /usr site-packages so HHD discovers it by entry point
+# with no drop-in or PYTHONPATH.
+if python3 -c "import hhd" 2>/dev/null; then
+    # /ctx is a read-only bind mount; setuptools writes .egg-info in-tree
+    # while building, so copy the source to writable tmpfs (/tmp) first.
+    cp -r /ctx/hhd-vram /tmp/hhd-vram-src
+    # --prefix=/usr so pip lands in /usr/lib/pythonX.Y/site-packages (where HHD
+    # discovers plugins, next to adjustor) instead of Fedora pip's default
+    # /usr/local, which does not exist in the image and is off HHD's path.
+    python3 -m pip install --no-deps --break-system-packages --prefix=/usr /tmp/hhd-vram-src
+    rm -rf /tmp/hhd-vram-src
+fi
+
 ### Plymouth: set yaguarete as the default theme and regenerate the
 # initramfs so it reaches early boot.
 #
