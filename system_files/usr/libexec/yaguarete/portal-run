@@ -28,9 +28,19 @@ readonly LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/yaguarete"
 readonly LOG_FILE="$LOG_DIR/portal.log"
 readonly LOG_MAX_BYTES=2097152
 
+# --quiet is for yafti's status_script polling: same logging, but no
+# terminal decoration and no pause. stdout is passed through untouched
+# because yafti parses it as a status token — anything we print there
+# would be read as the state of the app.
+quiet=false
+if [[ "${1:-}" == "--quiet" ]]; then
+    quiet=true
+    shift
+fi
+
 command="${1:-}"
 if [[ -z "$command" ]]; then
-    echo "usage: portal-run '<command>'" >&2
+    echo "usage: portal-run [--quiet] '<command>'" >&2
     exit 2
 fi
 
@@ -54,9 +64,24 @@ fi
 {
     echo
     echo "==============================================================="
-    echo "$(date -Is)  ${command}"
+    echo "$(date -Is)  ${quiet:+[status] }${command}"
     echo "==============================================================="
 } >> "$LOG_FILE"
+
+if $quiet; then
+    # stdout goes straight to yafti; only stderr is captured, then
+    # replayed so nothing yafti would have seen is swallowed.
+    errfile=$(mktemp)
+    trap 'rm -f "$errfile"' EXIT
+    bash -lc "$command" 2>"$errfile"
+    status=$?
+    cat "$errfile" >&2
+    {
+        cat "$errfile"
+        echo "--- exit status: ${status}"
+    } >> "$LOG_FILE"
+    exit "$status"
+fi
 
 echo "> ${command}"
 echo
