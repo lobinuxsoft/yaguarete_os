@@ -33,7 +33,7 @@ const en: Translations = {
           'Default variant. Open-source graphics stack, works on most non-NVIDIA hardware.',
         upstream: 'bazzite:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-base/yaguarete_os-testing-44.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-stable-44.20260730/yaguarete_os-stable-44.20260730-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-nvidia',
@@ -42,7 +42,7 @@ const en: Translations = {
           'NVIDIA GPU with the proprietary driver. Recommended for gaming on NVIDIA hardware today.',
         upstream: 'bazzite-nvidia:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-nvidia/yaguarete_os-nvidia-testing-44.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-nvidia-stable-44.20260730/yaguarete_os-nvidia-stable-44.20260730-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-nvidia-open',
@@ -51,7 +51,7 @@ const en: Translations = {
           'NVIDIA GPU with the open kernel module (Turing+). Aimed at dev workstations.',
         upstream: 'bazzite-nvidia-open:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-nvidia-open/yaguarete_os-nvidia-open-testing-44.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-nvidia-open-stable-44.20260730/yaguarete_os-nvidia-open-stable-44.20260730-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-deck',
@@ -60,7 +60,7 @@ const en: Translations = {
           'Boots into game mode. Inherited from Bazzite-deck, still on Fedora 43.',
         upstream: 'bazzite-deck:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-deck/yaguarete_os-deck-testing-43.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-deck-stable-43.20260730/yaguarete_os-deck-stable-43.20260730-live-amd64.iso',
       },
     ],
   },

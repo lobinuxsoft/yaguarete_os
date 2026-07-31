@@ -1,0 +1,114 @@
+#!/usr/bin/bash
+# Run one Portal YaguareteOS action so that its output survives.
+#
+# yafti launches every action through:
+#   xdg-terminal-exec -- bash --noprofile --norc -lc "<script>"
+#
+# konsole closes the moment that bash exits, so an action that fails in
+# under a second is indistinguishable from one that never ran: no error,
+# no window, nothing to report. Decky Loader was failing exactly like
+# that. Every action in yafti.yml now goes through this wrapper:
+#
+#   script: /usr/libexec/yaguarete/portal-run 'ujust setup-decky install'
+#
+# It does three things the previous inline
+# `; status=$?; ...; read -r _; exit $status` suffix did not:
+#
+#   1. Tees everything to a log, so a failure is still readable after the
+#      window is gone.
+#   2. Restores the environment `--noprofile` throws away — notably
+#      SUDO_ASKPASS, without which every `sudo -A` in an upstream Bazzite
+#      recipe dies with "no askpass program specified".
+#   3. Reports the exit status in words instead of leaving the user to
+#      guess from an empty screen.
+
+set -o pipefail
+
+readonly LOG_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/yaguarete"
+readonly LOG_FILE="$LOG_DIR/portal.log"
+readonly LOG_MAX_BYTES=2097152
+
+# --quiet is for yafti's status_script polling: same logging, but no
+# terminal decoration and no pause. stdout is passed through untouched
+# because yafti parses it as a status token — anything we print there
+# would be read as the state of the app.
+quiet=false
+if [[ "${1:-}" == "--quiet" ]]; then
+    quiet=true
+    shift
+fi
+
+command="${1:-}"
+if [[ -z "$command" ]]; then
+    echo "usage: portal-run [--quiet] '<command>'" >&2
+    exit 2
+fi
+
+# yafti runs us under `bash --noprofile --norc`, which skips
+# /etc/profile.d entirely. askpass.sh lives there, and Bazzite recipes
+# call `sudo -A`, so without this every privileged action fails before it
+# starts. Sourcing it here keeps the fix local to the Portal.
+if [[ -z "${SUDO_ASKPASS:-}" && -r /etc/profile.d/askpass.sh ]]; then
+    # shellcheck source=/dev/null
+    source /etc/profile.d/askpass.sh || true
+fi
+
+mkdir -p "$LOG_DIR"
+
+# Keep one generation of history. A truncating rotation is enough for a
+# log nobody reads until something breaks.
+if [[ -f "$LOG_FILE" ]] && (( $(stat -c %s "$LOG_FILE") > LOG_MAX_BYTES )); then
+    mv -f "$LOG_FILE" "${LOG_FILE}.1"
+fi
+
+{
+    echo
+    echo "==============================================================="
+    echo "$(date -Is)  ${quiet:+[status] }${command}"
+    echo "==============================================================="
+} >> "$LOG_FILE"
+
+if $quiet; then
+    # stdout goes straight to yafti; only stderr is captured, then
+    # replayed so nothing yafti would have seen is swallowed.
+    errfile=$(mktemp)
+    trap 'rm -f "$errfile"' EXIT
+    bash -lc "$command" 2>"$errfile"
+    status=$?
+    cat "$errfile" >&2
+    {
+        cat "$errfile"
+        echo "--- exit status: ${status}"
+    } >> "$LOG_FILE"
+    exit "$status"
+fi
+
+echo "> ${command}"
+echo
+
+# `bash -lc` matches how yafti invokes the original script, so anything
+# that worked inline keeps working. Output is duplicated to the log;
+# PIPESTATUS carries the command's own status past the tee.
+bash -lc "$command" 2>&1 | tee -a "$LOG_FILE"
+status=${PIPESTATUS[0]}
+
+{
+    echo "--- exit status: ${status}"
+} >> "$LOG_FILE"
+
+echo
+if (( status == 0 )); then
+    echo "Done."
+else
+    echo "FAILED — exit status ${status}"
+    echo "Full output: ${LOG_FILE}"
+fi
+
+# Guarded so the same command stays usable over SSH or from a script,
+# where there is no one to press anything.
+if [[ -t 0 ]]; then
+    echo
+    read -r -p "Press Enter to close this window..." _
+fi
+
+exit "$status"

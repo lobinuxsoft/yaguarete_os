@@ -33,7 +33,7 @@ const es: Translations = {
           'Variante por defecto. Stack de gráficos open-source, funciona en la mayoría del hardware no-NVIDIA.',
         upstream: 'bazzite:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-base/yaguarete_os-testing-44.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-stable-44.20260730/yaguarete_os-stable-44.20260730-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-nvidia',
@@ -42,7 +42,7 @@ const es: Translations = {
           'GPU NVIDIA con el driver propietario. Recomendado para gaming en hardware NVIDIA hoy.',
         upstream: 'bazzite-nvidia:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-nvidia/yaguarete_os-nvidia-testing-44.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-nvidia-stable-44.20260730/yaguarete_os-nvidia-stable-44.20260730-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-nvidia-open',
@@ -51,7 +51,7 @@ const es: Translations = {
           'GPU NVIDIA con el módulo kernel abierto (Turing+). Orientado a workstations de desarrollo.',
         upstream: 'bazzite-nvidia-open:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-nvidia-open/yaguarete_os-nvidia-open-testing-44.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-nvidia-open-stable-44.20260730/yaguarete_os-nvidia-open-stable-44.20260730-live-amd64.iso',
       },
       {
         name: 'yaguarete_os-deck',
@@ -60,7 +60,7 @@ const es: Translations = {
           'Bootea directo en game mode. Heredado de Bazzite-deck, todavía en Fedora 43.',
         upstream: 'bazzite-deck:stable',
         downloadUrl:
-          'https://archive.org/download/yaguarete-os-deck/yaguarete_os-deck-testing-43.20260526-live-amd64.iso',
+          'https://archive.org/download/yaguarete_os-deck-stable-43.20260730/yaguarete_os-deck-stable-43.20260730-live-amd64.iso',
       },
     ],
   },

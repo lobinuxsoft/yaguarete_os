@@ -22,7 +22,8 @@ Apply to every recipe **before** marking PASS:
 
 1. **Upstream rename guard**: if the recipe wraps `ujust <upstream>`, grep `/usr/share/ublue-os/just/80-bazzite.just` on a fresh Bazzite image to confirm the upstream name still exists. Bazzite renames recipes silently between builds (see `global-fsr4` → `toggle-global-fsr4` incident).
 2. **SIGPIPE guard**: any `set -euo pipefail` body containing `cmd | head`, `cmd | awk '...exit'`, `cmd | grep -m1`, or `find | head -1` aborts at exit 141 before the first `log()` runs. Refactor to defensive form (awk sentinel, `|| fallback=""`).
-3. **TTY pause**: any recipe that prints a user-facing summary must end with `read -n 1 -s -r -p "..."` guarded by `[[ -t 0 ]]`. yafti spawns recipes via `xdg-terminal-exec → konsole`; konsole closes immediately on script exit, hiding all output. SSH non-interactive sessions skip the pause gracefully due to the guard.
+3. **TTY pause + log**: handled centrally since the Portal actions were routed through `/usr/libexec/yaguarete/portal-run`. It keeps the window open, tees the output to `~/.local/state/yaguarete/portal.log`, and prints the exit status. A recipe no longer needs its own `read -n 1 -s -r -p "..."`; adding one just asks the user to press Enter twice. **Every `script:` in `yafti.yml` must go through the runner** — a bare command loses its output to konsole closing, which is how Decky Loader failed silently.
+   Related trap: yafti runs actions under `bash --noprofile --norc`, so `/etc/profile.d` never loads and `SUDO_ASKPASS` is empty. Every upstream Bazzite recipe calling `sudo -A` dies instantly without it. The runner sources `askpass.sh` when the variable is missing.
 4. **HW smoke**: validate on the real target hardware (OneXFly for `-deck`, RX 9070 XT desktop for `desktop`, etc). CI green is not sufficient — see [feedback_ci_green_not_recipe_works].
 
 ## Hardware coverage
