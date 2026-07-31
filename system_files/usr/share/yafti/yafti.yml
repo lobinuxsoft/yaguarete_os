@@ -22,13 +22,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust setup-decky install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-decky install'"
           - id: "install-prerelease"
             label: "Install Prerelease"
-            script: "ujust setup-decky install-prerelease"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-decky install-prerelease'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust setup-decky uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-decky uninstall'"
       - id: "decky-lossless-scaling"
         title: "Decky Lossless Scaling"
         description: "A Decky plugin for lossless scaling compatibility in Linux"
@@ -37,10 +37,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust get-decky-lossless-scaling install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-decky-lossless-scaling install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust get-decky-lossless-scaling uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-decky-lossless-scaling uninstall'"
       - id: "lsfg-vk"
         title: "Lossless Scaling Vulkan Layer"
         description: "Install the lsfg-vk Vulkan layer for Lossless Scaling compatibility in Linux."
@@ -48,10 +48,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-lsfg install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-lsfg install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'ujust get-lsfg uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-lsfg uninstall'"
       - id: "boxtron"
         title: "Boxtron"
         description: "Installs Boxtron on a Fedora distrobox and exports it."
@@ -59,10 +59,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-boxtron install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-boxtron install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'ujust install-boxtron uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-boxtron uninstall'"
       - id: "emudeck"
         title: "EmuDeck"
         description: "A utility for installing and configuring emulators on the Steam Deck"
@@ -71,10 +71,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust get-emudeck install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-emudeck install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust get-emudeck uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-emudeck uninstall'"
       - id: "sunshine"
         title: "Sunshine"
         description: "A self-hosted game stream host for Moonlight"
@@ -83,22 +83,22 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust setup-sunshine enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-sunshine enable'"
           - id: "enable-beta"
             label: "Enable Beta"
-            script: "ujust setup-sunshine enable-beta"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-sunshine enable-beta'"
           - id: "update"
             label: "Update"
-            script: "ujust setup-sunshine update"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-sunshine update'"
           - id: "disable"
             label: "Disable Service"
-            script: "ujust setup-sunshine disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-sunshine disable'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust setup-sunshine uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-sunshine uninstall'"
           - id: "portal"
             label: "Open Portal"
-            script: "ujust setup-sunshine portal"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-sunshine portal'"
       - id: "waydroid"
         title: "Waydroid"
         description: "Android app compatibility layer for Linux"
@@ -106,19 +106,19 @@ screens:
         options:
           - id: "init"
             label: "Initialize"
-            script: "ujust configure-waydroid init"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-waydroid init'"
           - id: "configure"
             label: "Configure"
-            script: "ujust configure-waydroid configure"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-waydroid configure'"
           - id: "gpu"
             label: "Select GPU"
-            script: "ujust configure-waydroid gpu"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-waydroid gpu'"
           - id: "reset"
             label: "Reset"
-            script: "ujust configure-waydroid reset"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-waydroid reset'"
           - id: "helper"
             label: "Install Helper"
-            script: "ujust configure-waydroid helper"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-waydroid helper'"
       - id: "coolercontrol"
         title: "CoolerControl"
         description: "View sensors and create fan and pump profiles from available temperature sensors."
@@ -126,10 +126,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-coolercontrol install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-coolercontrol install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'ujust install-coolercontrol uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-coolercontrol uninstall'"
       - id: "displaylink"
         title: "DisplayLink"
         description: "Install DisplayLink support for laptop docks and USB display adapters."
@@ -137,10 +137,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-displaylink install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-displaylink install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'ujust install-displaylink uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-displaylink uninstall'"
       - id: "openrazer"
         title: "OpenRazer"
         description: "Install OpenRazer support for Razer gaming hardware."
@@ -148,16 +148,16 @@ screens:
         options:
           - id: "install-razer-genie"
             label: "Install with Razer Genie"
-            script: 'ujust install-openrazer install-razer-genie; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-openrazer install-razer-genie'"
           - id: "install-polychromatic"
             label: "Install with Polychromatic"
-            script: 'ujust install-openrazer install-polychromatic; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-openrazer install-polychromatic'"
           - id: "install"
             label: "Install Without Frontend"
-            script: 'ujust install-openrazer install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-openrazer install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'ujust install-openrazer uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-openrazer uninstall'"
       - id: "openrgb"
         title: "OpenRGB"
         description: "Open source RGB lighting control that doesn't depend on manufacturer software"
@@ -166,10 +166,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust install-openrgb install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-openrgb install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust install-openrgb uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-openrgb uninstall'"
       - id: "resilio-sync"
         title: "Resilio Sync"
         description: "A file synchronization utility powered by BitTorrent"
@@ -178,10 +178,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust install-resilio-sync install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-resilio-sync install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust install-resilio-sync uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-resilio-sync uninstall'"
       - id: "davinci-resolve"
         title: "DaVinci Resolve"
         description: "Install or remove DaVinci Resolve through davincibox."
@@ -189,10 +189,10 @@ screens:
         options:
           - id: "install"
             label: "Install/Upgrade"
-            script: 'ujust install-davinci install; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-davinci install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'ujust install-davinci uninstall; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-davinci uninstall'"
       - id: "tailscale"
         title: "Tailscale"
         description: "Enable or disable the Tailscale service for mesh VPN support."
@@ -200,10 +200,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust enable-tailscale"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust enable-tailscale'"
           - id: "disable"
             label: "Disable"
-            script: "sudo systemctl disable --now tailscaled.service"
+            script: "/usr/libexec/yaguarete/portal-run 'sudo systemctl disable --now tailscaled.service'"
       - id: "steamcmd"
         title: "SteamCMD"
         description: "Command-line version of the Steam client for dedicated servers and game downloads"
@@ -212,10 +212,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust get-steamcmd install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-steamcmd install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust get-steamcmd uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-steamcmd uninstall'"
       - id: "lact"
         title: "LACT (Linux AMDGPU Controller)"
         description: "Manual control panel for AMD GPUs: fan curve, overclock/undervolt, power profiles, real-time metrics. Cross-variant (desktop + handheld). AMD only — no-op on NVIDIA variants."
@@ -224,13 +224,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub io.github.ilya_zlobintsev.LACT'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y io.github.ilya_zlobintsev.LACT'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive io.github.ilya_zlobintsev.LACT; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive io.github.ilya_zlobintsev.LACT'"
       - id: "rssguard"
         title: "RSS Guard (feed reader)"
         description: "Qt6 RSS/Atom/JSON Feed reader with native KDE integration. Supports sync protocols (TT-RSS, Nextcloud News, Inoreader). Desktop notifications, categories, filtering rules. GPL, no telemetry, no cloud lock-in. Recomendado para trackear releases upstream (Bazzite, Fedora, etc.) sin GitHub Watch público."
@@ -239,13 +239,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub io.github.martinrotter.rssguard; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub io.github.martinrotter.rssguard'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y io.github.martinrotter.rssguard; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y io.github.martinrotter.rssguard'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive io.github.martinrotter.rssguard; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive io.github.martinrotter.rssguard'"
   - title: "Yaguareté Apps"
     description: "Custom installers maintained by YaguareteOS (gaming and dev tools)"
     actions:
@@ -257,13 +257,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-yryvu'"
           - id: "update"
             label: "Update"
-            script: 'ujust update-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust update-yryvu'"
           - id: "remove"
             label: "Remove"
-            script: 'ujust remove-yryvu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust remove-yryvu'"
       - id: "tatu"
         title: "Tatu (Steam backlog tracker)"
         description: "Install Tatu, the Steam backlog tracker by lobinuxsoft (Tauri 2 frontend). AppImage from GitHub Releases, SHA256 verified; the legacy Game Progress Tracker name is rewritten to Tatu in the KDE launcher. The Aurora-style Win32 cheats bridge is a separate Steam compat tool — see lobinuxsoft/tatu README."
@@ -272,13 +272,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-tatu'"
           - id: "update"
             label: "Update"
-            script: 'ujust update-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust update-tatu'"
           - id: "remove"
             label: "Remove"
-            script: 'ujust remove-tatu; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust remove-tatu'"
       - id: "eden"
         title: "Eden (Switch Emulator)"
         description: "Install Eden Nintendo Switch emulator. Optionally downloads firmware 22.x (THZoria) and prod.keys v20.3.0 (ProdKeys.net) for game compatibility. Auto-registers a Steam ROM Manager parser if EmuDeck is detected."
@@ -287,13 +287,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-eden'"
           - id: "update"
             label: "Update"
-            script: 'ujust update-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust update-eden'"
           - id: "remove"
             label: "Remove"
-            script: 'ujust remove-eden; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust remove-eden'"
       - id: "antigravity-ide"
         title: "Antigravity IDE (Google — Gemini)"
         description: "Install Google's Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification. Not to be confused with YaguareteOS' built-in Antigravity assistant."
@@ -302,13 +302,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-antigravity-ide'"
           - id: "update"
             label: "Update"
-            script: 'ujust update-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust update-antigravity-ide'"
           - id: "remove"
             label: "Remove"
-            script: 'ujust remove-antigravity-ide; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust remove-antigravity-ide'"
       - id: "antigravity-cli"
         title: "Antigravity CLI (Google — Gemini)"
         description: "Install Google's Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern). Not to be confused with YaguareteOS' built-in Antigravity assistant."
@@ -317,13 +317,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust install-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-antigravity-cli'"
           - id: "update"
             label: "Update"
-            script: 'ujust update-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust update-antigravity-cli'"
           - id: "remove"
             label: "Remove"
-            script: 'ujust remove-antigravity-cli; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust remove-antigravity-cli'"
   - title: "Creative Apps"
     description: "Multimedia creation suite (Flathub installs, per-user, no reboot)"
     actions:
@@ -335,13 +335,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub org.videolan.VLC'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y org.videolan.VLC'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive org.videolan.VLC; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive org.videolan.VLC'"
       - id: "gimp"
         title: "GIMP"
         description: "Raster graphics editor"
@@ -350,13 +350,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub org.gimp.GIMP'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y org.gimp.GIMP'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive org.gimp.GIMP; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive org.gimp.GIMP'"
       - id: "inkscape"
         title: "Inkscape"
         description: "Vector graphics editor"
@@ -365,13 +365,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub org.inkscape.Inkscape'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y org.inkscape.Inkscape'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive org.inkscape.Inkscape; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive org.inkscape.Inkscape'"
       - id: "obs-studio"
         title: "OBS Studio"
         description: "Video recording and live streaming"
@@ -380,13 +380,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub com.obsproject.Studio'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y com.obsproject.Studio'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive com.obsproject.Studio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive com.obsproject.Studio'"
       - id: "blender"
         title: "Blender"
         description: "3D modeling, animation, and rendering"
@@ -395,13 +395,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub org.blender.Blender'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y org.blender.Blender'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive org.blender.Blender; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive org.blender.Blender'"
   - title: "System Fixes"
     description: "System configurations and enhancements"
     actions:
@@ -413,10 +413,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust toggle-iwd enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-iwd enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust toggle-iwd disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-iwd disable'"
       - id: "add-input-group"
         title: "Add input group to current user"
         description: "Adds the input group to your current user. Required by certain controller drivers."
@@ -425,10 +425,10 @@ screens:
         options:
           - id: "add"
             label: "Add"
-            script: "ujust add-user-to-input-group add"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust add-user-to-input-group add'"
           - id: "remove"
             label: "Remove"
-            script: "ujust add-user-to-input-group remove"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust add-user-to-input-group remove'"
       - id: "password-asterisks"
         title: "Visible Password Asterisks"
         description: "Show or hide password asterisks in sudo prompts."
@@ -436,10 +436,10 @@ screens:
         options:
           - id: "on"
             label: "Show Password Asterisks"
-            script: "ujust toggle-password-feedback on"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-password-feedback on'"
           - id: "off"
             label: "Hide Password Asterisks"
-            script: "ujust toggle-password-feedback off"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-password-feedback off'"
       - id: "hide-grub"
         title: "GRUB Menu Visibility"
         description: "Choose when the GRUB menu appears at boot."
@@ -447,13 +447,13 @@ screens:
         options:
           - id: "hide"
             label: "Hide After Successful Boot"
-            script: "ujust configure-grub hide"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-grub hide'"
           - id: "unhide"
             label: "Hide Except Dual Boot"
-            script: "ujust configure-grub unhide"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-grub unhide'"
           - id: "show"
             label: "Always Show GRUB"
-            script: "ujust configure-grub show"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-grub show'"
       - id: "grub-timeout"
         title: "GRUB Menu Timeout"
         description: "Set how long GRUB waits before booting the default entry, then regenerate the GRUB config."
@@ -461,35 +461,35 @@ screens:
         options:
           - id: "no-timeout"
             label: "No Timeout"
-            script: "ujust grub-timeout no-timeout"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout no-timeout'"
           - id: "instant"
             label: "Skip Menu (Hold shift key to show boot menu)"
-            script: "ujust grub-timeout instant"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout instant'"
           - id: "1-second"
             label: "1 Second"
-            script: "ujust grub-timeout 1-second"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout 1-second'"
           - id: "3-seconds"
             label: "3 Seconds"
-            script: "ujust grub-timeout 3-seconds"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout 3-seconds'"
           - id: "5-seconds"
             label: "5 Seconds"
-            script: "ujust grub-timeout 5-seconds"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout 5-seconds'"
           - id: "10-seconds"
             label: "10 Seconds"
-            script: "ujust grub-timeout 10-seconds"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout 10-seconds'"
           - id: "custom"
             label: "Custom"
-            script: "ujust grub-timeout custom"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust grub-timeout custom'"
       - id: "regenerate-grub"
         title: "Regenerate GRUB Config"
         description: "Regenerate the GRUB config so Windows can show as a boot menu option."
         default: false
-        script: "ujust regenerate-grub"
+        script: "/usr/libexec/yaguarete/portal-run 'ujust regenerate-grub'"
       - id: "boot-to-windows"
         title: "Boot to Windows from Steam"
         description: "Adds a script in Steam to boot Windows which is useful for dual-boot setups"
         default: false
-        script: "ujust setup-boot-windows-steam"
+        script: "/usr/libexec/yaguarete/portal-run 'ujust setup-boot-windows-steam'"
       - id: "virtual-audio-channels"
         title: "Virtual Audio Channels"
         description: "Create or remove PipeWire virtual sinks for separate Game, Voice, Browser, and Music audio routing."
@@ -498,10 +498,10 @@ screens:
         options:
           - id: "create"
             label: "Enable"
-            script: 'ujust setup-virtual-channels create; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-virtual-channels create'"
           - id: "remove"
             label: "Remove"
-            script: 'ujust setup-virtual-channels remove; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-virtual-channels remove'"
       - id: "virtual-headphone-surround"
         title: "Virtual Headphone Surround"
         description: "Enable or disable a PipeWire virtual 7.1 headphone surround sink."
@@ -510,10 +510,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: 'ujust setup-virtual-surround enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-virtual-surround enable'"
           - id: "disable"
             label: "Disable"
-            script: 'ujust setup-virtual-surround disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-virtual-surround disable'"
       - id: "virtualization"
         title: "Virtualization"
         description: "Install or remove virt-manager and configure host virtualization support."
@@ -521,10 +521,10 @@ screens:
         options:
           - id: "virt-on"
             label: "Enable"
-            script: 'ujust setup-virtualization virt-on; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-virtualization virt-on'"
           - id: "virt-off"
             label: "Disable"
-            script: 'ujust setup-virtualization virt-off; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust setup-virtualization virt-off'"
       - id: "save-panics"
         title: "Save Kernel Panics"
         description: "Enable or disable ramoops so kernel panic details can be recovered after reboot."
@@ -532,15 +532,15 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: 'ujust toggle-save-panics enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-save-panics enable'"
           - id: "disable"
             label: "Disable"
-            script: 'ujust toggle-save-panics disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-save-panics disable'"
       - id: "configure-beesd"
         title: "BTRFS Deduplication"
         description: "Configure beesd deduplication for BTRFS filesystems."
         default: false
-        script: 'ujust configure-beesd; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        script: "/usr/libexec/yaguarete/portal-run 'ujust configure-beesd'"
       - id: "watchdog"
         title: "Watchdog"
         description: "Enable or disable the hardware watchdog recovery mechanism."
@@ -548,10 +548,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: 'ujust configure-watchdog enable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-watchdog enable'"
           - id: "disable"
             label: "Disable"
-            script: 'ujust configure-watchdog disable; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-watchdog disable'"
       - id: "snapper"
         title: "Snapshots"
         description: "Enable or disable Snapper snapshots for /var/home."
@@ -559,16 +559,16 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust configure-snapshots enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-snapshots enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust configure-snapshots disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-snapshots disable'"
           - id: "wipe"
             label: "Wipe"
-            script: "ujust configure-snapshots wipe"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust configure-snapshots wipe'"
           - id: "btrfs-assistant"
             label: "Open Btrfs Assistant"
-            script: "setsid -f gtk-launch btrfs-assistant.desktop >/dev/null 2>&1"
+            script: "/usr/libexec/yaguarete/portal-run 'setsid -f gtk-launch btrfs-assistant.desktop >/dev/null 2>&1'"
       - id: "automounting"
         title: "Automounting"
         description: "Enable or disable automounting of labeled BTRFS/EXT4 partitions under /run/media/system."
@@ -577,10 +577,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust enable-automounting enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust enable-automounting enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust enable-automounting disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust enable-automounting disable'"
       - id: "steamos-automount"
         title: "SteamOS Automounting"
         description: "Enable or disable SteamOS automounting, useful when NTFS partitions get mounted automatically."
@@ -589,10 +589,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust enable-steamos-automount enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust enable-steamos-automount enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust enable-steamos-automount disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust enable-steamos-automount disable'"
       - id: "wake-on-lan"
         title: "Wake-on-LAN"
         description: "Enable Wake-on-LAN functionality to power on your device remotely"
@@ -601,13 +601,13 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust toggle-wol enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-wol enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust toggle-wol disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-wol disable'"
           - id: "force-enable"
             label: "Force Enable"
-            script: "ujust toggle-wol force-enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-wol force-enable'"
       - id: "cec-sleep-standby"
         title: "CEC Sleep Standby"
         description: "Put TV to standby when system sleeps via HDMI-CEC. Requires a CEC-compatible Device, or Pulse 8 HDMI-CEC adapter."
@@ -616,10 +616,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust toggle-cec-sleep enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-cec-sleep enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust toggle-cec-sleep disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-cec-sleep disable'"
       - id: "steam-icons"
         title: "Clean Steam Shortcuts"
         description: "Automatically removes Steam shortcuts from the desktop on boot, useful for keeping the desktop clean when installing games via game mode."
@@ -628,13 +628,13 @@ screens:
         options:
           - id: "remove"
             label: "Remove Now"
-            script: "ujust steam-icons remove"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust steam-icons remove'"
           - id: "enable"
             label: "Enable Auto-Cleanup"
-            script: "ujust steam-icons enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust steam-icons enable'"
           - id: "disable"
             label: "Disable Auto-Cleanup"
-            script: "ujust steam-icons disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust steam-icons disable'"
       - id: "opentabletdriver"
         title: "OpenTabletDriver"
         description: "Open source, cross-platform, user-mode tablet driver"
@@ -643,10 +643,10 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "ujust install-opentabletdriver install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-opentabletdriver install'"
           - id: "uninstall"
             label: "Uninstall"
-            script: "ujust install-opentabletdriver uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-opentabletdriver uninstall'"
       - id: "ssh-service"
         title: "SSH Service"
         description: "Enable SSH remote access service on boot"
@@ -655,10 +655,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust toggle-ssh enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-ssh enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust toggle-ssh disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-ssh disable'"
       - id: "yaguarete-fsr4"
         title: "Global FSR4 Upgrade (auto-detect GPU)"
         description: "Enable or disable the Proton FSR4 upgrade. Auto-detects RDNA 3 / 3.5 (FP8 emulation, requires Proton GE / EM) vs RDNA 4 (native, Proton 10+) and applies the matching env flag. Logs every step to 'journalctl --user -t yaguarete-fsr4' and validates the flag file actually landed on disk (Bazzite's recipe silently no-ops when yafti strips HOME from the subprocess env)."
@@ -666,10 +666,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust yaguarete-fsr4 enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust yaguarete-fsr4 enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust yaguarete-fsr4 disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust yaguarete-fsr4 disable'"
       - id: "global-dlss"
         title: "Global DLSS Upgrade"
         description: "Enable or disable the global Proton DLSS upgrade, which updates DLSS DLLs. Only compatible with Proton GE, Proton EM, or similar forks."
@@ -677,10 +677,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust global-dlss enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust global-dlss enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust global-dlss disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust global-dlss disable'"
       - id: "reisub"
         title: "REISUB"
         description: "Toggle the Magic SysRq key and allow using the REISUB shortcut to force-reboot your computer slightly more safely. Note that it is insecure to have it enabled since you can use it to bypass some stuff"
@@ -689,10 +689,10 @@ screens:
         options:
           - id: "enable"
             label: "Enable"
-            script: "ujust toggle-reisub enable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-reisub enable'"
           - id: "disable"
             label: "Disable"
-            script: "ujust toggle-reisub disable"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust toggle-reisub disable'"
   - title: "Media Apps"
     description: "Entertainment and streaming services"
     actions:
@@ -704,13 +704,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-media-app "Xbox Cloud Gaming"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Xbox Cloud Gaming\"'"
           - id: "update"
             label: "Update"
-            script: 'ujust get-media-app "Xbox Cloud Gaming"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Xbox Cloud Gaming\"'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'rm -f "$HOME/Applications/streaming_scripts/xbox-cloud"; echo "Xbox Cloud Gaming launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'rm -f \"$HOME/Applications/streaming_scripts/xbox-cloud\"; echo \"Xbox Cloud Gaming launcher removed.\"; echo \"Steam shortcut: remove via Steam UI (right-click the entry \u2192 Manage \u2192 Remove non-Steam game).\"'"
       # - id: "geforce-now"
       #   title: "GeForce Now"
       #   description: "Cloud gaming service"
@@ -724,13 +724,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-media-app "YouTube"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"YouTube\"'"
           - id: "update"
             label: "Update"
-            script: 'ujust get-media-app "YouTube"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"YouTube\"'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --system -y --noninteractive rocks.shy.VacuumTube 2>&1 || true; rm -f "$HOME/Applications/streaming_scripts/youtube"; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --system -y --noninteractive rocks.shy.VacuumTube 2>&1 || true; rm -f \"$HOME/Applications/streaming_scripts/youtube\"; echo; echo \"Steam shortcut: remove via Steam UI (right-click the entry \u2192 Manage \u2192 Remove non-Steam game).\"'"
       - id: "spotify"
         title: "Spotify"
         description: "Music streaming service"
@@ -739,13 +739,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-media-app "Spotify"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Spotify\"'"
           - id: "update"
             label: "Update"
-            script: 'ujust get-media-app "Spotify"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Spotify\"'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'rm -f "$HOME/Applications/streaming_scripts/spotify"; echo "Spotify launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'rm -f \"$HOME/Applications/streaming_scripts/spotify\"; echo \"Spotify launcher removed.\"; echo \"Steam shortcut: remove via Steam UI (right-click the entry \u2192 Manage \u2192 Remove non-Steam game).\"'"
       - id: "netflix"
         title: "Netflix"
         description: "Subscription streaming service"
@@ -754,13 +754,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-media-app "Netflix"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Netflix\"'"
           - id: "update"
             label: "Update"
-            script: 'ujust get-media-app "Netflix"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Netflix\"'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'rm -f "$HOME/Applications/streaming_scripts/netflix"; echo "Netflix launcher removed."; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'rm -f \"$HOME/Applications/streaming_scripts/netflix\"; echo \"Netflix launcher removed.\"; echo \"Steam shortcut: remove via Steam UI (right-click the entry \u2192 Manage \u2192 Remove non-Steam game).\"'"
       - id: "plex-htpc"
         title: "Plex HTPC"
         description: "Media server client (native Flatpak)"
@@ -769,13 +769,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-media-app "Plex HTPC"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Plex HTPC\"'"
           - id: "update"
             label: "Update"
-            script: 'ujust get-media-app "Plex HTPC"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Plex HTPC\"'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --system -y --noninteractive tv.plex.PlexHTPC 2>&1 || true; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --system -y --noninteractive tv.plex.PlexHTPC 2>&1 || true; echo; echo \"Steam shortcut: remove via Steam UI (right-click the entry \u2192 Manage \u2192 Remove non-Steam game).\"'"
       - id: "jellyfin"
         title: "JellyFin"
         description: "Media server client (native Flatpak)"
@@ -784,13 +784,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'ujust get-media-app "Jellyfin Media Player"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Jellyfin Media Player\"'"
           - id: "update"
             label: "Update"
-            script: 'ujust get-media-app "Jellyfin Media Player"; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'ujust get-media-app \"Jellyfin Media Player\"'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --system -y --noninteractive com.github.iwalton3.jellyfin-media-player 2>&1 || true; echo; echo "Steam shortcut: remove via Steam UI (right-click the entry → Manage → Remove non-Steam game)."; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --system -y --noninteractive com.github.iwalton3.jellyfin-media-player 2>&1 || true; echo; echo \"Steam shortcut: remove via Steam UI (right-click the entry \u2192 Manage \u2192 Remove non-Steam game).\"'"
       - id: "stremio"
         title: "Stremio"
         description: "Media center with community add-ons (Flathub)"
@@ -799,16 +799,16 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'flatpak install --user -y flathub com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak install --user -y flathub com.stremio.Stremio'"
           - id: "update"
             label: "Update"
-            script: 'flatpak update --user -y com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak update --user -y com.stremio.Stremio'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'flatpak uninstall --user -y --noninteractive com.stremio.Stremio; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'flatpak uninstall --user -y --noninteractive com.stremio.Stremio'"
           - id: "browse-addons"
             label: "Browse add-ons catalogue"
-            script: 'xdg-open https://stremio-addons.net/addons'
+            script: "/usr/libexec/yaguarete/portal-run 'xdg-open https://stremio-addons.net/addons'"
   - title: "Brew"
     description: "Brew Taps and Casks"
     actions:
@@ -820,13 +820,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux'"
           - id: "update"
             label: "Update"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask jetbrains-toolbox-linux'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask jetbrains-toolbox-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew uninstall --cask jetbrains-toolbox-linux'"
       - id: "vscodium-linux"
         title: "VSCodium"
         description: "Community build of VS Code without telemetry"
@@ -835,13 +835,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew tap ublue-os/tap && brew install --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew install --cask vscodium-linux'"
           - id: "update"
             label: "Update"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask vscodium-linux'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask vscodium-linux; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew uninstall --cask vscodium-linux'"
       - id: "android-platform-tools"
         title: "Android Platform Tools"
         description: "adb, fastboot and friends from the Android SDK"
@@ -850,13 +850,13 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew install --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew install --cask android-platform-tools'"
           - id: "update"
             label: "Update"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew upgrade --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask android-platform-tools'"
           - id: "uninstall"
             label: "Uninstall"
-            script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew uninstall --cask android-platform-tools; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew uninstall --cask android-platform-tools'"
   - title: "Manage PC"
     description: "System updates and configuration"
     actions:
@@ -864,42 +864,42 @@ screens:
         title: "Update YaguareteOS and Apps"
         description: "Updates YaguareteOS, Flatpaks, firmware, and more"
         default: false
-        script: "ujust update"
+        script: "/usr/libexec/yaguarete/portal-run 'ujust update'"
       - id: "rebase-bazzite-stable"
         title: "Rebase YaguareteOS (stable)"
         description: "Rebase YaguareteOS to the stable track"
         default: false
-        script: "brh rebase stable -y && reboot"
+        script: "/usr/libexec/yaguarete/portal-run 'brh rebase stable -y && reboot'"
       - id: "rebase-bazzite-testing"
         title: "Rebase YaguareteOS (testing)"
         description: "Rebase YaguareteOS to the testing track"
         default: false
-        script: "brh rebase testing -y && reboot"
+        script: "/usr/libexec/yaguarete/portal-run 'brh rebase testing -y && reboot'"
       - id: "rollback-bazzite"
         title: "Rollback YaguareteOS"
         description: "Rollback to the previous YaguareteOS deployment"
         default: false
-        script: "brh rollback -y && reboot"
+        script: "/usr/libexec/yaguarete/portal-run 'brh rollback -y && reboot'"
       - id: "verify-image"
         title: "Verify System Image"
         description: "Detects if you are on an unverified official image and rebases you to the signed version."
         default: false
-        script: 'ujust verify-image; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        script: "/usr/libexec/yaguarete/portal-run 'ujust verify-image'"
       - id: "reset-bazzite"
         title: "Reset YaguareteOS"
         description: "Reset YaguareteOS layering to Default (Only resets layers NOT user data)" 
         default: false
-        script: "rpm-ostree reset"
+        script: "/usr/libexec/yaguarete/portal-run 'rpm-ostree reset'"
       - id: "cancel-pending-deployment"
         title: "Cancel Pending Deployment"
         description: "Remove a pending rpm-ostree deployment that you do not want to boot into."
         default: false
-        script: 'rpm-ostree cleanup -p; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        script: "/usr/libexec/yaguarete/portal-run 'rpm-ostree cleanup -p'"
       - id: "Reboot to UEFI"
         title: "Reboot to UEFI"
         description: "Reboot into the UEFI settings menu, useful for changing boot order or other firmware settings."
         default: false
-        script: "systemctl reboot --firmware-setup"
+        script: "/usr/libexec/yaguarete/portal-run 'systemctl reboot --firmware-setup'"
   - title: "Troubleshooting"
     description: "Tools and utilities for diagnosing and fixing issues"
     actions:
@@ -907,29 +907,29 @@ screens:
         title: "Collect Troubleshooting Logs"
         description: "Collects system information and logs, then gives you links to share with support for troubleshooting."
         default: false
-        script: 'ujust get-logs; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        script: "/usr/libexec/yaguarete/portal-run 'ujust get-logs'"
       - id: "bazzite-discord"
         title: "YaguareteOS Support"
         description: "Opens YaguareteOS support discussions on GitHub. PLEASE BE SURE TO PASTE YOUR TROUBLESHOOTING LOGS!"
         default: false
-        script: "xdg-open https://github.com/lobinuxsoft/yaguarete_os/discussions"
+        script: "/usr/libexec/yaguarete/portal-run 'xdg-open https://github.com/lobinuxsoft/yaguarete_os/discussions'"
       - id: "benchmark"
         title: "Run System Benchmark"
         description: "Runs a one-minute CPU benchmark."
         default: false
-        script: 'ujust benchmark; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        script: "/usr/libexec/yaguarete/portal-run 'ujust benchmark'"
       - id: "restart-pipewire"
         title: "Restart PipeWire"
         description: "Restart the user PipeWire audio service."
         default: false
-        script: 'ujust restart-pipewire; status=$?; echo; echo "Press Enter to close..."; read -r _; exit $status'
+        script: "/usr/libexec/yaguarete/portal-run 'ujust restart-pipewire'"
       - id: "fix-proton-hang"
         title: "Kill Wine/Proton Processes"
         description: "Kills all processes related to wine and proton."
         default: false
-        script: "ujust fix-proton-hang"
+        script: "/usr/libexec/yaguarete/portal-run 'ujust fix-proton-hang'"
       - id: "fix-reset-steam"
         title: "Reset Steam Installation"
         description: "Resets the Steam installation by deleting Steams local files. Does not delete game or save files!"
         default: false
-        script: "ujust fix-reset-steam"
+        script: "/usr/libexec/yaguarete/portal-run 'ujust fix-reset-steam'"
