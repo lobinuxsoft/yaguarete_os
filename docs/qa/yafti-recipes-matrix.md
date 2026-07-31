@@ -53,6 +53,17 @@ Wraps Bazzite's `toggle-global-fsr4(-rdna3)` with GPU auto-detection + Proton-fo
 | `yaguarete-fsr4 disable` | `desktop` | `TODO` | Same as enable. |
 | `yaguarete-fsr4 enable` | `-nvidia` / `-nvidia-open` | `N/A` | Recipe explicitly errors on non-AMD GPU. |
 
+### `85-yaguarete-setup-decky.just`
+
+Wraps Bazzite's `setup-decky` with pre-flight resolution + post-install verification. Exists because the upstream installer runs `rm -rf ~/homebrew/services` **before** querying the GitHub API, so a failed query uninstalls a working Decky and still exits 0 (observed 2026-07-31 on `-nvidia-open`: `Installing version ...` / `curl: (2) no URL specified` / service dead at 203/EXEC / `exit status: 0`).
+
+| Recipe | Variant | Status | Notes |
+|---|---|---|---|
+| `yaguarete-setup-decky install` | `-nvidia-open` | `PASS` | Pre-flight resolves `v3.2.6` + asset HEAD 200 on the real box; with the API unreachable it aborts before anything is deleted. Full install smoked end-to-end. |
+| `yaguarete-setup-decky install` | `desktop` / `-deck` | `TODO` | Same code path — the recipe is variant-agnostic. |
+| `yaguarete-setup-decky install-prerelease` | all | `TODO` | Resolves including prereleases, otherwise identical. |
+| `yaguarete-setup-decky status` / `uninstall` | all | `PASS` | Straight `exec` to upstream. |
+
 ### `85-yaguarete-install-yryvu.just`
 
 | Recipe | Variant | Status | Notes |
