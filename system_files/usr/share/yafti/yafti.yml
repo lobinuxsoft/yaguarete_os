@@ -18,7 +18,7 @@ screens:
         title: "Decky Loader"
         description: "A plugin loader for the Steam Deck"
         default: false
-        status_script: "ujust setup-decky status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust setup-decky status'"
         options:
           - id: "install"
             label: "Install"
@@ -33,7 +33,7 @@ screens:
         title: "Decky Lossless Scaling"
         description: "A Decky plugin for lossless scaling compatibility in Linux"
         default: false
-        status_script: "ujust get-decky-lossless-scaling status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust get-decky-lossless-scaling status'"
         options:
           - id: "install"
             label: "Install"
@@ -67,7 +67,7 @@ screens:
         title: "EmuDeck"
         description: "A utility for installing and configuring emulators on the Steam Deck"
         default: false
-        status_script: "ujust get-emudeck status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust get-emudeck status'"
         options:
           - id: "install"
             label: "Install"
@@ -79,7 +79,7 @@ screens:
         title: "Sunshine"
         description: "A self-hosted game stream host for Moonlight"
         default: false
-        status_script: "ujust setup-sunshine status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust setup-sunshine status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -162,7 +162,7 @@ screens:
         title: "OpenRGB"
         description: "Open source RGB lighting control that doesn't depend on manufacturer software"
         default: false
-        status_script: "ujust install-openrgb status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust install-openrgb status'"
         options:
           - id: "install"
             label: "Install"
@@ -174,7 +174,7 @@ screens:
         title: "Resilio Sync"
         description: "A file synchronization utility powered by BitTorrent"
         default: false
-        status_script: "ujust install-resilio-sync status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust install-resilio-sync status'"
         options:
           - id: "install"
             label: "Install"
@@ -208,7 +208,7 @@ screens:
         title: "SteamCMD"
         description: "Command-line version of the Steam client for dedicated servers and game downloads"
         default: false
-        status_script: "ujust get-steamcmd status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust get-steamcmd status'"
         options:
           - id: "install"
             label: "Install"
@@ -220,7 +220,7 @@ screens:
         title: "LACT (Linux AMDGPU Controller)"
         description: "Manual control panel for AMD GPUs: fan curve, overclock/undervolt, power profiles, real-time metrics. Cross-variant (desktop + handheld). AMD only — no-op on NVIDIA variants."
         default: false
-        status_script: 'flatpak info --user io.github.ilya_zlobintsev.LACT >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user io.github.ilya_zlobintsev.LACT >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -235,7 +235,7 @@ screens:
         title: "RSS Guard (feed reader)"
         description: "Qt6 RSS/Atom/JSON Feed reader with native KDE integration. Supports sync protocols (TT-RSS, Nextcloud News, Inoreader). Desktop notifications, categories, filtering rules. GPL, no telemetry, no cloud lock-in. Recomendado para trackear releases upstream (Bazzite, Fedora, etc.) sin GitHub Watch público."
         default: false
-        status_script: 'flatpak info --user io.github.martinrotter.rssguard >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user io.github.martinrotter.rssguard >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -253,7 +253,7 @@ screens:
         title: "Yryvu (Git client)"
         description: "Install Yryvu, a Tauri 2 + SolidJS Git GUI by lobinuxsoft. AppImage from GitHub Releases, SHA256 verified, registered as a KDE launcher."
         default: false
-        status_script: '[[ -f "$HOME/Applications/Yryvu.AppImage" ]] && echo "install" || echo "remove"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f \"$HOME/Applications/Yryvu.AppImage\" ]] && echo \"install\" || echo \"remove\"'"
         options:
           - id: "install"
             label: "Install"
@@ -268,7 +268,7 @@ screens:
         title: "Tatu (Steam backlog tracker)"
         description: "Install Tatu, the Steam backlog tracker by lobinuxsoft (Tauri 2 frontend). AppImage from GitHub Releases, SHA256 verified; the legacy Game Progress Tracker name is rewritten to Tatu in the KDE launcher. The Aurora-style Win32 cheats bridge is a separate Steam compat tool — see lobinuxsoft/tatu README."
         default: false
-        status_script: '[[ -f "$HOME/Applications/Tatu.AppImage" ]] && echo "install" || echo "remove"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f \"$HOME/Applications/Tatu.AppImage\" ]] && echo \"install\" || echo \"remove\"'"
         options:
           - id: "install"
             label: "Install"
@@ -283,7 +283,7 @@ screens:
         title: "Eden (Switch Emulator)"
         description: "Install Eden Nintendo Switch emulator. Optionally downloads firmware 22.x (THZoria) and prod.keys v20.3.0 (ProdKeys.net) for game compatibility. Auto-registers a Steam ROM Manager parser if EmuDeck is detected."
         default: false
-        status_script: '[[ -f "$HOME/Applications/Eden.AppImage" ]] && echo "install" || echo "remove"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f \"$HOME/Applications/Eden.AppImage\" ]] && echo \"install\" || echo \"remove\"'"
         options:
           - id: "install"
             label: "Install"
@@ -298,7 +298,7 @@ screens:
         title: "Antigravity IDE (Google — Gemini)"
         description: "Install Google's Antigravity IDE from the official Google Cloud Artifact Registry APT repo, with SHA256 verification. Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
-        status_script: '[[ -f /opt/antigravity/VERSION ]] && echo "install" || echo "remove"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f /opt/antigravity/VERSION ]] && echo \"install\" || echo \"remove\"'"
         options:
           - id: "install"
             label: "Install"
@@ -313,7 +313,7 @@ screens:
         title: "Antigravity CLI (Google — Gemini)"
         description: "Install Google's Antigravity CLI assistant via the upstream install.sh script (inspect-then-run pattern). Not to be confused with YaguareteOS' built-in Antigravity assistant."
         default: false
-        status_script: 'command -v agy >/dev/null 2>&1 && echo "install" || echo "remove"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'command -v agy >/dev/null 2>&1 && echo \"install\" || echo \"remove\"'"
         options:
           - id: "install"
             label: "Install"
@@ -331,7 +331,7 @@ screens:
         title: "VLC"
         description: "Multimedia player and converter"
         default: false
-        status_script: 'flatpak info --user org.videolan.VLC >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user org.videolan.VLC >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -346,7 +346,7 @@ screens:
         title: "GIMP"
         description: "Raster graphics editor"
         default: false
-        status_script: 'flatpak info --user org.gimp.GIMP >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user org.gimp.GIMP >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -361,7 +361,7 @@ screens:
         title: "Inkscape"
         description: "Vector graphics editor"
         default: false
-        status_script: 'flatpak info --user org.inkscape.Inkscape >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user org.inkscape.Inkscape >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -376,7 +376,7 @@ screens:
         title: "OBS Studio"
         description: "Video recording and live streaming"
         default: false
-        status_script: 'flatpak info --user com.obsproject.Studio >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user com.obsproject.Studio >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -391,7 +391,7 @@ screens:
         title: "Blender"
         description: "3D modeling, animation, and rendering"
         default: false
-        status_script: 'flatpak info --user org.blender.Blender >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user org.blender.Blender >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -409,7 +409,7 @@ screens:
         title: "iwd"
         description: "Enable or disable iwd as the Wi-Fi backend instead of wpa_supplicant."
         default: false
-        status_script: "ujust toggle-iwd status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust toggle-iwd status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -421,7 +421,7 @@ screens:
         title: "Add input group to current user"
         description: "Adds the input group to your current user. Required by certain controller drivers."
         default: true
-        status_script: "ujust add-user-to-input-group status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust add-user-to-input-group status'"
         options:
           - id: "add"
             label: "Add"
@@ -494,7 +494,7 @@ screens:
         title: "Virtual Audio Channels"
         description: "Create or remove PipeWire virtual sinks for separate Game, Voice, Browser, and Music audio routing."
         default: false
-        status_script: "ujust setup-virtual-channels status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust setup-virtual-channels status'"
         options:
           - id: "create"
             label: "Enable"
@@ -506,7 +506,7 @@ screens:
         title: "Virtual Headphone Surround"
         description: "Enable or disable a PipeWire virtual 7.1 headphone surround sink."
         default: false
-        status_script: "ujust setup-virtual-surround status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust setup-virtual-surround status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -573,7 +573,7 @@ screens:
         title: "Automounting"
         description: "Enable or disable automounting of labeled BTRFS/EXT4 partitions under /run/media/system."
         default: false
-        status_script: "ujust enable-automounting status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust enable-automounting status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -585,7 +585,7 @@ screens:
         title: "SteamOS Automounting"
         description: "Enable or disable SteamOS automounting, useful when NTFS partitions get mounted automatically."
         default: false
-        status_script: "ujust enable-steamos-automount status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust enable-steamos-automount status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -597,7 +597,7 @@ screens:
         title: "Wake-on-LAN"
         description: "Enable Wake-on-LAN functionality to power on your device remotely"
         default: false
-        status_script: "ujust toggle-wol status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust toggle-wol status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -612,7 +612,7 @@ screens:
         title: "CEC Sleep Standby"
         description: "Put TV to standby when system sleeps via HDMI-CEC. Requires a CEC-compatible Device, or Pulse 8 HDMI-CEC adapter."
         default: false
-        status_script: "ujust toggle-cec-sleep status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust toggle-cec-sleep status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -624,7 +624,7 @@ screens:
         title: "Clean Steam Shortcuts"
         description: "Automatically removes Steam shortcuts from the desktop on boot, useful for keeping the desktop clean when installing games via game mode."
         default: false
-        status_script: "ujust steam-icons status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust steam-icons status'"
         options:
           - id: "remove"
             label: "Remove Now"
@@ -639,7 +639,7 @@ screens:
         title: "OpenTabletDriver"
         description: "Open source, cross-platform, user-mode tablet driver"
         default: false
-        status_script: "ujust install-opentabletdriver status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust install-opentabletdriver status'"
         options:
           - id: "install"
             label: "Install"
@@ -651,7 +651,7 @@ screens:
         title: "SSH Service"
         description: "Enable SSH remote access service on boot"
         default: false
-        status_script: "ujust toggle-ssh status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust toggle-ssh status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -685,7 +685,7 @@ screens:
         title: "REISUB"
         description: "Toggle the Magic SysRq key and allow using the REISUB shortcut to force-reboot your computer slightly more safely. Note that it is insecure to have it enabled since you can use it to bypass some stuff"
         default: false
-        status_script: "ujust toggle-reisub status"
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust toggle-reisub status'"
         options:
           - id: "enable"
             label: "Enable"
@@ -700,7 +700,7 @@ screens:
         title: "Xbox Cloud Gaming"
         description: "Cloud gaming service"
         default: false
-        status_script: '[[ -f "$HOME/Applications/streaming_scripts/xbox-cloud" ]] && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f \"$HOME/Applications/streaming_scripts/xbox-cloud\" ]] && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -720,7 +720,7 @@ screens:
         title: "YouTube"
         description: "Video sharing platform (native Flatpak via VacuumTube)"
         default: false
-        status_script: 'flatpak info rocks.shy.VacuumTube >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info rocks.shy.VacuumTube >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -735,7 +735,7 @@ screens:
         title: "Spotify"
         description: "Music streaming service"
         default: false
-        status_script: '[[ -f "$HOME/Applications/streaming_scripts/spotify" ]] && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f \"$HOME/Applications/streaming_scripts/spotify\" ]] && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -750,7 +750,7 @@ screens:
         title: "Netflix"
         description: "Subscription streaming service"
         default: false
-        status_script: '[[ -f "$HOME/Applications/streaming_scripts/netflix" ]] && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet '[[ -f \"$HOME/Applications/streaming_scripts/netflix\" ]] && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -765,7 +765,7 @@ screens:
         title: "Plex HTPC"
         description: "Media server client (native Flatpak)"
         default: false
-        status_script: 'flatpak info tv.plex.PlexHTPC >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info tv.plex.PlexHTPC >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -780,7 +780,7 @@ screens:
         title: "JellyFin"
         description: "Media server client (native Flatpak)"
         default: false
-        status_script: 'flatpak info com.github.iwalton3.jellyfin-media-player >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info com.github.iwalton3.jellyfin-media-player >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -795,7 +795,7 @@ screens:
         title: "Stremio"
         description: "Media center with community add-ons (Flathub)"
         default: false
-        status_script: 'flatpak info --user com.stremio.Stremio >/dev/null 2>&1 && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'flatpak info --user com.stremio.Stremio >/dev/null 2>&1 && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -816,7 +816,7 @@ screens:
         title: "JetBrains Toolbox"
         description: "IDE manager for JetBrains products"
         default: false
-        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx jetbrains-toolbox-linux && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew list --cask 2>/dev/null | grep -qx jetbrains-toolbox-linux && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -831,7 +831,7 @@ screens:
         title: "VSCodium"
         description: "Community build of VS Code without telemetry"
         default: false
-        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx vscodium-linux && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew list --cask 2>/dev/null | grep -qx vscodium-linux && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
@@ -846,7 +846,7 @@ screens:
         title: "Android Platform Tools"
         description: "adb, fastboot and friends from the Android SDK"
         default: false
-        status_script: 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" && brew list --cask 2>/dev/null | grep -qx android-platform-tools && echo "install" || echo "uninstall"'
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew list --cask 2>/dev/null | grep -qx android-platform-tools && echo \"install\" || echo \"uninstall\"'"
         options:
           - id: "install"
             label: "Install"
