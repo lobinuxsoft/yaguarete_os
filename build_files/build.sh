@@ -336,3 +336,14 @@ fi
 # half of the fix.
 plymouth-set-default-theme yaguarete
 /ctx/build-initramfs
+
+### Make sure everything we ship under /usr/libexec/yaguarete is executable.
+#
+# The repo lives on an NTFS volume, which has no POSIX permission bits, so
+# a local `chmod +x` never reaches the git index and the file lands in the
+# image as 0644. A non-executable helper fails with "Permission denied"
+# and, when it is the Portal action wrapper, konsole closes before the
+# message can be read — which looks exactly like the silent failure the
+# wrapper exists to prevent (#237). Belt and braces: the mode is also
+# correct in git.
+chmod 0755 /usr/libexec/yaguarete/*
