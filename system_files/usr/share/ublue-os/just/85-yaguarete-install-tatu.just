@@ -30,15 +30,27 @@ install-tatu:
     TATU_BIN="$YG_APPS_DIR/Tatu.AppImage"
     ASSET_NAME="Game_Progress_Tracker.AppImage"
 
-    yg_info "Resolving latest Tatu release"
-    release=$(gh api repos/lobinuxsoft/tatu/releases/latest 2>/dev/null \
-        || curl -fsSL https://api.github.com/repos/lobinuxsoft/tatu/releases/latest)
+    # Pick the newest release that actually ships the AppImage, not simply
+    # the newest release. A tag published without assets — v0.6.0 went out
+    # that way — otherwise dead-ends the install even though a perfectly
+    # good build sits one release below.
+    yg_info "Resolving latest Tatu release with $ASSET_NAME"
+    releases=$(gh api repos/lobinuxsoft/tatu/releases 2>/dev/null \
+        || curl -fsSL https://api.github.com/repos/lobinuxsoft/tatu/releases)
+    release=$(echo "$releases" | jq -c --arg n "$ASSET_NAME" \
+        'first(.[] | select(.prerelease == false) | select(.assets[]?.name == $n))')
+    if [[ -z "$release" || "$release" == "null" ]]; then
+        newest=$(echo "$releases" | jq -r 'first(.[] | select(.prerelease == false)) | .tag_name // "none"')
+        yg_err "No published Tatu release contains $ASSET_NAME."
+        yg_err "Newest release is $newest; its assets: $(echo "$releases" | jq -r 'first(.[] | select(.prerelease == false)) | (.assets // []) | map(.name) | join(", ") | if . == "" then "(none — published without binaries)" else . end')"
+        exit 1
+    fi
     tag=$(echo "$release" | jq -r '.tag_name')
     asset_url=$(echo "$release" | jq -r --arg n "$ASSET_NAME" '.assets[] | select(.name == $n) | .browser_download_url')
     checksums_url=$(echo "$release" | jq -r '.assets[] | select(.name == "checksums-sha256.txt") | .browser_download_url')
-    if [[ -z "$asset_url" || "$asset_url" == "null" ]]; then
-        yg_err "Asset $ASSET_NAME not found in release $tag. Available: $(echo "$release" | jq -r '.assets[].name' | tr '\n' ' ')"
-        exit 1
+    newest_tag=$(echo "$releases" | jq -r 'first(.[] | select(.prerelease == false)) | .tag_name')
+    if [[ "$tag" != "$newest_tag" ]]; then
+        yg_warn "$newest_tag ships no $ASSET_NAME — falling back to $tag."
     fi
 
     tmp_bin="$(mktemp --tmpdir Tatu.XXXXXX.AppImage)"
