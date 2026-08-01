@@ -5,7 +5,7 @@
 #
 #   1. Eden AppImage from the official Gitea nightly release
 #   2. Switch firmware from THZoria/NX_Firmware (latest = Eden-compat)
-#   3. prod.keys from files.prodkeys.net (latest stable bundle)
+#   3. prod.keys from files.prodkeys.net (pinned bundle, SHA256-verified)
 #   4. .desktop entry + icon extracted from the AppImage
 #   5. Steam ROM Manager parser injected if EmuDeck is present
 #
@@ -78,14 +78,42 @@ install-eden:
         fi
         yg_ok "prod.keys imported from \$YAGUARETE_PROD_KEYS"
     else
+        # Pinned bundle, checked by SHA256. files.prodkeys.net publishes no
+        # index (`/` is 404) and no API, so "latest" cannot be resolved
+        # programmatically — and the filename scheme has already changed
+        # three times: `net-v20.3.0`, `NET_v21-0-0`, `Net-21.2.0`,
+        # `NET-v22.5.0`. Guessing a URL from a version number does not work.
+        #
+        # To move the pin: open https://prodkeys.net/eden-prod-keys-update-3/,
+        # take the newest files.prodkeys.net link, download it, and put its
+        # sha256sum here. Keys are forward-compatible within a firmware
+        # generation, so this only needs revisiting when Eden refuses to
+        # boot a title that needs newer keys.
+        #
+        # The checksum is the point: this is a third-party host serving
+        # material we then unpack into the user's home. An unverified
+        # download here would be the only one in the whole image.
+        EDEN_KEYS_VER="22.5.0"
+        EDEN_KEYS_URL="https://files.prodkeys.net/ProdKeys.NET-v22.5.0.zip"
+        EDEN_KEYS_SHA256="eb7c5368988b2d2a1969a75868347d8292edd7f67552b2fc01ad30c4845742e2"
+
         keys_zip="$(mktemp -d)/prodkeys.zip"
-        yg_download "https://files.prodkeys.net/ProdKeys.net-v20.3.0.zip" "$keys_zip"
+        yg_download "$EDEN_KEYS_URL" "$keys_zip"
+        if ! echo "${EDEN_KEYS_SHA256}  ${keys_zip}" | sha256sum --check --status; then
+            yg_err "prod.keys bundle failed its checksum — refusing to install it."
+            yg_err "Expected ${EDEN_KEYS_SHA256}"
+            yg_err "Got      $(sha256sum "$keys_zip" | cut -d' ' -f1)"
+            yg_err "The host republished the file under the same name, or the download was tampered with."
+            yg_err "Supply your own keys instead: YAGUARETE_PROD_KEYS=/path/to/prod.keys ujust install-eden"
+            rm -rf "$(dirname "$keys_zip")"
+            exit 1
+        fi
         tmpk=$(mktemp -d)
         unzip -q -o "$keys_zip" -d "$tmpk"
         find "$tmpk" -name 'prod.keys' -exec cp {} "$EDEN_DATA/keys/prod.keys" \;
         find "$tmpk" -name 'title.keys' -exec cp {} "$EDEN_DATA/keys/title.keys" \; 2>/dev/null || true
         rm -rf "$(dirname "$keys_zip")" "$tmpk"
-        yg_ok "prod.keys installed (v20.3.0 from files.prodkeys.net — forward-compatible with newer firmware)"
+        yg_ok "prod.keys v${EDEN_KEYS_VER} installed (checksum verified)"
     fi
 
     # 4. .desktop entry + icon — derive both from the AppImage's manifest
