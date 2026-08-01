@@ -238,7 +238,7 @@ jobs:
       - name: Build Image
         if: steps.check.outputs.should_build == 'true'
         id: build_image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2
+        uses: redhat-actions/buildah-build@3a51aade9afa17e5c78256bcbe2e1ee08c7b995b # v3.0.2
         with:
           containerfiles: |
             ./Containerfile
@@ -249,6 +249,10 @@ jobs:
             BASE_IMAGE=${{ env.BASE_IMAGE }}
             IMAGE_NAME=${{ env.IMAGE_NAME }}
           oci: false
+          # v3 flipped this default to true. Squashing would collapse our
+          # layers into the Bazzite base, so every `bootc upgrade` would
+          # pull the whole image instead of just our diff. Keep it off.
+          squash: false
 
       - name: Login to GitHub Container Registry
         if: steps.check.outputs.should_build == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
@@ -260,7 +264,7 @@ jobs:
 
       - name: Push To GHCR
         if: steps.check.outputs.should_build == 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/unstable' || github.ref == 'refs/heads/testing')
-        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2
+        uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3.0.0
         id: push
         env:
           REGISTRY_USER: ${{ github.actor }}

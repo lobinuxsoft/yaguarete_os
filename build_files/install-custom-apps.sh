@@ -120,14 +120,22 @@ install_appimage_from_release \
 # https://github.com/MakovWait/godots
 #
 # Upstream ships a single Godot-exported binary inside LinuxX11.zip, signed
-# with SHA512 (not SHA256). No bundled .desktop or icon, so we synthesise
-# them.
+# with SHA512 (not SHA256). The zip carries the binary and nothing else —
+# no .desktop, no icon — so we synthesise the launcher and install the
+# icon from the repo, pinned to the same release tag.
+#
+# The icon is not optional decoration: `Icon=godots` in the .desktop
+# resolves to nothing without it and the launcher renders as a blank page
+# (#245).
 # ============================================================================
-GODOTS_VERSION="1.4.1.stable"
-GODOTS_ZIP_SHA512="3528a844f5355679bdf40df9186b0af885a213fdf99c996925e844c6179f7380d0adedce5a61d65e9360e9691a5782a9bd2571288539df00c77845675709bfec"
+GODOTS_VERSION="1.4.2.stable"
+GODOTS_ZIP_SHA512="11c18c337e73e18f135216634eff62aff61847864d8c8314af2661c5b0cb5445f75753e4259153fc4009d9180e66ef77d68db7c392b624ff43d69054c8b774e7"
+GODOTS_ICON_SHA256="de088f3452e04986b4988b2a22a6518a4aaaab64e808ea9eee352bea141e774a"
 
 godots_tmp="/tmp/godots.zip"
+godots_icon_tmp="/tmp/godots-icon.svg"
 godots_dest="${YAGUARETE_LIB}/godots"
+godots_icon_dir="/usr/share/icons/hicolor/scalable/apps"
 curl -fsSL "https://github.com/MakovWait/godots/releases/download/v${GODOTS_VERSION}/LinuxX11.zip" \
     -o "$godots_tmp"
 echo "${GODOTS_ZIP_SHA512}  ${godots_tmp}" | sha512sum --check --strict
@@ -136,6 +144,14 @@ unzip -q "$godots_tmp" -d "$godots_dest"
 rm -f "$godots_tmp"
 chmod +x "${godots_dest}/Godots.x86_64"
 ln -sf "${godots_dest}/Godots.x86_64" /usr/bin/godots
+
+# 256x256 SVG from the repo root at the same tag as the binary.
+curl -fsSL "https://raw.githubusercontent.com/MakovWait/godots/v${GODOTS_VERSION}/icon.svg" \
+    -o "$godots_icon_tmp"
+echo "${GODOTS_ICON_SHA256}  ${godots_icon_tmp}" | sha256sum --check --strict
+mkdir -p "$godots_icon_dir"
+install -m 0644 "$godots_icon_tmp" "${godots_icon_dir}/godots.svg"
+rm -f "$godots_icon_tmp"
 
 cat > /usr/share/applications/godots.desktop <<'DESKTOP'
 [Desktop Entry]
@@ -150,4 +166,10 @@ Categories=Development;IDE;
 StartupNotify=true
 DESKTOP
 
-unset godots_tmp godots_dest
+# Refresh the hicolor index so the new icon is picked up without waiting
+# for a cache rebuild on the installed system.
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -qf /usr/share/icons/hicolor 2>/dev/null || true
+fi
+
+unset godots_tmp godots_icon_tmp godots_dest godots_icon_dir
