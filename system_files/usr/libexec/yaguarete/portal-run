@@ -61,10 +61,15 @@ if [[ -f "$LOG_FILE" ]] && (( $(stat -c %s "$LOG_FILE") > LOG_MAX_BYTES )); then
     mv -f "$LOG_FILE" "${LOG_FILE}.1"
 fi
 
+# `$quiet` holds the string "false" when off, which is not empty, so
+# ${quiet:+...} would tag every single entry as [status].
+marker=""
+$quiet && marker="[status] "
+
 {
     echo
     echo "==============================================================="
-    echo "$(date -Is)  ${quiet:+[status] }${command}"
+    echo "$(date -Is)  ${marker}${command}"
     echo "==============================================================="
 } >> "$LOG_FILE"
 
