@@ -6,13 +6,13 @@ const es: Translations = {
       'YaguareteOS — Distro KDE basada en Bazzite, orientada al desarrollo y el gaming',
     ogTitle: 'YaguareteOS — KDE para dev y gaming sobre Bazzite',
     description:
-      'YaguareteOS es una distribución Linux booteable basada en Bazzite (Universal Blue / Fedora Atomic), orientada al desarrollo y el gaming, con actualizaciones atómicas y firmada en nuestra propia CI.',
+      'YaguareteOS es una distribución Linux booteable basada en Bazzite (Universal Blue / Fedora Atomic), orientada al desarrollo y el gaming en handhelds, con slider de memoria gráfica para APUs AMD, actualizaciones atómicas y firmada en nuestra propia CI.',
   },
   hero: {
     titlePrefix: 'Yaguarete',
     titleSuffix: 'OS',
     subTitle:
-      'Distro KDE handheld-first sobre Bazzite, con suite de apps propias (Yryvu, Tatu, Eden) y autoconfiguración de FSR4 para AMD. Image-based con bootc, actualizaciones atómicas, firmada en nuestra propia CI.',
+      'Distro KDE handheld-first sobre Bazzite. Slider de memoria gráfica para APUs AMD sin pasar por el BIOS, Portal con 176 acciones de instalación, apps propias (Yryvu, Tatu) y autoconfiguración de FSR4. Image-based con bootc, actualizaciones atómicas, firmada en nuestra propia CI.',
     primaryBtn: 'Leer el README',
     primaryBtnUrl: 'https://github.com/lobinuxsoft/yaguarete_os#readme',
   },
@@ -22,7 +22,7 @@ const es: Translations = {
       'Elegí la variante que matchea con tu hardware. Las cuatro se construyen del mismo árbol y se firman con la misma clave cosign.',
     upstreamLabel: 'Base upstream',
     downloadLabel: 'Descargar ISO',
-    pendingNote: 'Pre-release — primer ISO stable en preparación',
+    pendingNote: 'ISO en preparación para esta variante',
     cosignNote:
       'Las releases stable se publican firmadas con cosign. Verificá la firma contra cosign.pub antes de instalar — instrucciones en el README.',
     cards: [
@@ -67,13 +67,19 @@ const es: Translations = {
   stack: {
     title: 'Bazzite por debajo, dev y gaming arriba',
     subTitle:
-      'Heredamos el stack de gaming de Bazzite — Steam, Proton-GE, GameMode, gamescope, MangoHud, Mesa al día — y le agregamos lo que necesitamos para el dev cotidiano. Image-based con bootc: cada update es atómico, rollback en un comando.',
+      'Heredamos el stack de gaming de Bazzite — Steam, Proton-GE, GameMode, gamescope, MangoHud, Mesa al día — y le agregamos lo que necesitamos para el dev cotidiano y para exprimir un handheld. Image-based con bootc: cada update es atómico, rollback en un comando.',
     features: [
       {
         heading: 'Gaming-ready',
         content:
           'Steam, Proton-GE, GameMode, gamescope y MangoHud preconfigurados. Mesa/AMD recientes. Perfiles para handhelds (Steam Deck, OneXFly, ROG Ally).',
         svg: 'rocket',
+      },
+      {
+        heading: 'Herramientas propias para handheld',
+        content:
+          'hhd-vram agrega un slider de memoria gráfica al overlay de Handheld Daemon: asignás RAM como VRAM en APUs AMD sin tocar el BIOS. Más ujust yaguarete-setup-decky, que instala Decky Loader verificando antes de borrar nada, y yaguarete-fsr4, que detecta la GPU y aplica el upgrade correcto.',
+        svg: 'puzzle',
       },
       {
         heading: 'Atómico e inmutable',
@@ -97,7 +103,12 @@ const es: Translations = {
       {
         question: '¿YaguareteOS es Bazzite con otro logo?',
         answer:
-          'No. Sumamos sobre Bazzite: una Portal yafti con ~80 items normalizados (install/update/uninstall), suite de apps propias (Yryvu, Tatu, Eden, Antigravity), wrapper ujust yaguarete-fsr4 que autodetecta GPU y aplica el upgrade correcto, versionado Aurora-style en rpm-ostree status, y pipeline propio firmado con cosign. Heredamos el stack gaming de Bazzite y lo extendemos con la identidad cultural y el ecosistema que faltaba.',
+          'No. Sumamos sobre Bazzite: el plugin hhd-vram para repartir RAM como memoria gráfica en APUs AMD, un Portal yafti con 75 apps y ajustes en 8 secciones (176 acciones install/update/uninstall, con la salida de cada una registrada en disco), instaladores propios para nuestras apps —Yryvu y Tatu— y recetas curadas para software de terceros como Eden, Antigravity o Decky Loader, el wrapper ujust yaguarete-fsr4 que autodetecta la GPU, comandos de rescate y de instalación por categoría (yaguarete-rescue, yaguarete-install-gaming, yaguarete-install-dev), versionado Aurora-style en rpm-ostree status y pipeline propio firmado con cosign.',
+      },
+      {
+        question: '¿Qué es el slider de memoria gráfica para handhelds?',
+        answer:
+          'En una APU AMD la "VRAM dedicada" la reserva el BIOS y no se mueve en caliente. El pool que sí importa es el GTT: RAM del sistema que la GPU mapea como memoria gráfica a través del argumento de kernel ttm.pages_limit. hhd-vram, que shippeamos como plugin del overlay de Handheld Daemon, lo expone como un porcentaje (25-90%, con un piso de 6 GiB siempre reservado para el sistema): movés el slider, aplicás, reinicia y queda persistido. Sirve para juegos con texturas pesadas y para correr modelos de lenguaje locales. Ninguna otra distro handheld —Bazzite, SteamOS, ChimeraOS— lo expone de esta forma.',
       },
       {
         question: '¿Qué variante instalo?',
