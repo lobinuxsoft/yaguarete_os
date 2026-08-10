@@ -59,27 +59,56 @@ tar -xJf "$firacode_tmp" -C "$firacode_dest" --no-same-owner
 rm -f "$firacode_tmp" "${firacode_dest}/README.md"
 chmod 0644 "${firacode_dest}"/*
 
-fc-cache -f "$firacode_dest"
+# Warm whatever cache this environment keeps. Not load-bearing: /var/cache
+# is a build cache mount, so nothing written here reaches the final image,
+# and fontconfig regenerates per system and per user at runtime anyway.
+fc-cache -f "$firacode_dest" || true
 
-# Fail the build rather than ship the exact bug this script exists to fix:
-# a family our configs name that the image does not actually resolve.
+# Fail the build rather than ship the bug this script exists to fix: a
+# family our configs name that the image does not contain.
 #
-# fc-match always answers, so presence is not the question — whether the
-# answer is the family we asked for is. Note what this must NOT be:
+# The instrument matters, and two obvious ones are wrong here.
 #
-#     fc-list : family | grep -qF "$family"      # DO NOT
+#   fc-list : family | grep -qF "$family"       # DO NOT
 #
 # grep -q closes the pipe on its first match, fc-list dies of SIGPIPE, and
-# `pipefail` (set above) turns that into 141. Measured on a box where the
-# font was installed: reported missing 10 times out of 10, which here would
-# mean a build that can never go green.
+# `pipefail` (set above) turns that into 141 — reported missing 10 runs out
+# of 10 on a machine where the font was installed.
+#
+#   fc-match -f '%{family}' "$family"           # DO NOT, not at build time
+#
+# fc-match answers from fontconfig's configuration and cache, not from the
+# files. In this container the cache lives under the /var/cache mount, which
+# is a build cache and therefore non-deterministic by design: the first run
+# of this gate passed on base, deck and nvidia-open and returned 'Noto Sans'
+# on nvidia, from identical inputs two seconds after the same fc-cache call.
+# With an empty fontconfig config, fc-match returns nothing at all.
+#
+# fc-scan reads the font files themselves — no cache, no configuration. It
+# answers the only question a build can honestly ask: did the archive land,
+# and do these files declare the families our configs name? Whether
+# fontconfig *resolves* them is a runtime question, and yg_has_font asks it
+# there, where the cache belongs to a real system.
+mapfile -t scanned_families < <(
+    fc-scan --format '%{family}\n' "$firacode_dest" | tr ',' '\n' | sort -u
+)
+
+has_family() {
+    local want="$1" found
+    for found in "${scanned_families[@]}"; do
+        [[ "$found" == "$want" ]] && return 0
+    done
+    return 1
+}
+
 for family in "FiraCode Nerd Font" "FiraCode Nerd Font Mono"; do
-    matched=$(fc-match -f '%{family}' "$family")
-    if [[ ",${matched}," != *",${family},"* ]]; then
-        echo "ERROR: '${family}' does not resolve — fontconfig answered '${matched}'." >&2
+    if ! has_family "$family"; then
+        echo "ERROR: '${family}' is not declared by any font in ${firacode_dest}." >&2
+        echo "Families found: ${scanned_families[*]}" >&2
         exit 1
     fi
 done
-unset family matched
+echo "Verified: FiraCode Nerd Font + Mono present in ${firacode_dest}"
 
+unset family scanned_families
 unset firacode_tmp firacode_dest

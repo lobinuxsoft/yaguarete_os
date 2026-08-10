@@ -191,9 +191,18 @@ yaguarete-setup-shell ACTION="":
                     exit 1
                 }
             done
+            # The font ships with the image, so a miss here is either a
+            # stale per-user fontconfig cache or a genuinely broken image.
+            # Rebuild the cache once before blaming the image — that is the
+            # cheap half of the diagnosis and the common one.
             if ! yg_has_font "FiraCode Nerd Font"; then
-                yg_err "FiraCode Nerd Font does not resolve on this system."
-                yg_err "Powerlevel10k would render as a row of empty boxes. Report this."
+                yg_info "Rebuilding your font cache..."
+                fc-cache -f >/dev/null 2>&1 || true
+            fi
+            if ! yg_has_font "FiraCode Nerd Font"; then
+                yg_err "FiraCode Nerd Font does not resolve, even after a cache rebuild."
+                yg_err "It ships with the image, so this is a packaging bug — report it."
+                yg_err "Powerlevel10k would render as a row of empty boxes without it."
                 exit 1
             fi
 

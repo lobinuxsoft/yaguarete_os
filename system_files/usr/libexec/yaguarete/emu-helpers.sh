@@ -134,6 +134,12 @@ yg_pause() {
 # grep -q closes the pipe on its first match, fc-list dies of SIGPIPE, and
 # under `set -o pipefail` the pipeline reports 141. Measured: it calls every
 # font missing, 10 runs out of 10. No pipe here, so no race.
+#
+# This is a RUNTIME instrument. Do not reuse it inside a container build:
+# fc-match answers from fontconfig's cache and configuration, and in the
+# build the cache lives on an ephemeral mount, so the same inputs give
+# different answers per variant. build_files/install-fonts.sh uses fc-scan
+# instead, which reads the font files directly.
 yg_has_font() {
     local family="$1" matched
     matched=$(fc-match -f '%{family}' "$family" 2>/dev/null) || return 1
