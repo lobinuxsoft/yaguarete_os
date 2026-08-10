@@ -12,7 +12,7 @@ const es: Translations = {
     titlePrefix: 'Yaguarete',
     titleSuffix: 'OS',
     subTitle:
-      'Distro KDE handheld-first sobre Bazzite. Slider de memoria gráfica para APUs AMD sin pasar por el BIOS, Portal con 176 acciones de instalación, apps propias (Yryvu, Tatu) y autoconfiguración de FSR4. Image-based con bootc, actualizaciones atómicas, firmada en nuestra propia CI.',
+      'Distro KDE handheld-first sobre Bazzite. Slider de memoria gráfica para APUs AMD sin pasar por el BIOS, Portal con 182 acciones de instalación, apps propias (Yryvu, Tatu) y autoconfiguración de FSR4. Image-based con bootc, actualizaciones atómicas, firmada en nuestra propia CI.',
     primaryBtn: 'Leer el README',
     primaryBtnUrl: 'https://github.com/lobinuxsoft/yaguarete_os#readme',
   },
@@ -90,7 +90,7 @@ const es: Translations = {
       {
         heading: 'Dev-friendly',
         content:
-          'Toolbox, distrobox y devcontainer first-class. KDE Plasma como escritorio. Defaults en español, locale es-AR.',
+          'Terminal lista de fábrica: kitty con zsh, prompt Powerlevel10k y FiraCode Nerd Font con ligatures, en un comando. Claude Code y Antigravity a un clic desde el Portal. Toolbox, distrobox y devcontainer first-class. KDE Plasma como escritorio. Defaults en español, locale es-AR.',
         svg: 'tools',
       },
     ],
