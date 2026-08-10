@@ -339,6 +339,21 @@ screens:
           - id: "remove"
             label: "Remove"
             script: "/usr/libexec/yaguarete/portal-run 'ujust yaguarete-setup-shell remove'"
+      - id: "claude-code"
+        title: "Claude Code (Anthropic — Claude)"
+        description: "Install Anthropic's Claude Code CLI from the official installer (inspect-then-run, no root, nothing added to the image). Requires an Anthropic account to be usable at all — a Claude subscription or an API key; installing it only puts the binary in place. Sign in afterwards with 'claude auth login'."
+        default: false
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'command -v claude >/dev/null 2>&1 && echo \"install\" || echo \"remove\"'"
+        options:
+          - id: "install"
+            label: "Install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust install-claude-code'"
+          - id: "update"
+            label: "Update"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust update-claude-code'"
+          - id: "remove"
+            label: "Remove"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust remove-claude-code'"
   - title: "Creative Apps"
     description: "Multimedia creation suite (Flathub installs, per-user, no reboot)"
     actions:
