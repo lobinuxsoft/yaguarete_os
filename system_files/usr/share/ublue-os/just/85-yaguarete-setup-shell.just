@@ -40,6 +40,8 @@ yaguarete-setup-shell ACTION="":
     OMZ_DIR="$HOME/.oh-my-zsh"
     OMZ_CUSTOM="$OMZ_DIR/custom"
     ZSH_BIN="/usr/bin/zsh"
+    SYS_FONT_DIR="/usr/share/fonts/firacode-nerd-fonts"
+    USER_FONT_LINK="$YG_DATA_DIR/fonts/firacode-nerd-fonts"
 
     # theme/plugin name -> upstream repository
     declare -A THEMES=(
@@ -164,6 +166,54 @@ yaguarete-setup-shell ACTION="":
         log "login shell $current -> $ZSH_BIN"
     }
 
+    # Make FiraCode resolve for this user, repairing rather than refusing.
+    #
+    # The font ships in the image, so in principle there is nothing to do.
+    # In practice 44.20260810 shipped it invisible: fontconfig caches the
+    # subdirectory listing of /usr/share/fonts, that cache was baked into
+    # the base image before our directory existed, and ostree normalises
+    # every mtime to 0 so nothing can tell it is stale. /usr/lib/fontconfig
+    # is read-only, so no cache rebuild on the running system fixes it.
+    #
+    # Deliberately NO sudo anywhere here. On bootc /usr is read-only for
+    # root too, so privileges buy nothing; and $XDG_DATA_HOME/fonts is in
+    # fontconfig's search path with a cache this user owns and can
+    # regenerate. Symlinking the image directory in costs no disk, needs no
+    # download, and keeps the fonts owned by the image.
+    ensure_font() {
+        yg_has_font "FiraCode Nerd Font" && return 0
+
+        yg_info "Rebuilding your font cache..."
+        fc-cache -f >/dev/null 2>&1 || true
+        yg_has_font "FiraCode Nerd Font" && return 0
+
+        if [[ ! -d "$SYS_FONT_DIR" ]]; then
+            yg_err "$SYS_FONT_DIR does not exist."
+            yg_err "The font is missing from the image itself — that is a packaging"
+            yg_err "bug, not something this recipe can repair. Please report it."
+            return 1
+        fi
+
+        yg_info "The image font is not visible to fontconfig — linking it into"
+        yg_info "your own font directory (no root, no download)..."
+        mkdir -p "$(dirname "$USER_FONT_LINK")"
+        ln -sfn "$SYS_FONT_DIR" "$USER_FONT_LINK"
+        fc-cache -f >/dev/null 2>&1 || true
+
+        if yg_has_font "FiraCode Nerd Font"; then
+            yg_ok "FiraCode Nerd Font resolves via $USER_FONT_LINK"
+            yg_info "Once an image ships the fontconfig fix this link is redundant;"
+            yg_info "'ujust yaguarete-setup-shell remove' takes it away."
+            return 0
+        fi
+
+        rm -f "$USER_FONT_LINK"
+        yg_err "FiraCode Nerd Font still does not resolve, even linked into"
+        yg_err "$YG_DATA_DIR/fonts. Powerlevel10k would render as empty boxes."
+        yg_err "Please report this — it is not a normal failure."
+        return 1
+    }
+
     report_rollback() {
         printf '\n'
         yg_info "If you ever want bash back:"
@@ -191,20 +241,7 @@ yaguarete-setup-shell ACTION="":
                     exit 1
                 }
             done
-            # The font ships with the image, so a miss here is either a
-            # stale per-user fontconfig cache or a genuinely broken image.
-            # Rebuild the cache once before blaming the image — that is the
-            # cheap half of the diagnosis and the common one.
-            if ! yg_has_font "FiraCode Nerd Font"; then
-                yg_info "Rebuilding your font cache..."
-                fc-cache -f >/dev/null 2>&1 || true
-            fi
-            if ! yg_has_font "FiraCode Nerd Font"; then
-                yg_err "FiraCode Nerd Font does not resolve, even after a cache rebuild."
-                yg_err "It ships with the image, so this is a packaging bug — report it."
-                yg_err "Powerlevel10k would render as a row of empty boxes without it."
-                exit 1
-            fi
+            ensure_font || exit 1
 
             install_omz || exit 1
 
@@ -277,6 +314,14 @@ yaguarete-setup-shell ACTION="":
             done
             rm -rf "$OMZ_DIR"
             rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/p10k-instant-prompt-*.zsh
+
+            # Only remove the font link if we are the ones who made it — a
+            # real directory there is the user's own and none of our business.
+            if [[ -L "$USER_FONT_LINK" ]]; then
+                rm -f "$USER_FONT_LINK"
+                fc-cache -f >/dev/null 2>&1 || true
+                yg_ok "Removed the FiraCode link from $YG_DATA_DIR/fonts."
+            fi
             yg_ok "oh-my-zsh and its add-ons removed."
             yg_info "The .zshrc that ships with the image still works without them —"
             yg_info "it falls back to a plain prompt."
