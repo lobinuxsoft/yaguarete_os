@@ -59,10 +59,36 @@ tar -xJf "$firacode_tmp" -C "$firacode_dest" --no-same-owner
 rm -f "$firacode_tmp" "${firacode_dest}/README.md"
 chmod 0644 "${firacode_dest}"/*
 
-# Warm whatever cache this environment keeps. Not load-bearing: /var/cache
-# is a build cache mount, so nothing written here reaches the final image,
-# and fontconfig regenerates per system and per user at runtime anyway.
-fc-cache -f "$firacode_dest" || true
+# Register the directory with fontconfig, then rebuild the cache for
+# EVERY configured directory — deliberately without a path argument.
+#
+# `fc-cache -f "$firacode_dest"` was the first attempt and it shipped a
+# font nobody could use. It builds a perfectly good cache for our own
+# directory and leaves the cache for the PARENT, /usr/share/fonts,
+# untouched — and the parent's cache is the thing that enumerates
+# subdirectories. That parent cache comes from the base Bazzite image,
+# from before our subdir existed.
+#
+# On a normal filesystem fontconfig would notice: it validates a
+# directory cache against the directory's mtime. On ostree every mtime in
+# the image is normalised to 0, so the parent looks unchanged forever, and
+# /usr/lib/fontconfig/cache is read-only once deployed, so no amount of
+# `fc-cache -f` on the running system can repair it.
+#
+# Observed on a real install of 44.20260810: 18 valid font files,
+# fc-query read them happily, and fc-list/fc-match could not see a single
+# one — fc-match answered 'Noto Sans'.
+#
+# Two independent fixes, because this class of bug is silent:
+#   1. the conf.avail drop-in below names the directory outright, so the
+#      parent's subdirectory listing stops mattering (this is the half
+#      that was verified on hardware)
+#   2. this full fc-cache regenerates the parent listing while /usr is
+#      still writable, which is the actual root-cause repair
+ln -sf ../../../usr/share/fontconfig/conf.avail/09-yaguarete-firacode-dir.conf \
+    /etc/fonts/conf.d/09-yaguarete-firacode-dir.conf
+
+fc-cache -f
 
 # Fail the build rather than ship the bug this script exists to fix: a
 # family our configs name that the image does not contain.
@@ -110,5 +136,29 @@ for family in "FiraCode Nerd Font" "FiraCode Nerd Font Mono"; do
 done
 echo "Verified: FiraCode Nerd Font + Mono present in ${firacode_dest}"
 
-unset family scanned_families
+# Second gate, added after 44.20260810 shipped 18 valid fonts that
+# fontconfig could not see. fc-scan above proves the FILES are right; it
+# cannot prove fontconfig will look in their directory, which is exactly
+# the gap that bug fell through.
+#
+# This asks the configuration question: with the drop-in installed and the
+# cache rebuilt, does fc-list report anything from our directory? That is a
+# direct consequence of the <dir> element, not of a substitution chain, so
+# unlike the fc-match attempt it should be deterministic. `grep -c` reads
+# all of stdin, so there is no early-exit SIGPIPE to trip `pipefail` on.
+#
+# If this ever fails spuriously across variants, demote it to a warning
+# rather than deleting it — but do not assume a green fc-scan means users
+# can see the font. It does not.
+listed=$(fc-list 2>/dev/null | grep -c "firacode-nerd-fonts" || true)
+if [[ "${listed:-0}" -lt 1 ]]; then
+    echo "ERROR: fontconfig lists 0 fonts from ${firacode_dest}." >&2
+    echo "The files are installed and valid, but nothing will resolve them." >&2
+    echo "Check /etc/fonts/conf.d/09-yaguarete-firacode-dir.conf and the" >&2
+    echo "cache for the parent directory /usr/share/fonts." >&2
+    exit 1
+fi
+echo "Verified: fontconfig lists ${listed} fonts from ${firacode_dest}"
+
+unset family scanned_families listed
 unset firacode_tmp firacode_dest
