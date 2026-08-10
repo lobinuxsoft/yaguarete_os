@@ -62,16 +62,8 @@ yaguarete-setup-decky ACTION="":
     MIN_BIN_BYTES=1000000
     API_RELEASES="https://api.github.com/repos/SteamDeckHomebrew/decky-loader/releases"
 
-    # `sudo -A` needs an askpass, which exists under the Portal and the
-    # desktop session but not over plain ssh. Fall back to a normal sudo
-    # prompt there instead of failing with "no askpass program".
-    yg_sudo() {
-        if [[ -n "${SUDO_ASKPASS:-}" ]] && [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]]; then
-            sudo -A "$@"
-        else
-            sudo "$@"
-        fi
-    }
+    # yg_sudo (askpass under the Portal, plain prompt over ssh) comes from
+    # emu-helpers.sh, sourced above.
 
     # Resolve tag_name + PluginLoader asset URL for the newest release.
     # Prints "<version> <url>"; returns non-zero when anything is missing.

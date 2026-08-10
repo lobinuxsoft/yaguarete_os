@@ -12,6 +12,20 @@ set -ouex pipefail
 # Base CLI tooling
 dnf5 install -y tmux
 
+# Terminal + shell stack (#254). kitty is the terminal the YaguareteOS
+# shell configuration targets; zsh is the login shell for new accounts
+# (see /etc/default/useradd further down).
+#
+# WARNING: zsh cannot be dropped from this image without a migration.
+# `chsh` writes /etc/passwd, /etc is a persistent per-deployment overlay,
+# and rolling back to an image without zsh leaves those accounts naming a
+# login shell that is not there — terminals stop opening, and session
+# startup may go with them. Removing it is a breaking change with a
+# recovery step attached, not a package cleanup.
+dnf5 install -y \
+    kitty \
+    zsh
+
 # Default pre-installed apps for all 4 variants. Maintained list — decisions
 # tracked in #93. Skip packages already shipped by upstream Bazzite
 # (mangohud, goverlay, lutris, ffmpeg-free) to avoid duplicate layers.
@@ -27,13 +41,39 @@ dnf5 install -y \
 # - Inter (rsms-inter-fonts) is the UI font referenced by the kdeglobals
 #   font keys; pre-install so the theme applies on first boot instead of
 #   falling back to Noto Sans.
-# - JetBrainsMono Nerd Font ships in the Bazzite nerd-fonts layer, so we
-#   do not duplicate it here — it is already the mono font in
-#   /etc/xdg/kdeglobals and the YaguareteOS Konsole profile.
+# - The mono font is FiraCode Nerd Font, installed by install-fonts.sh
+#   below because Fedora does not package the Nerd Font patched build.
+#   This comment used to claim JetBrainsMono Nerd Font "ships in the
+#   Bazzite nerd-fonts layer" — it does not and never did. Bazzite ships
+#   the Symbols Nerd Font only, so three configs named a family the image
+#   did not contain and fontconfig substituted silently (#254).
 # - Noto Serif is the document font; apps (Kate, LibreOffice) can opt in.
 dnf5 install -y \
     rsms-inter-fonts \
     google-noto-serif-fonts
+
+### Typography that Fedora does not package (FiraCode Nerd Font).
+# Pinned version + SHA256 live in install-fonts.sh, which fails the build
+# if the families our configs name are missing afterwards.
+/ctx/install-fonts.sh
+
+### Shell defaults: zsh for new accounts, plus the shared configuration
+# templates in /etc/skel.
+#
+# /usr/share/yaguarete/shell/ is the single source of truth. The recipe
+# `ujust yaguarete-setup-shell` writes the same files into an existing
+# user's $HOME; copying them here instead of duplicating them under
+# system_files/etc/skel/ keeps the two paths from drifting apart.
+#
+# The templates are guarded so a new account whose login shell is zsh gets
+# a usable prompt before anyone runs the recipe — and, in particular, is
+# never dropped into zsh-newuser-install's wizard.
+sed -i 's|^SHELL=.*|SHELL=/usr/bin/zsh|' /etc/default/useradd
+grep -q '^SHELL=/usr/bin/zsh$' /etc/default/useradd
+
+install -Dm0644 /usr/share/yaguarete/shell/zshrc /etc/skel/.zshrc
+install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
+    /etc/skel/.config/kitty/kitty.conf
 
 ### Custom apps installed from GitHub Releases (yryvu, capydeploy, godots, ...)
 # Pinned versions + checksums live in install-custom-apps.sh. Bumping any of

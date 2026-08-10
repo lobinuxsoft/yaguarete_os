@@ -1,6 +1,6 @@
 [Appearance]
 ColorScheme=YaguareteOS
-Font=JetBrainsMono Nerd Font,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+Font=FiraCode Nerd Font Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 
 [General]
 Name=YaguareteOS

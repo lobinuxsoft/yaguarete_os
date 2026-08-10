@@ -11,10 +11,14 @@ on:
       - unstable
     # Mirror the `push` ignore-list so docs-only PRs do not pay the
     # 4-variant matrix cost. Composes with the batch-CI-runs preference.
+    # `web/**` is the landing site: it ships to GitHub Pages via pages.yml,
+    # never into the image, so a copy change has no business rebuilding
+    # four containers.
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - 'installer/**'
+      - 'web/**'
   push:
     branches:
       - testing
@@ -23,6 +27,7 @@ on:
       - '**.md'
       - 'docs/**'
       - 'installer/**'
+      - 'web/**'
   workflow_dispatch:
 
 env:
