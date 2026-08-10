@@ -114,6 +114,53 @@ yg_pause() {
 }
 
 # ---------------------------------------------------------------------
+# Fonts
+# ---------------------------------------------------------------------
+
+# True when fontconfig resolves this exact family, rather than quietly
+# substituting something else for it.
+#
+# Testing resolution instead of mere presence is deliberate: the bug this
+# guards against (#254) was three configs naming JetBrainsMono Nerd Font on
+# an image that never had it, with fontconfig handing back another mono and
+# nobody noticing for months. fc-match always answers — a fallback chain
+# has no concept of failure — so the only honest question is whether the
+# answer is what we asked for.
+#
+# The obvious one-liner is a trap:
+#
+#     fc-list : family | grep -qF "$family"      # DO NOT
+#
+# grep -q closes the pipe on its first match, fc-list dies of SIGPIPE, and
+# under `set -o pipefail` the pipeline reports 141. Measured: it calls every
+# font missing, 10 runs out of 10. No pipe here, so no race.
+yg_has_font() {
+    local family="$1" matched
+    matched=$(fc-match -f '%{family}' "$family" 2>/dev/null) || return 1
+    # %{family} can answer with a comma-separated alias list.
+    [[ ",${matched}," == *",${family},"* ]]
+}
+
+# ---------------------------------------------------------------------
+# Privilege escalation
+# ---------------------------------------------------------------------
+
+# sudo that works both under the Portal and over plain ssh.
+#
+# Every upstream Bazzite recipe calls `sudo -A`, which needs SUDO_ASKPASS
+# and a graphical session to pop the dialog. portal-run restores that
+# variable, but over ssh there is no askpass at all and `sudo -A` dies with
+# "no askpass program specified". Fall back to an ordinary sudo prompt
+# there, where a TTY exists to type into.
+yg_sudo() {
+    if [[ -n "${SUDO_ASKPASS:-}" ]] && [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]]; then
+        sudo -A "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+# ---------------------------------------------------------------------
 # Download + desktop integration
 # ---------------------------------------------------------------------
 
@@ -166,7 +213,8 @@ Exports: YG_APPS_DIR YG_BIN_DIR YG_DATA_DIR YG_CONFIG_DIR
 Provides: yg_info yg_ok yg_warn yg_err
           yg_arch yg_supports_v3 yg_is_handheld
           yg_check_internet yg_check_disk
-          yg_confirm yg_pause yg_download yg_refresh_desktop_db
+          yg_confirm yg_pause yg_sudo yg_has_font
+          yg_download yg_refresh_desktop_db
           yg_has_emudeck yg_emudeck_setting
 USAGE
 fi
