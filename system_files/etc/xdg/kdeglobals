@@ -2,7 +2,7 @@
 AccentColor=255,69,0
 ColorScheme=YaguareteOS
 Name=YaguareteOS
-fixed=JetBrainsMono Nerd Font,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+fixed=FiraCode Nerd Font Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 font=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 menuFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 smallestReadableFont=Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1

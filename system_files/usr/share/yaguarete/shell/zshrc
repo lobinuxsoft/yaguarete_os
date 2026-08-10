@@ -1,0 +1,86 @@
+# YaguareteOS — default zsh configuration.
+#
+# Single source of truth for two destinations:
+#   - /etc/skel/.zshrc  (new accounts, copied in build.sh)
+#   - ~/.zshrc          (written by `ujust yaguarete-setup-shell`)
+#
+# Every optional piece below is guarded, because the same file has to work
+# in three states:
+#
+#   1. no oh-my-zsh at all    — a brand new account, before anyone has run
+#                               the setup recipe
+#   2. oh-my-zsh, no p10k     — a partially completed setup
+#   3. the full stack         — what the recipe produces
+#
+# That is not defensive decoration. zsh is the default login shell for new
+# accounts on this image (/etc/default/useradd), so an unguarded `source`
+# of something that is not there yet is a broken login, not a cosmetic
+# problem. State 1 also has to avoid zsh-newuser-install, whose wizard
+# would otherwise greet every new user.
+#
+# Third-party installers (Claude Code, the Antigravity CLI, homebrew, ...)
+# append their own PATH lines to the end of this file. `ujust
+# yaguarete-setup-shell` therefore backs the file up instead of
+# overwriting it in place — see 85-yaguarete-setup-shell.just.
+
+# ---------------------------------------------------------------------
+# Anything that writes to the terminal MUST stay above the instant prompt
+# block below, or Powerlevel10k reports console output on every start.
+# ---------------------------------------------------------------------
+
+if [[ -n "$KITTY_WINDOW_ID" ]] && [[ -z "$FASTFETCH_SHOWN" ]] \
+    && (( $+commands[fastfetch] )); then
+    export FASTFETCH_SHOWN=1
+    fastfetch --kitty /usr/share/icons/hicolor/256x256/apps/yaguarete-logo-icon.png
+fi
+
+# Powerlevel10k instant prompt. Keep this close to the top.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# ---------------------------------------------------------------------
+# PATH
+# ---------------------------------------------------------------------
+
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+
+# ---------------------------------------------------------------------
+# oh-my-zsh + Powerlevel10k, when present
+# ---------------------------------------------------------------------
+
+export ZSH="$HOME/.oh-my-zsh"
+
+if [[ -d "$ZSH" ]]; then
+    ZSH_THEME="powerlevel10k/powerlevel10k"
+
+    # oh-my-zsh resolves these against $ZSH/plugins and
+    # $ZSH_CUSTOM/plugins only — never /usr/share, which is where the
+    # Fedora zsh-autosuggestions / zsh-syntax-highlighting RPMs land.
+    # The setup recipe clones them into $ZSH_CUSTOM/plugins for that
+    # reason.
+    plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+
+    source "$ZSH/oh-my-zsh.sh"
+else
+    # State 1: enough zsh to be pleasant, and a pointer to the rest.
+    autoload -Uz compinit && compinit
+    autoload -Uz colors && colors
+
+    HISTFILE="$HOME/.zsh_history"
+    HISTSIZE=10000
+    SAVEHIST=10000
+    setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE
+    setopt AUTO_CD INTERACTIVE_COMMENTS
+
+    PROMPT='%F{208}%n@%m%f %F{cyan}%~%f %# '
+
+    print -P "%F{208}YaguareteOS%f — run %F{cyan}ujust yaguarete-setup-shell%f to install the full prompt."
+fi
+
+# ---------------------------------------------------------------------
+# Powerlevel10k appearance. Written by the setup recipe; regenerate any
+# time with `p10k configure`.
+# ---------------------------------------------------------------------
+
+[[ -r "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
