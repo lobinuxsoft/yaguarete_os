@@ -103,7 +103,7 @@ const en: Translations = {
       {
         question: 'Is YaguareteOS just Bazzite with a new logo?',
         answer:
-          'No. On top of Bazzite we add: the hhd-vram plugin for splitting RAM into graphics memory on AMD APUs, a yafti Portal with 77 apps and tweaks across 8 sections (182 install/update/uninstall actions, each one logging its output to disk), our own installers for our own apps — Yryvu and Tatu — plus curated recipes for third-party software like Eden, Antigravity, Claude Code or Decky Loader, the ujust yaguarete-fsr4 wrapper that auto-detects the GPU, rescue and per-category install commands (yaguarete-rescue, yaguarete-install-gaming, yaguarete-install-dev), Aurora-style versioning in rpm-ostree status, and our own pipeline signed with cosign.',
+          'No. On top of Bazzite we add: the hhd-vram plugin for splitting RAM into graphics memory on AMD APUs, a yafti Portal with 79 apps and tweaks across 8 sections (188 install/update/uninstall actions, each one logging its output to disk), our own installers for our own apps — Yryvu and Tatu — plus curated recipes for third-party software like Eden, Antigravity, Claude Code or Decky Loader, the ujust yaguarete-fsr4 wrapper that auto-detects the GPU, rescue and per-category install commands (yaguarete-rescue, yaguarete-install-gaming, yaguarete-install-dev), Aurora-style versioning in rpm-ostree status, and our own pipeline signed with cosign.',
       },
       {
         question: 'What is the handheld graphics-memory slider?',
