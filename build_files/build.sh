@@ -228,7 +228,11 @@ done
 # It is used both for the window title (Gtk.Window) and the
 # --title flag passed to the embedded webview. Patch in place so the
 # YaguareteOS rebrand reaches the window decoration.
-sed -i "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
+# The argparse description is a second, separate literal further down the
+# file; it only surfaces in --help, but leaving it behind means the rebrand is
+# complete everywhere except the one place a curious user would look first.
+sed -i -e "s|^APP_TITLE = 'Bazzite Portal'|APP_TITLE = 'Portal YaguareteOS'|" \
+       -e 's|description="Bazzite Portal"|description="Portal YaguareteOS"|' \
     /usr/bin/yafti_gtk.py
 
 ### Branding: yafti registers its window icon via APP_ID
