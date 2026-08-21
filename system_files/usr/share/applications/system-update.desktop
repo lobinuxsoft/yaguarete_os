@@ -18,3 +18,10 @@ Icon=yaguarete-update
 Categories=ConsoleOnly;System;
 Terminal=true
 Exec=/usr/bin/ujust update
+# NoDisplay=true is appended at build time by the Containerfile, and only
+# when bazzite-updater is actually installed -- that package ships a Qt GUI
+# doing the same update through uupd-manual.service, plus rollback and
+# release notes, rebranded as "Yaguarete Updater". Two update entries side
+# by side confused the menu. This entry is hidden rather than deleted so
+# `ujust update` stays reachable for anyone who wants the console path, and
+# it stays visible on any variant that lacks the package.
