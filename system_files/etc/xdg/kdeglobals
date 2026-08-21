@@ -1,4 +1,8 @@
 [General]
+# KDE's own "open a terminal" actions (Dolphin, KRunner, Konsole's own
+# fallbacks) read this key rather than the XDG terminal spec, so it has to
+# be set alongside /etc/xdg/xdg-terminals.list to keep both paths on kitty.
+TerminalApplication=kitty
 AccentColor=255,69,0
 ColorScheme=YaguareteOS
 Name=YaguareteOS

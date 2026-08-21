@@ -1,0 +1,11 @@
+# Default Terminal Specification (xdg-terminal-exec). First entry wins.
+#
+# Every helper that opens a terminal -- portal-run, emu-helpers.sh, the
+# ujust recipes yafti spawns -- goes through `xdg-terminal-exec`, so this
+# single file is what makes them all land on kitty. Without it the launcher
+# falls back to a heuristic scan and picked Konsole.
+#
+# Konsole stays installed on purpose as the fallback below: KDE code paths
+# and third-party apps may still call it by name.
+kitty.desktop
+org.kde.konsole.desktop

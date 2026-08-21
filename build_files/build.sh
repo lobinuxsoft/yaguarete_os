@@ -75,6 +75,16 @@ install -Dm0644 /usr/share/yaguarete/shell/zshrc /etc/skel/.zshrc
 install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
     /etc/skel/.config/kitty/kitty.conf
 
+# Same file again as the system-wide default. kitty searches
+# $XDG_CONFIG_HOME/kitty/kitty.conf, ~/.config/kitty/kitty.conf and then
+# $XDG_CONFIG_DIRS/kitty/kitty.conf (`kitty --help`), so /etc/xdg covers the
+# accounts /etc/skel never touched -- anyone who existed before this image,
+# or who never ran `ujust yaguarete-setup-shell`. Without it, promoting kitty
+# to default terminal would open an unthemed kitty for exactly those users.
+# A personal ~/.config/kitty/kitty.conf still wins.
+install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
+    /etc/xdg/kitty/kitty.conf
+
 ### Custom apps installed from GitHub Releases (yryvu, capydeploy, godots, ...)
 # Pinned versions + checksums live in install-custom-apps.sh. Bumping any of
 # them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
@@ -182,10 +192,56 @@ for variant in bazzite-logo.svg bazzite-logo-white.svg bazzite-logo-le.svg \
         "/usr/share/icons/hicolor/scalable/places/$variant"
 done
 
-### Branding: keep /usr/share/ublue-os/motd/bazzite.md path alive as a
-# symlink to the YaguareteOS-named file. Reason: /usr/libexec/ublue-motd
-# hardcodes the bazzite.md path; renaming the file alone breaks login MOTD.
-ln -sf yaguarete.md /usr/share/ublue-os/motd/bazzite.md
+### Branding: the login MOTD.
+# ublue-motd stopped reading a distro-named file. It now renders
+# /usr/share/ublue-os/motd/template.md, expanding shell variables exported
+# by env.sh (${MOTD_IMAGE_NAME}, ${MOTD_GREENBOOT}, ${MOTD_TIP}) instead of
+# the old %PLACEHOLDER% syntax, and pulls one random line out of tips/*.md.
+#
+# We ship our own template.md through system_files/, so the banner itself is
+# already ours by the time this runs. What is left is the tips directory:
+# every upstream file there is Bazzite-branded prose ("Bazzite uses ZSTD
+# compression", "rolling back to older Bazzite builds") with docs.bazzite.gg
+# links, and one of them is picked at random on every login. Remove them by
+# name -- never with a glob, which would take our own tips with them.
+for upstream_tip in 10-ublue.md 15-ublue-config.md 20-bazzite.md \
+                    25-bazzite-deck.md 30-kde.md; do
+    rm -f "/usr/share/ublue-os/motd/tips/$upstream_tip"
+done
+rm -f /usr/share/ublue-os/motd/bazzite.md
+
+# Fail loudly rather than shipping a Bazzite-branded banner: the previous
+# override went stale for months precisely because nothing checked it.
+if grep -q "bazzite" /usr/share/ublue-os/motd/template.md; then
+    echo "[motd] FATAL: template.md still mentions bazzite" >&2
+    exit 1
+fi
+if ! ls /usr/share/ublue-os/motd/tips/*.md >/dev/null 2>&1; then
+    echo "[motd] FATAL: no tips left, the banner would render an empty line" >&2
+    exit 1
+fi
+echo "[motd] template.md is ours, $(ls /usr/share/ublue-os/motd/tips/*.md | wc -l) tip file(s) kept"
+
+### Default terminal: kitty (#254).
+# /etc/xdg/xdg-terminals.list (shipped via system_files/) covers every helper
+# that goes through xdg-terminal-exec, and kdeglobals covers KDE's own
+# actions. This third path is the `x-scheme-handler/terminal` association.
+#
+# The file is edited in place instead of shipped: the base image already
+# writes /etc/xdg/mimeapps.list with the Bazaar association for
+# application/vnd.flatpak.ref, and dropping our own copy on top would
+# silently take that with it.
+if ! grep -q "^x-scheme-handler/terminal=" /etc/xdg/mimeapps.list 2>/dev/null; then
+    if grep -q "^\[Default Applications\]" /etc/xdg/mimeapps.list 2>/dev/null; then
+        sed -i '/^\[Default Applications\]/a x-scheme-handler/terminal=kitty.desktop' \
+            /etc/xdg/mimeapps.list
+    else
+        printf '[Default Applications]\nx-scheme-handler/terminal=kitty.desktop\n' \
+            >> /etc/xdg/mimeapps.list
+    fi
+fi
+echo "[terminal] default terminal is kitty; mimeapps.list now:"
+cat /etc/xdg/mimeapps.list
 
 ### Branding: privatize Bazzite-named ujust recipes so they no longer
 # appear in `ujust --list`. The YaguareteOS-named wrappers in

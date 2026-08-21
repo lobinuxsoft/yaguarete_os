@@ -44,9 +44,11 @@ if command -v zenity >/dev/null 2>&1; then
         || exit 0
 fi
 
-# Prefer Konsole (KDE) — fall back to xdg-terminal-exec / xterm.
-if command -v konsole >/dev/null 2>&1; then
-    exec konsole --hold -e bash -c "$cmd"
+# Prefer kitty (the YaguareteOS default, #254) — it is the one terminal this
+# image configures, themes and ships a font for. Fall back to
+# xdg-terminal-exec (which reads /etc/xdg/xdg-terminals.list) and then xterm.
+if command -v kitty >/dev/null 2>&1; then
+    exec kitty --hold bash -c "$cmd"
 elif command -v xdg-terminal-exec >/dev/null 2>&1; then
     exec xdg-terminal-exec bash -c "$cmd"
 else
