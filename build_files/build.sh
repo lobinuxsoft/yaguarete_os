@@ -212,8 +212,19 @@ rm -f /usr/share/ublue-os/motd/bazzite.md
 
 # Fail loudly rather than shipping a Bazzite-branded banner: the previous
 # override went stale for months precisely because nothing checked it.
-if grep -q "bazzite" /usr/share/ublue-os/motd/template.md; then
-    echo "[motd] FATAL: template.md still mentions bazzite" >&2
+#
+# The predicate is the support links and the title, NOT the word "bazzite".
+# The banner deliberately keeps a lineage line pointing at https://bazzite.gg/
+# (README, "Lineage and upstream attribution"), and tips legitimately name
+# `bazzite-rollback-helper`, which is what the command is actually called.
+# Grepping the bare word fails the build on our own attribution.
+if grep -qE '(issues|docs|discord|bluesky)\.bazzite\.gg' \
+        /usr/share/ublue-os/motd/template.md; then
+    echo "[motd] FATAL: template.md still carries Bazzite support links" >&2
+    exit 1
+fi
+if ! grep -q "Welcome to YaguareteOS" /usr/share/ublue-os/motd/template.md; then
+    echo "[motd] FATAL: template.md is not ours -- upstream's copy won" >&2
     exit 1
 fi
 if ! ls /usr/share/ublue-os/motd/tips/*.md >/dev/null 2>&1; then
