@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: 2025 Robert French <frenchrobertm@outlook.com>
+#
+# YaguareteOS override of the upstream bazzite-updater launcher.
+# Only the user-visible strings and the icon change; Exec and Categories
+# are kept verbatim so the package keeps working as shipped.
+[Desktop Entry]
+Name=Yaguareté Updater
+Comment=Update YaguareteOS, Flatpaks, and more
+Comment[es]=Actualizar YaguareteOS, Flatpaks y más
+Comment[pt]=Atualizar o YaguareteOS, Flatpaks e mais
+Comment[fr]=Met à jour YaguareteOS, les applications et plus encore
+Comment[it]=Aggiorna YaguareteOS, i Flatpak e altro
+Exec=bazzite-updater
+# Self-hides if the package is ever removed on the running system.
+TryExec=bazzite-updater
+Icon=yaguarete-update
+Type=Application
+Terminal=false
+Categories=Qt;KDE;System;

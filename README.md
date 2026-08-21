@@ -230,6 +230,14 @@ ujust yaguarete-rescue unstable   # rolling
 
 If you're already on YaguareteOS, the command is a no-op and points you at `sudo bootc upgrade` instead.
 
+## Updating by hand
+
+The launcher entry **Yaguareté Updater** (category *System*) is the graphical way to update: it runs the same `uupd-manual.service` the timer uses, and it also offers a rollback to the previous deployment and the release notes of each version.
+
+It is the upstream [`bazzite-updater`](https://github.com/rfrench3/bazzite-updater) — a Qt frontend explicitly written to be configurable for any distro — rebranded in place through `system_files/overrides/etc/bazzite-updater/`: `KAboutData_OS.json` carries our name, links and credits, and `config.ini` points the release feed at this repository. No fork, no patched binary.
+
+The console path still exists (`ujust update`); its launcher entry is hidden so the menu shows a single updater. On a variant that ships without `bazzite-updater`, the Containerfile drops the rebrand and leaves the console entry visible instead, so no image is left without a way to update from the menu.
+
 ## Automatic updates
 
 YaguareteOS enables `uupd.timer` (Universal Blue updater) by default. Once a day at 04:00 the timer runs hardware pre-flight checks (battery, network, memory, CPU load) and, if they pass, pulls the latest image of your current ref (`:stable`, `:testing` or `:unstable`) and stages it. The new deployment is applied on **your next reboot** — there is no forced reboot. If the system is off or suspended at 04:00, the timer fires on resume (`Persistent=true`).
