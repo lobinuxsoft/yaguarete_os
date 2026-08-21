@@ -21,9 +21,13 @@ link="${HOME:-$(getent passwd "$(id -un)" | cut -d: -f6)}/.config/autostart/yagu
 # up there.
 [ -n "${HOME:-}" ] || exit 0
 
-# If the user has no yafti binary (custom image variant, manual removal)
+# Bazzite 44 removed the `yafti` CLI and kept only the GTK front-end, so the
+# check is against yafti_gtk.py now. Guarding on the old path made this exit 0
+# on every login and the first-boot Portal never appeared at all.
+#
+# If the user has no Portal front-end (custom image variant, manual removal)
 # do nothing rather than seed a broken autostart.
-[ -x /usr/bin/yafti ] || exit 0
+[ -x /usr/bin/yafti_gtk.py ] || exit 0
 [ -r "$target" ] || exit 0
 
 # Already wired (symlink present, even if dangling — we do not second-guess

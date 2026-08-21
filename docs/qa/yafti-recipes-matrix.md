@@ -37,6 +37,24 @@ Apply to every recipe **before** marking PASS:
 
 ---
 
+## Image drop-ins (not recipes — they apply with no user action)
+
+### `etc/environment.d/95-yaguarete-panel-rotation.conf`
+
+Sets `ORIENTATION` for handhelds whose DMI name gamescope's `device-quirks` does
+not match. Sourced by `gamescope-session-plus` after the upstream quirks file,
+so it wins without forking it.
+
+| Case | Variant | Status | Notes |
+|---|---|---|---|
+| `ONEXPLAYER F1Pro` | `-deck` | `PASS` | Verified on hardware 2026-08-20 against `44.20260820`: `gamescope --force-orientation left` in the process list, UI upright. Was rotated before the drop-in — `device-quirks` lists `ONEXPLAYER F1` and its EVA/OLED siblings but not the Pro. |
+| Steam Deck (`Jupiter` / `Galileo`) | `-deck` | `TODO` | Must be a **no-op**. The `case` only matches the F1Pro, verified against a simulated DMI, but never run on Valve hardware. A false positive here would rotate a landscape panel sideways. |
+| Desktop / nvidia | all | `PASS` | Verified: on `B850I AORUS PRO` the file leaves `ORIENTATION` empty. |
+
+**Why it is not a `ujust` recipe:** every F1Pro needs it and nobody would think
+to run it — a rotated UI is hard to navigate to reach a terminal in the first
+place.
+
 ## Tier 1 — Custom recipes (lobinuxsoft/yaguarete_os direct ownership)
 
 Every recipe under `system_files/usr/share/ublue-os/just/85-yaguarete-*.just`, `95-yaguarete.just`, `99-yaguarete-*.just`.
