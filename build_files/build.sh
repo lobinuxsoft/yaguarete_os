@@ -325,6 +325,11 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # hhd-ui Electron AppImage with yaguareté assets, without forking
 # hhd-dev/hhd-ui. See patch-hhd-ui.sh header for the full rationale.
 # Non-fatal — exits 0 if /usr/bin/hhd-ui is absent in this variant.
+#
+# Bazzite 44 retired Handheld Daemon on the deck image (InputPlumber +
+# OpenGamepadUI took over), so on that base this skips and the branding simply
+# has nothing to brand. That is expected; the loud banner below exists because
+# the skip used to be indistinguishable from success in a green build.
 /ctx/patch-hhd-ui.sh
 
 ### HHD plugin: hhd-vram — GTT (graphics memory) allocation slider for AMD APUs.
@@ -341,6 +346,11 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # already in the deck base; without it pip rebuilds pycairo (needs cairo/cmake)
 # and fails. Installs to /usr site-packages so HHD discovers it by entry point
 # with no drop-in or PYTHONPATH.
+#
+# Bazzite 44 retired HHD on the deck image, so `import hhd` now fails there and
+# this block is skipped. A skipped feature must not read like a built one: the
+# else branch prints a banner so the loss is visible in the build log instead
+# of being inferred later from a device that no longer has the slider.
 if python3 -c "import hhd" 2>/dev/null; then
     # /ctx is a read-only bind mount; setuptools writes .egg-info in-tree
     # while building, so copy the source to writable tmpfs (/tmp) first.
@@ -350,6 +360,14 @@ if python3 -c "import hhd" 2>/dev/null; then
     # /usr/local, which does not exist in the image and is off HHD's path.
     python3 -m pip install --no-deps --break-system-packages --prefix=/usr /tmp/hhd-vram-src
     rm -rf /tmp/hhd-vram-src
+    echo "[hhd-vram] installed: Handheld Daemon present in this base"
+else
+    echo "======================================================================"
+    echo "[hhd-vram] NOT INSTALLED — Handheld Daemon is absent from this base."
+    echo "[hhd-vram] The GTT/VRAM slider does not exist on the resulting image."
+    echo "[hhd-vram] Expected on Bazzite >= 44 deck, which replaced HHD with"
+    echo "[hhd-vram] InputPlumber + OpenGamepadUI. Port the plugin or drop it."
+    echo "======================================================================"
 fi
 
 ### Plymouth: set yaguarete as the default theme and regenerate the
