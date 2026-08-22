@@ -29,6 +29,18 @@ screens:
           - id: "uninstall"
             label: "Uninstall"
             script: "/usr/libexec/yaguarete/portal-run 'ujust yaguarete-setup-decky uninstall'"
+      - id: "yaguarete-decky-vram"
+        title: "Yaguarete VRAM (Decky plugin)"
+        description: "Our own Decky plugin: choose how much system RAM the GPU may map as graphics memory (GTT) on AMD APUs, from Game Mode instead of a terminal. Same knob as 'ujust yaguarete-vram', with the same 6 GiB floor left to the OS. Decky's backend runs as root, which is what lets it stage the kernel argument at all. Needs Decky Loader installed first; the value applies on the next reboot."
+        default: false
+        status_script: "/usr/libexec/yaguarete/portal-run --quiet 'ujust yaguarete-decky-vram status'"
+        options:
+          - id: "install"
+            label: "Install"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust yaguarete-decky-vram install'"
+          - id: "remove"
+            label: "Uninstall"
+            script: "/usr/libexec/yaguarete/portal-run 'ujust yaguarete-decky-vram remove'"
       - id: "decky-lossless-scaling"
         title: "Decky Lossless Scaling"
         description: "A Decky plugin for lossless scaling compatibility in Linux"
