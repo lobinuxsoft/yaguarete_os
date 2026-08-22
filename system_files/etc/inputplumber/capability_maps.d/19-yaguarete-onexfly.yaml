@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ShadowBlip/InputPlumber/main/rootfs/usr/share/inputplumber/schema/capability_map_v1.json
+#
+# Capability map for the ONEXPLAYER F1 Pro, replacing upstream's `oxp7`.
+#
+# Two things are wrong with `oxp7` on this unit, both measured with
+# `systemctl stop inputplumber` + `evtest`, one button per press:
+#
+#   1. The labels are shifted by one physical button. The chords themselves are
+#      right -- Handheld Daemon annotated the same three -- but what upstream
+#      calls "KB" is the orange button here, and what it calls "Orange Button"
+#      is the small one.
+#
+#   2. Turbo lands on `QuickAccess`, which nothing consumes. OpenGamepadUI's
+#      per-device profile maps `LeftTop`, `RightTop`, `Keyboard` and
+#      `QuickAccess2`, but not `QuickAccess`, and an Xbox target has no such
+#      button either -- so the event is produced and then dropped. Sending
+#      Turbo to `QuickAccess2` reaches OGUI's `Guide`+`East`, which is Steam's
+#      Quick Access Menu. That is what Turbo did before Bazzite 44.
+#
+# `Orange Button (Long Press)` is gone: it emits nothing on this unit. The long
+# press is not an input event at all -- the firmware re-enumerates the device
+# into its built-in mouse mode -- so the slot is free for Turbo.
+#
+# Upstream's `M2` entry is gone too. It consumed the pad's own `Guide` button to
+# synthesise `RightPaddle1`, and on this unit `BTN_MODE` never fires -- M1/M2
+# report over the vendor HID interface instead. Keeping it would spend a real
+# button on an event that never arrives.
+version: 1
+kind: CapabilityMap
+name: ONEXPLAYER F1 Pro (YaguareteOS)
+id: oxpf1_yaguarete
+
+mapping:
+  - name: Turbo
+    source_events:
+      - keyboard: KeyLeftCtrl
+      - keyboard: KeyLeftAlt
+      - keyboard: KeyLeftMeta
+    target_event:
+      gamepad:
+        button: QuickAccess2
+
+  - name: Orange Button (Short Press)
+    source_events:
+      - keyboard: KeyRightCtrl
+      - keyboard: KeyLeftMeta
+      - keyboard: KeyO
+    target_event:
+      gamepad:
+        button: Keyboard
+
+  - name: Small Button
+    source_events:
+      - keyboard: KeyLeftMeta
+      - keyboard: KeyD
+    target_event:
+      gamepad:
+        button: Guide
+
+  - name: Turbo + Orange Button
+    source_events:
+      - keyboard: KeyLeftMeta
+      - keyboard: KeySysrq
+    target_event:
+      gamepad:
+        button: Screenshot
+
+  - name: Orange + Small Button
+    source_events:
+      - keyboard: KeyRightCtrl
+      - keyboard: KeyRightAlt
+      - keyboard: KeyDelete
+    target_event:
+      keyboard: KeyF13
+
+filtered_events: []

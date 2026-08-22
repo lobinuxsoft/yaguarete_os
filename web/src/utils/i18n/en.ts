@@ -78,7 +78,7 @@ const en: Translations = {
       {
         heading: 'Our own handheld tooling',
         content:
-          'hhd-vram adds a graphics-memory slider to the Handheld Daemon overlay: assign system RAM as VRAM on AMD APUs without a BIOS trip. Plus ujust yaguarete-setup-decky, which installs Decky Loader verifying everything before deleting anything, and yaguarete-fsr4, which detects the GPU and applies the right upgrade.',
+          'ujust yaguarete-vram assigns system RAM as graphics memory on AMD APUs without a firmware trip. Plus ujust yaguarete-setup-decky, which installs Decky Loader verifying everything before deleting anything, and yaguarete-fsr4, which detects the GPU and applies the right upgrade.',
         svg: 'puzzle',
       },
       {
@@ -103,12 +103,12 @@ const en: Translations = {
       {
         question: 'Is YaguareteOS just Bazzite with a new logo?',
         answer:
-          'No. On top of Bazzite we add: the hhd-vram plugin for splitting RAM into graphics memory on AMD APUs, a yafti Portal with 79 apps and tweaks across 8 sections (188 install/update/uninstall actions, each one logging its output to disk), our own installers for our own apps — Yryvu and Tatu — plus curated recipes for third-party software like Eden, Antigravity, Claude Code or Decky Loader, the ujust yaguarete-fsr4 wrapper that auto-detects the GPU, rescue and per-category install commands (yaguarete-rescue, yaguarete-install-gaming, yaguarete-install-dev), Aurora-style versioning in rpm-ostree status, and our own pipeline signed with cosign.',
+          'No. On top of Bazzite we add: the ujust yaguarete-vram command for splitting RAM into graphics memory on AMD APUs, a yafti Portal with 79 apps and tweaks across 8 sections (188 install/update/uninstall actions, each one logging its output to disk), our own installers for our own apps — Yryvu and Tatu — plus curated recipes for third-party software like Eden, Antigravity, Claude Code or Decky Loader, the ujust yaguarete-fsr4 wrapper that auto-detects the GPU, rescue and per-category install commands (yaguarete-rescue, yaguarete-install-gaming, yaguarete-install-dev), Aurora-style versioning in rpm-ostree status, and our own pipeline signed with cosign.',
       },
       {
         question: 'What is the handheld graphics-memory slider?',
         answer:
-          'On an AMD APU the "dedicated VRAM" is carved out by the BIOS and cannot be moved at runtime. The pool that actually matters is the GTT: system RAM the GPU maps as graphics memory through the ttm.pages_limit kernel argument. hhd-vram, which we ship as a plugin for the Handheld Daemon overlay, exposes it as a percentage (25-90%, with a 6 GiB floor always reserved for the OS): move the slider, apply, reboot, and it persists. Useful for texture-heavy games and for running local language models. No other handheld distribution — Bazzite, SteamOS, ChimeraOS — exposes this.',
+          'On an AMD APU the "dedicated VRAM" is carved out by the firmware and changing it means rebooting. The pool the system can move is the GTT: system RAM the GPU maps as graphics memory through the ttm.pages_limit kernel argument. ujust yaguarete-vram exposes it as a percentage (10-90%, with a 6 GiB floor always reserved for the OS): pick a value, reboot, and it persists. Useful for texture-heavy games and for running local language models. No other handheld distribution — Bazzite, SteamOS, ChimeraOS — exposes this.',
       },
       {
         question: 'Which variant should I install?',

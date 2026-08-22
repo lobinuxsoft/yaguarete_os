@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ShadowBlip/InputPlumber/main/rootfs/usr/share/inputplumber/schema/composite_device_v1.json
+#
+# Composite device for the ONEXPLAYER F1 Pro, so the unit picks up our
+# capability map instead of upstream's `oxp7`.
+#
+# The `19-` prefix sorts ahead of upstream's `50-onexplayer_onexfly.yaml`: the
+# first config to claim a source device wins, so upstream's finds nothing left
+# to manage. Same convention `bazzite-inputplumber-ignorelist` uses.
+#
+# `matches` is deliberately narrower than upstream's -- only the F1 Pro, the one
+# unit the button labels were actually measured on. Every other F1 variant keeps
+# upstream's config untouched.
+#
+# Remove this file and its capability map to hand the device back to upstream.
+version: 1
+kind: CompositeDevice
+name: ONEXPLAYER ONEXFLY (YaguareteOS)
+
+single_source: false
+
+matches:
+  - dmi_data:
+      product_name: ONEXPLAYER F1Pro
+      sys_vendor: ONE-NETBOOK
+
+source_devices:
+  - group: gamepad
+    evdev:
+      name: Microsoft X-Box 360 pad
+      phys_path: usb-0000:c4:00.3-4/input0
+      handler: event*
+  - group: gamepad
+    evdev:
+      name: Microsoft X-Box 360 pad
+      phys_path: usb-0000:c7:00.0-4/input0
+      handler: event*
+  - group: keyboard
+    evdev:
+      name: AT Translated Set 2 keyboard
+      phys_path: isa0060/serio0/input0
+      handler: event*
+  - group: imu
+    iio:
+      name: "{i2c-BMI0160:00,bmi260}"
+
+options:
+  auto_manage: true
+
+# Left as upstream has it. OpenGamepadUI reasserts the target list from its own
+# per-game profiles roughly 47 s after boot, so anything we put here that OGUI
+# disagrees with does not survive; the mapping is done in the capability map
+# instead, where OGUI has no say.
+target_devices:
+  - xbox-series
+  - mouse
+  - keyboard
+
+capability_map_id: oxpf1_yaguarete
