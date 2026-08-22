@@ -205,6 +205,37 @@ This swaps the boot order back to your previous image (e.g. Bazzite). The Yaguar
 
 To pin yourself permanently back to the source image, run `bootc switch` against its registry URL (e.g. `ghcr.io/ublue-os/bazzite:stable`) and reboot.
 
+#### Crossing the Fedora 43 -> 44 boundary
+
+`bootc rollback` moves between deployments you already have on disk, and that
+keeps working. **Rebasing back to a Fedora 43 image is different**: Bazzite 44
+crossed a Fedora major version *and* replaced the whole handheld stack, and
+upstream states plainly that going backwards between 43 and 44 needs manual
+intervention because session management changed underneath.
+
+What that means in practice, before you rebase to anything F43-based:
+
+- **Pin the current deployment first.** `sudo ostree admin pin booted` keeps a
+  known-good entry that a later update cannot garbage-collect. Do it *before*
+  the rebase, not after it fails; `sudo ostree admin pin --unpin booted`
+  releases it later. (`bootc` has no pin subcommand -- `bootc image` only
+  handles the image store.)
+- **Expect the session, not the boot, to be what breaks.** The machine will
+  reach a login screen; what may not come back is the gamescope session or the
+  desktop session, because 44 replaced Handheld Daemon with InputPlumber,
+  SteamOS-Manager, PowerStation and OpenGamepadUI. A black screen after login
+  is the expected failure mode, not a bricked system.
+- **Keep a TTY reachable.** `Ctrl`+`Alt`+`F3` gets you a console, and
+  `sudo bootc rollback && sudo systemctl reboot` from there undoes it.
+- **Anything you set with `ujust yaguarete-vram` survives the rebase**, because
+  kernel arguments live in the deployment, not the image. If an older image
+  behaves badly with a raised GTT ceiling, `ujust yaguarete-vram reset` and
+  reboot.
+
+None of this applies to moving between our own channels -- `stable`, `testing`
+and `unstable` are all built on the same Fedora major at any given time, which
+is what `ujust yaguarete-rebase` is for.
+
 **If you changed your login shell to zsh**, undo that before rolling back to an image older than the release that introduced it:
 
 ```bash
