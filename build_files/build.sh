@@ -291,6 +291,13 @@ for just_file in /usr/share/ublue-os/just/*yaguarete*.just; do
     echo "import \"$just_file\"" >> /usr/share/ublue-os/justfile
 done
 
+### Recipe guard: a `just` parameter must not be read as a shell variable.
+# `yaguarete-setup-local-ai` shipped doing `action="$ACTION"` where the body
+# never assigned ACTION. Under `set -u` that is fatal on every invocation, and
+# every check we had was satisfied: the recipe existed, the Portal called it by
+# the right name, the build was green. Existing is not the same as working.
+/ctx/check-recipes.py
+
 ### Portal guard: every `ujust` the Portal calls must resolve to a recipe.
 #
 # Thirteen entries shipped calling recipes Bazzite 44 had renamed
