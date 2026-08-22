@@ -240,8 +240,10 @@ is what `ujust yaguarete-rebase` is for.
 **If you changed your login shell to zsh**, undo that before rolling back to an image older than the release that introduced it:
 
 ```bash
-chsh -s /bin/bash "$USER"
+sudo usermod -s /bin/bash "$USER"
 ```
+
+(`chsh` is **not** on this image — it ships in `util-linux-user`, which is not layered. `usermod` writes the same `/etc/passwd` field.)
 
 `/etc/passwd` persists across deployments, but `zsh` only exists in images from that release onwards. Rolling back with zsh still set as your login shell leaves the account naming a shell that is not there — terminals stop opening, and session startup may go with them. `ujust yaguarete-setup-shell remove` does the same thing along with removing oh-my-zsh.
 
