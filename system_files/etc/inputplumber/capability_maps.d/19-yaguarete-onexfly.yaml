@@ -5,10 +5,11 @@
 # Two things are wrong with `oxp7` on this unit, both measured with
 # `systemctl stop inputplumber` + `evtest`, one button per press:
 #
-#   1. The labels are shifted by one physical button. The chords themselves are
-#      right -- Handheld Daemon annotated the same three -- but what upstream
-#      calls "KB" is the orange button here, and what it calls "Orange Button"
-#      is the small one.
+#   1. Only one label was actually wrong. The manufacturer's own diagram calls
+#      the right-hand button "keyboard", which is what upstream called it too;
+#      an earlier revision here renamed it to "Orange Button" on the belief the
+#      labels were shifted, and that was the wrong half of the correction. What
+#      upstream calls "Orange Button (Short Press)" is the small left-hand one.
 #
 #   2. Turbo had nowhere to land. It goes to `QuickAccess` -- the Steam Deck's
 #      "..." button -- and the composite device now targets `deck-uhid`, a real
@@ -25,6 +26,18 @@
 #      `ujust configure-opengamepadui disable` to make that session plain
 #      Steam. Without the second, Turbo opens OGUI's panel no matter what is
 #      written here.
+#
+#   3. The keyboard button aims at `RightPaddle1`, not `Keyboard`. Measured in
+#      Game Mode with the deck-uhid target: Turbo (`QuickAccess`) opens Steam's
+#      QAM and the small button (`Guide`) opens the Steam menu -- both pass
+#      straight through to the controller. `Keyboard` is the only one of the
+#      three that needs OpenGamepadUI to act on a `ui_osk` D-Bus event, and it
+#      is the only one that does nothing.
+#
+#      A Steam Deck controller has no keyboard button, so there is nothing for
+#      that capability to become. `RightPaddle1` is a real one: it reaches
+#      Steam, and Steam Input can bind it to the on-screen keyboard -- or to
+#      anything else -- from its own settings, with no dependency on OGUI.
 #
 # `Orange Button (Long Press)` is gone: it emits nothing on this unit. The long
 # press is not an input event at all -- the firmware re-enumerates the device
@@ -49,14 +62,14 @@ mapping:
       gamepad:
         button: QuickAccess
 
-  - name: Orange Button (Short Press)
+  - name: Keyboard Button
     source_events:
       - keyboard: KeyRightCtrl
       - keyboard: KeyLeftMeta
       - keyboard: KeyO
     target_event:
       gamepad:
-        button: Keyboard
+        button: RightPaddle1
 
   - name: Small Button
     source_events:
@@ -66,7 +79,7 @@ mapping:
       gamepad:
         button: Guide
 
-  - name: Turbo + Orange Button
+  - name: Turbo + Keyboard Button
     source_events:
       - keyboard: KeyLeftMeta
       - keyboard: KeySysrq
@@ -74,7 +87,7 @@ mapping:
       gamepad:
         button: Screenshot
 
-  - name: Orange + Small Button
+  - name: Keyboard + Small Button
     source_events:
       - keyboard: KeyRightCtrl
       - keyboard: KeyRightAlt
