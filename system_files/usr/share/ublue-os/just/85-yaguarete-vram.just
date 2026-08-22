@@ -1,38 +1,26 @@
-# YaguareteOS — GTT (graphics memory) ceiling for AMD APUs, from the terminal.
+# YaguareteOS -- graphics memory on AMD APUs, from the terminal.
 #
-# Why this exists as a recipe and not a slider:
-#   `hhd-vram` (#227) put this behind a Handheld Daemon slider. Bazzite 44
-#   retired HHD, so the plugin stopped being installed and the knob vanished
-#   with it. Porting it to OpenGamepadUI would cost a privileged D-Bus daemon
-#   to expose one integer that is set once every few months and needs a reboot
-#   anyway, so the function moved here instead of the widget being rebuilt
-#   (#269).
-#
-# What GTT is:
-#   The GTT pool is system RAM the GPU may map as graphics memory. Its ceiling
-#   is the `ttm.pages_limit` kernel argument, one page being 4 KiB; the kernel
-#   default is roughly half of RAM. On a unified-memory APU the GTT lives in
-#   the same DDR banks as the BIOS UMA carveout and runs at the same bandwidth,
-#   so raising it costs nothing but the RAM the OS no longer gets.
-#
-# The other half: the firmware carveout.
+# What the carveout is:
 #   The UMA carveout is the fixed slice the firmware hands the iGPU, reported
 #   as VRAM. amdgpu exposes it at `<card>/device/uma/carveout`, with the sizes
 #   the firmware accepts listed in `carveout_options`; writing an index there
-#   asks for that size on the next boot. That kernel interface is what #267
-#   was reverse engineering the hard way, and it lands the request through the
-#   same ACPI path the vendor tool uses -- no SMI byte, no EFI variable, no
-#   out-of-tree module.
+#   asks for that size on the next boot, through the same ACPI path the vendor
+#   tool uses -- no SMI, no EFI variable, no out-of-tree module (#267).
 #
-# Both halves are worth setting. The carveout is what tools report as VRAM and
-# what a game's "detected VRAM" check reads; GTT is what actually absorbs the
-# overflow at the same bandwidth. Raising only one leaves the other lying.
+# Why there is no GTT setter any more:
+#   The GTT pool is system RAM the GPU may map as graphics memory, capped by
+#   the `ttm.pages_limit` kernel argument. Raising it was the workaround for a
+#   carveout nobody could reach: it bought address space in the same DDR banks,
+#   at the same bandwidth, without the firmware's cooperation. Now that the
+#   carveout moves, inflating GTT on top of it only takes RAM away from the OS
+#   to duplicate what the carveout already did.
 #
-# Applied with `rpm-ostree kargs`, edited in place. Never a blind `--append`:
-# that stacks a duplicate `ttm.pages_limit=` on every run and the last one on
-# the command line is the one the kernel honours.
+#   `reset` stays, because a machine that was set up before this can still be
+#   carrying a raised ceiling, and getting rid of it needs a command.
+#
+# `status` still reports GTT: not moving it is not a reason to hide it.
 
-# Read or change the graphics memory the GPU gets: GTT pool and firmware carveout.
+# Report the graphics memory pools, and set the firmware VRAM carveout.
 yaguarete-vram ACTION="status" VALUE="":
     #!/usr/bin/bash
     set -euo pipefail
@@ -41,9 +29,6 @@ yaguarete-vram ACTION="status" VALUE="":
     log() { logger -t "$tag" -- "$*" 2>/dev/null || true; }
 
     PAGE_SIZE=4096
-    # RAM always left to the OS: compositor, shader cache, gamescope. A 16 GiB
-    # device set to 75% would leave 4 GiB and thrash itself.
-    MIN_OS_KB=$((6 * 1024 * 1024))
 
     mem_total_kb() { awk '/^MemTotal:/ {print $2; exit}' /proc/meminfo; }
 
@@ -105,55 +90,6 @@ yaguarete-vram ACTION="status" VALUE="":
             echo "Hay un valor preparado que todavia no arranco: $staged"
             echo "Reinicia para que tome efecto."
         fi
-    }
-
-    apply_percent() {
-        local pct="$1" total_kb target_kb pages old
-        if ! [[ "$pct" =~ ^[0-9]+$ ]] || (( pct < 10 || pct > 90 )); then
-            echo "El porcentaje tiene que ser un entero entre 10 y 90." >&2
-            exit 1
-        fi
-
-        total_kb=$(mem_total_kb)
-        target_kb=$(( total_kb * pct / 100 ))
-
-        # Respect the OS floor no matter what was asked for.
-        if (( total_kb - target_kb < MIN_OS_KB )); then
-            target_kb=$(( total_kb - MIN_OS_KB ))
-            if (( target_kb <= 0 )); then
-                echo "Esta maquina no tiene RAM suficiente para reservar nada." >&2
-                exit 1
-            fi
-            echo "Recortado: se dejan $(human $((MIN_OS_KB * 1024))) para el sistema."
-        fi
-
-        pages=$(( target_kb * 1024 / PAGE_SIZE ))
-        echo "Objetivo: $(human $((pages * PAGE_SIZE))) de GTT ($pct% de la RAM)"
-
-        local args=(kargs) changed=0 key
-        # ttm.page_pool_size is the page cache pool; AMD's guidance is to keep
-        # it matched to the limit.
-        for key in ttm.pages_limit ttm.page_pool_size; do
-            old=$(staged_value "$key")
-            if [[ "$old" == "$pages" ]]; then
-                continue
-            elif [[ -n "$old" ]]; then
-                args+=("--replace=$key=$old=$pages")
-            else
-                args+=("--append=$key=$pages")
-            fi
-            changed=1
-        done
-
-        if (( ! changed )); then
-            echo "Ya estaba en ese valor. Nada que hacer."
-            return 0
-        fi
-
-        log "staging ${args[*]:1}"
-        sudo rpm-ostree "${args[@]}"
-        echo
-        echo "Preparado. Reinicia para que el kernel lo tome."
     }
 
     reset_kargs() {
@@ -266,14 +202,7 @@ yaguarete-vram ACTION="status" VALUE="":
 
     case "{{ ACTION }}" in
         status) show_status ;;
-        set)
-            if [[ -z "{{ VALUE }}" ]]; then
-                echo "Falta el porcentaje: ujust yaguarete-vram set 70" >&2
-                exit 1
-            fi
-            apply_percent "{{ VALUE }}"
-            ;;
-        reset) reset_kargs ;;
+        reset) reset_kargs ;;   # only undoes a GTT ceiling set before #290
         firmware)
             if [[ -z "{{ VALUE }}" ]]; then
                 show_uma
@@ -282,7 +211,7 @@ yaguarete-vram ACTION="status" VALUE="":
             fi
             ;;
         *)
-            echo "Uso: ujust yaguarete-vram [status|set <10-90>|reset|firmware [tamano]]" >&2
+            echo "Uso: ujust yaguarete-vram [status|firmware [tamano]|reset]" >&2
             exit 1
             ;;
     esac

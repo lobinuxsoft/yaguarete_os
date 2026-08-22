@@ -20,7 +20,7 @@ Production. Four image variants live on `ghcr.io/lobinuxsoft/yaguarete_os{,-deck
 
 Beyond the Bazzite-inherited gaming stack, YaguareteOS ships:
 
-- **`ujust yaguarete-vram`** — assign a percentage of system RAM as GPU graphics memory (GTT) on AMD APUs, via the `ttm.pages_limit` kernel argument, with a 6 GiB floor always left to the OS, applied through `rpm-ostree kargs` and persisted across reboots. On a unified-memory APU the GTT shares the same DDR banks as the firmware's UMA carveout and runs at the same bandwidth, so this is the pool that actually moves without a firmware trip. `ujust yaguarete-vram firmware` moves the other half: the UMA carveout the drivers report as VRAM, through the `uma/carveout` interface amdgpu exposes, so both pools are set from one place instead of a trip into the BIOS. This shipped as `hhd-vram`, a Handheld Daemon plugin, until Bazzite 44 retired HHD; the slider is gone, the function is not. No handheld distribution exposes this as a percentage control.
+- **`ujust yaguarete-vram`** — set the firmware VRAM carveout on AMD APUs from the terminal, and read it in Game Mode from a Decky panel. The carveout is the fixed slice the firmware hands the iGPU, and amdgpu exposes it at `<card>/device/uma/carveout` with the sizes the platform accepts alongside it, so a size that used to mean a trip into the BIOS is now a command and a reboot. Both surfaces are built from the device's own option list, so a machine that offers different sizes gets its own, and a machine that cannot move the carveout gets no control rather than one that quietly does nothing. This shipped as `hhd-vram`, a Handheld Daemon plugin that raised the GTT ceiling instead — the workaround for a carveout nobody could reach — until Bazzite 44 retired HHD. No handheld distribution exposes the carveout itself.
 - **Yaguarete VRAM (Decky plugin)** — the same GTT knob, reachable from **Game Mode** without leaving the game. Vendored under `system_files/usr/share/yaguarete/decky/`, installed with `ujust yaguarete-decky-vram install` or from the Portal. Its frontend is hand-written with **no npm dependencies and no build step**: a Decky bundle does not embed the UI library, it resolves `DFL` and `SP_REACT` from globals the loader injects, so the whole toolchain is unnecessary. Decky's backend runs as root, which is what lets it stage a kernel argument at all.
 - **Portal yafti** — first-boot welcome wizard (run-once gated) plus an Apps page with install/update/uninstall for every component below. 77 items across 8 tabs, all normalised to `install/update/uninstall` with status badges where the underlying recipe supports it. All 182 actions and 43 status probes run through `/usr/libexec/yaguarete/portal-run`, which keeps `SUDO_ASKPASS` alive, holds the terminal open on failure and appends to `~/.local/state/yaguarete/portal.log` — upstream yafti drops both the environment and the output.
 - **Yaguareté Apps suite** — custom installers for our own apps, [Yryvu](https://github.com/lobinuxsoft/yryvu) (Tauri 2 Git client) and [Tatu](https://github.com/lobinuxsoft/tatu) (Steam backlog tracker), plus curated recipes for third-party software: [Eden](https://eden-emu.dev) (Switch emulator with firmware + checksum-verified prod.keys + EmuDeck SRM integration), [Antigravity IDE](https://antigravity.google/) (Google Gemini, APT repo with SHA256 verify), Antigravity CLI, and [Claude Code](https://claude.com/claude-code) (Anthropic, official per-user installer — needs a Claude subscription or API key to be usable). Every third-party bootstrap script is run inspect-then-run: downloaded, its head shown, confirmed, and only then executed — never `curl | bash`.
@@ -229,10 +229,10 @@ What that means in practice, before you rebase to anything F43-based:
   is the expected failure mode, not a bricked system.
 - **Keep a TTY reachable.** `Ctrl`+`Alt`+`F3` gets you a console, and
   `sudo bootc rollback && sudo systemctl reboot` from there undoes it.
-- **Anything you set with `ujust yaguarete-vram` survives the rebase**, because
-  kernel arguments live in the deployment, not the image. If an older image
-  behaves badly with a raised GTT ceiling, `ujust yaguarete-vram reset` and
-  reboot.
+- **The VRAM carveout survives the rebase**, because it lives in firmware, not
+  in the image. If a machine set up before this is still carrying a raised GTT
+  ceiling from the old percentage control, `ujust yaguarete-vram reset` and
+  reboot drops it back to the kernel default.
 
 None of this applies to moving between our own channels -- `stable`, `testing`
 and `unstable` are all built on the same Fedora major at any given time, which
