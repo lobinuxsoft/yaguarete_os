@@ -291,6 +291,59 @@ for just_file in /usr/share/ublue-os/just/*yaguarete*.just; do
     echo "import \"$just_file\"" >> /usr/share/ublue-os/justfile
 done
 
+### Portal guard: every `ujust` the Portal calls must resolve to a recipe.
+#
+# Thirteen entries shipped calling recipes Bazzite 44 had renamed
+# (toggle-ssh -> ssh, install-openrgb -> openrgb, ...). Nothing failed: the
+# buttons were there, they just did nothing. Three of those renames were even
+# written down in docs/qa/upstream-issues.md and never applied.
+#
+# This runs after the recipe registration above, so `just --summary` sees
+# everything the image will actually have, ours included.
+#
+# Fatal on the deck variant only. The deck base is the superset -- it carries
+# the handheld recipes (steam-icons, steamos-automount, the Decky family) on
+# top of everything the desktop base has -- so a name missing there is missing
+# everywhere. On the other variants a handheld-only recipe is legitimately
+# absent, so the same check would fail for the wrong reason; there it prints a
+# banner instead. A banner nobody reads is still better than silence.
+portal_yaml=/usr/share/yafti/yafti.yml
+if [ -r "$portal_yaml" ]; then
+    have=$(just --justfile /usr/share/ublue-os/justfile --summary 2>/dev/null | tr ' ' '\n' | sort -u)
+    want=$(grep -oE "ujust [a-zA-Z0-9._-]+" "$portal_yaml" | awk '{print $2}' | sort -u)
+    dead=$(comm -23 <(echo "$want") <(echo "$have"))
+
+    if [ -n "$dead" ]; then
+        echo "======================================================================"
+        echo "[portal] recipes the Portal calls that this image does not have:"
+        echo "$dead" | sed 's/^/[portal]   - /'
+        echo "======================================================================"
+        case "${YAGUARETE_IMAGE_NAME:-}" in
+            *-deck)
+                echo "[portal] FATAL: the deck image is the superset -- these exist nowhere." >&2
+                exit 1
+                ;;
+            *)
+                echo "[portal] Not fatal on this variant: handheld-only recipes are"
+                echo "[portal] legitimately absent here. The deck build is the gate."
+                ;;
+        esac
+    else
+        echo "[portal] all $(echo "$want" | wc -l) recipes the Portal calls resolve"
+    fi
+
+    # The Portal reaches every recipe through this one wrapper. If it is
+    # missing, all 240 actions fail at once and every one of them looks like
+    # its own bug.
+    for helper in $(grep -oE "/usr/libexec/[a-zA-Z0-9/_-]+" "$portal_yaml" | sort -u); do
+        if [ ! -x "$helper" ]; then
+            echo "[portal] FATAL: $helper is referenced but not executable" >&2
+            exit 1
+        fi
+    done
+    echo "[portal] helpers referenced by the Portal are present and executable"
+fi
+
 ### Branding: yafti_gtk.py hardcodes APP_TITLE = 'Bazzite Portal' at line 18.
 # It is used both for the window title (Gtk.Window) and the
 # --title flag passed to the embedded webview. Patch in place so the
