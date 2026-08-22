@@ -15,16 +15,25 @@
 #   the same DDR banks as the BIOS UMA carveout and runs at the same bandwidth,
 #   so raising it costs nothing but the RAM the OS no longer gets.
 #
-# What this does NOT touch:
-#   The UMA carveout itself -- the fixed slice the firmware hands the iGPU,
-#   reported as VRAM. That one lives in firmware and is tracked in #267.
+# The other half: the firmware carveout.
+#   The UMA carveout is the fixed slice the firmware hands the iGPU, reported
+#   as VRAM. amdgpu exposes it at `<card>/device/uma/carveout`, with the sizes
+#   the firmware accepts listed in `carveout_options`; writing an index there
+#   asks for that size on the next boot. That kernel interface is what #267
+#   was reverse engineering the hard way, and it lands the request through the
+#   same ACPI path the vendor tool uses -- no SMI byte, no EFI variable, no
+#   out-of-tree module.
+#
+# Both halves are worth setting. The carveout is what tools report as VRAM and
+# what a game's "detected VRAM" check reads; GTT is what actually absorbs the
+# overflow at the same bandwidth. Raising only one leaves the other lying.
 #
 # Applied with `rpm-ostree kargs`, edited in place. Never a blind `--append`:
 # that stacks a duplicate `ttm.pages_limit=` on every run and the last one on
 # the command line is the one the kernel honours.
 
-# Read or change how much system RAM the GPU may map as graphics memory.
-yaguarete-vram ACTION="status" PERCENT="":
+# Read or change the graphics memory the GPU gets: GTT pool and firmware carveout.
+yaguarete-vram ACTION="status" VALUE="":
     #!/usr/bin/bash
     set -euo pipefail
 
@@ -78,6 +87,8 @@ yaguarete-vram ACTION="status" PERCENT="":
             echo "GTT actual         : $(human "$(cat "$gpu/mem_info_gtt_total")")"
             [[ -e "$gpu/mem_info_vram_total" ]] &&
                 echo "VRAM (UMA, firmware): $(human "$(cat "$gpu/mem_info_vram_total")")"
+            [[ -e "$gpu/uma/carveout" ]] &&
+                echo "carveout             : opcion $(cat "$gpu/uma/carveout")  (ujust yaguarete-vram firmware)"
         else
             echo "GTT actual         : sin GPU AMD detectada"
         fi
@@ -158,18 +169,113 @@ yaguarete-vram ACTION="status" PERCENT="":
         echo "Sacado. Reinicia para volver al default del kernel."
     }
 
+    uma_dir() {
+        local gpu
+        gpu=$(find_gpu)
+        [[ -n "$gpu" && -e "$gpu/uma/carveout" ]] && echo "$gpu/uma"
+    }
+
+    require_uma() {
+        local uma
+        uma=$(uma_dir)
+        if [[ -z "$uma" ]]; then
+            echo "Este kernel no expone el carveout UMA." >&2
+            echo "Hace falta amdgpu con /sys/class/drm/card*/device/uma/." >&2
+            exit 1
+        fi
+        echo "$uma"
+    }
+
+    # "512 MB" -> 512, "8 GB" -> 8192, and a bare "8" -> 8192: every option the
+    # firmware offers above the floor is whole gigabytes, so gigabytes are what
+    # an unqualified number means. Only megabytes need saying out loud.
+    to_mib() {
+        awk -v s="$1" 'BEGIN {
+            n = "";
+            if (match(s, /[0-9]+/)) n = substr(s, RSTART, RLENGTH);
+            if (n == "") exit;
+            if (s ~ /[Mm]/) print n; else print n * 1024;
+        }'
+    }
+
+    # The size each option stands for, taken from the text in parentheses.
+    option_mib() {
+        local paren="${1##*\(}"
+        to_mib "${paren%%\)*}"
+    }
+
+    show_uma() {
+        local uma now line idx
+        uma=$(require_uma)
+        now=$(cat "$uma/carveout")
+        echo "Carveout de firmware (VRAM). Reinicia para que un cambio tome efecto."
+        echo
+        while IFS= read -r line; do
+            idx="${line%%:*}"
+            if [[ "$idx" == "$now" ]]; then
+                echo "  * $line   <- actual"
+            else
+                echo "    $line"
+            fi
+        done < "$uma/carveout_options"
+        echo
+        echo "Para cambiarlo: ujust yaguarete-vram firmware 8   (o 512M)"
+    }
+
+    set_uma() {
+        local want="$1" uma now want_mib line idx target=""
+        uma=$(require_uma)
+        want_mib=$(to_mib "$want")
+        if [[ -z "$want_mib" ]]; then
+            echo "No entiendo \"$want\". Se espera un tamano: 8, 8G, 512M." >&2
+            exit 1
+        fi
+
+        while IFS= read -r line; do
+            [[ "$(option_mib "$line")" == "$want_mib" ]] || continue
+            target="${line%%:*}"
+            break
+        done < "$uma/carveout_options"
+
+        if [[ -z "$target" ]]; then
+            echo "El firmware no ofrece ese tamano. Ofrece:" >&2
+            sed 's/^/  /' "$uma/carveout_options" >&2
+            exit 1
+        fi
+
+        now=$(cat "$uma/carveout")
+        if [[ "$target" == "$now" ]]; then
+            echo "Ya esta en ese valor. Nada que hacer."
+            return 0
+        fi
+
+        log "carveout $now -> $target ($want_mib MiB)"
+        # The kernel validates the index and asks the firmware; a bad write
+        # fails here rather than at the next boot.
+        printf '%s\n' "$target" | sudo tee "$uma/carveout" >/dev/null
+        echo "Pedido: $want_mib MiB (opcion $target)."
+        echo "Reinicia para que el firmware lo aplique."
+    }
+
     case "{{ ACTION }}" in
         status) show_status ;;
         set)
-            if [[ -z "{{ PERCENT }}" ]]; then
+            if [[ -z "{{ VALUE }}" ]]; then
                 echo "Falta el porcentaje: ujust yaguarete-vram set 70" >&2
                 exit 1
             fi
-            apply_percent "{{ PERCENT }}"
+            apply_percent "{{ VALUE }}"
             ;;
         reset) reset_kargs ;;
+        firmware)
+            if [[ -z "{{ VALUE }}" ]]; then
+                show_uma
+            else
+                set_uma "{{ VALUE }}"
+            fi
+            ;;
         *)
-            echo "Uso: ujust yaguarete-vram [status|set <10-90>|reset]" >&2
+            echo "Uso: ujust yaguarete-vram [status|set <10-90>|reset|firmware [tamano]]" >&2
             exit 1
             ;;
     esac
