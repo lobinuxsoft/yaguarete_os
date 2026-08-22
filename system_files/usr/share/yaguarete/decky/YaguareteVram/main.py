@@ -59,9 +59,35 @@ def _active_pages():
     return int(m.group(1)) if m else None
 
 
+def _clean_env():
+    """Undo PyInstaller's library path before spawning a system binary.
+
+    Decky Loader is a PyInstaller bundle. It unpacks to /tmp/_MEIxxxxxx and
+    points LD_LIBRARY_PATH there, so anything this plugin spawns inherits it
+    and loads Decky's bundled OpenSSL instead of the system one:
+
+        rpm-ostree: /tmp/_MEIX9zhqD/libcrypto.so.3: version `OPENSSL_3.4.0'
+        not found (required by /usr/lib64/libostree-1.so.1)
+
+    rpm-ostree never even starts. PyInstaller saves the original value as
+    LD_LIBRARY_PATH_ORIG for exactly this, so restore it -- or drop the
+    variable entirely when there was nothing there to begin with.
+    """
+    env = dict(os.environ)
+    original = env.pop("LD_LIBRARY_PATH_ORIG", None)
+    if original:
+        env["LD_LIBRARY_PATH"] = original
+    else:
+        env.pop("LD_LIBRARY_PATH", None)
+    return env
+
+
 async def _run(*args):
     proc = await asyncio.create_subprocess_exec(
-        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+        env=_clean_env(),
     )
     out, _ = await proc.communicate()
     return proc.returncode, out.decode(errors="replace")
@@ -108,6 +134,10 @@ class Plugin:
 
     async def set_percent(self, percent: int):
         """Stage `percent` of RAM as the GTT ceiling. Applied on next boot."""
+        # Every outcome is logged. Without this, a press that did nothing and a
+        # press that never happened leave identical evidence -- which is exactly
+        # the ambiguity that made the first failure hard to read.
+        decky.logger.info("set_percent(%r) requested", percent)
         if not isinstance(percent, int) or not 10 <= percent <= 90:
             return {"ok": False, "message": "El porcentaje va entre 10 y 90."}
 
@@ -134,6 +164,7 @@ class Plugin:
             args.append(f"--replace={key}={old}={pages}" if old else f"--append={key}={pages}")
 
         if len(args) == 2:
+            decky.logger.info("set_percent(%s): already at %u pages, nothing staged", percent, pages)
             return {"ok": True, "message": "Ya estaba en ese valor.", "pending": False}
 
         code, out = await _run(*args)
@@ -141,6 +172,7 @@ class Plugin:
             decky.logger.error("rpm-ostree kargs failed: %s", out)
             return {"ok": False, "message": f"rpm-ostree fallo: {out.strip()[:200]}"}
 
+        decky.logger.info("set_percent(%s): staged %u pages via %s", percent, pages, " ".join(args[2:]))
         gib = pages * PAGE_SIZE / (1024 ** 3)
         msg = f"{gib:.1f} GiB preparados. Reinicia para aplicar."
         if clamped:
@@ -149,6 +181,7 @@ class Plugin:
 
     async def reset(self):
         """Drop our kargs and go back to the kernel default."""
+        decky.logger.info("reset() requested")
         args = ["rpm-ostree", "kargs"]
         for key in ("ttm.pages_limit", "ttm.page_pool_size"):
             old = await _staged(key)
