@@ -64,6 +64,9 @@ yaguarete-vram ACTION="status" VALUE="":
 
     human() { numfmt --to=iec --suffix=B --format='%.1f' "$1" 2>/dev/null || echo "$1"; }
 
+    # Width of the longest label, so every line reads as one column.
+    field() { printf '%-20s: %s\n' "$1" "$2"; }
+
     active_pages() {
         local m
         m=$(grep -o '\bttm\.pages_limit=[0-9]\+' /proc/cmdline | tail -1) || true
@@ -82,20 +85,20 @@ yaguarete-vram ACTION="status" VALUE="":
         active=$(active_pages)
         staged=$(staged_value ttm.pages_limit)
 
-        echo "RAM total          : $(human $((total_kb * 1024)))"
+        field "RAM total" "$(human $((total_kb * 1024)))"
         if [[ -n "$gpu" ]]; then
-            echo "GTT actual         : $(human "$(cat "$gpu/mem_info_gtt_total")")"
+            field "GTT actual" "$(human "$(cat "$gpu/mem_info_gtt_total")")"
             [[ -e "$gpu/mem_info_vram_total" ]] &&
-                echo "VRAM (UMA, firmware): $(human "$(cat "$gpu/mem_info_vram_total")")"
+                field "VRAM (UMA, firmware)" "$(human "$(cat "$gpu/mem_info_vram_total")")"
             [[ -e "$gpu/uma/carveout" ]] &&
-                echo "carveout             : opcion $(cat "$gpu/uma/carveout")  (ujust yaguarete-vram firmware)"
+                field "carveout" "opcion $(cat "$gpu/uma/carveout")  (ujust yaguarete-vram firmware)"
         else
-            echo "GTT actual         : sin GPU AMD detectada"
+            field "GTT actual" "sin GPU AMD detectada"
         fi
         if [[ -n "$active" ]]; then
-            echo "ttm.pages_limit    : $active  ($(human $((active * PAGE_SIZE))), activo)"
+            field "ttm.pages_limit" "$active  ($(human $((active * PAGE_SIZE))), activo)"
         else
-            echo "ttm.pages_limit    : sin definir (default del kernel, ~50% de la RAM)"
+            field "ttm.pages_limit" "sin definir (default del kernel, ~50% de la RAM)"
         fi
         if [[ -n "$staged" && "$staged" != "$active" ]]; then
             echo
@@ -219,7 +222,8 @@ yaguarete-vram ACTION="status" VALUE="":
             fi
         done < "$uma/carveout_options"
         echo
-        echo "Para cambiarlo: ujust yaguarete-vram firmware 8   (o 512M)"
+        echo "Para cambiarlo: ujust yaguarete-vram firmware <tamano>"
+        echo "Un numero pelado son gigabytes: 8, 16, 32. Megabytes se dicen: 512M."
     }
 
     set_uma() {
@@ -238,8 +242,11 @@ yaguarete-vram ACTION="status" VALUE="":
         done < "$uma/carveout_options"
 
         if [[ -z "$target" ]]; then
-            echo "El firmware no ofrece ese tamano. Ofrece:" >&2
-            sed 's/^/  /' "$uma/carveout_options" >&2
+            # Only the sizes, never the indices: printing "3: (4 GB)" next to a
+            # rejected "3" is an invitation to read the index as the size.
+            echo "El firmware no ofrece $want_mib MiB. Ofrece:" >&2
+            awk -F'[()]' 'NF > 1 { printf "  %s\n", $2 }' "$uma/carveout_options" >&2
+            echo "Un numero pelado son gigabytes; megabytes se dicen: 512M." >&2
             exit 1
         fi
 
