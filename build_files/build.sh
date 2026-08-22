@@ -85,6 +85,39 @@ install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
 install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
     /etc/xdg/kitty/kitty.conf
 
+# And the same reasoning for zsh, which it was never applied to.
+#
+# kitty opens `/usr/bin/zsh` regardless of the account's login shell (see its
+# config). An account created before this image has no ~/.zshrc, and zsh's
+# zsh/newuser module reacts to "no startup files at all" by sourcing
+# /usr/share/zsh/*/scripts/newuser, which drops the user into a configuration
+# wizard the first time they open a terminal. /etc/skel cannot help: it is
+# only copied when an account is created.
+#
+# So give those accounts the same file, from the same source of truth, through
+# the one hook that reaches every interactive shell. The template already
+# guards every branch on oh-my-zsh being absent, which is exactly the state of
+# an account that has never run `ujust yaguarete-setup-shell`.
+#
+# Neutralising the wizard is deliberate rather than incidental: scripts/newuser
+# calls zsh-newuser-install only if it resolves, so defining a no-op ahead of
+# it is the documented seam.
+cat >> /etc/zshrc <<'YAGUARETE_ZSHRC'
+
+# --- YaguareteOS: defaults for accounts /etc/skel never touched ---
+if [[ ! -r "${ZDOTDIR:-$HOME}/.zshrc" ]]; then
+    zsh-newuser-install() { : }
+    [[ -r /usr/share/yaguarete/shell/zshrc ]] &&
+        source /usr/share/yaguarete/shell/zshrc
+fi
+YAGUARETE_ZSHRC
+
+# A shipped default that did not land is the failure mode this whole block
+# exists to prevent, so assert both halves rather than assume them.
+grep -q 'YaguareteOS: defaults for accounts' /etc/zshrc
+test -r /etc/skel/.zshrc
+echo "[shell] zsh defaults reach pre-existing accounts via /etc/zshrc"
+
 ### Custom apps installed from GitHub Releases (yryvu, capydeploy, godots, ...)
 # Pinned versions + checksums live in install-custom-apps.sh. Bumping any of
 # them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
@@ -290,6 +323,13 @@ for just_file in /usr/share/ublue-os/just/*yaguarete*.just; do
     [ -e "$just_file" ] || continue
     echo "import \"$just_file\"" >> /usr/share/ublue-os/justfile
 done
+
+### Recipe guard: a `just` parameter must not be read as a shell variable.
+# `yaguarete-setup-local-ai` shipped doing `action="$ACTION"` where the body
+# never assigned ACTION. Under `set -u` that is fatal on every invocation, and
+# every check we had was satisfied: the recipe existed, the Portal called it by
+# the right name, the build was green. Existing is not the same as working.
+/ctx/check-recipes.py
 
 ### Portal guard: every `ujust` the Portal calls must resolve to a recipe.
 #
