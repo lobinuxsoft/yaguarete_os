@@ -30,7 +30,7 @@ These upstream recipes changed name without a release note. Our wrappers must fo
 | `setup-waydroid` | `configure-waydroid` | ✅ 2026-08-22 | ✅ already correct |
 | `install-emudeck` | `get-emudeck` | ✅ 2026-08-22 | ✅ already correct |
 | `install-steamcmd` | `get-steamcmd` | ✅ 2026-08-22 | ✅ already correct |
-| `setup-lsfg-vk` | `get-lsfg` | ✅ 2026-08-22 | ✅ already correct |
+| `setup-lsfg-vk` | `get-lsfg` | ✅ 2026-08-22 | no longer called — replaced by `yaguarete-mako` |
 | `get-decky-framegen` | `get-framegen` | ✅ 2026-08-22 | not offered by the Portal |
 
 ### Removed outright, no replacement
