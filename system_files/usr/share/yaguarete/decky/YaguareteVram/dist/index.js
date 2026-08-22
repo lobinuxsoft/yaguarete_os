@@ -1,4 +1,7 @@
-// Yaguarete VRAM -- GTT ceiling control for AMD APUs, in Game Mode.
+// Yaguarete VRAM -- graphics memory control for AMD APUs, in Game Mode.
+//
+// Two knobs, because an APU has two pools: the firmware carveout the drivers
+// report as VRAM, and the GTT ceiling that absorbs everything past it.
 //
 // Hand-written on purpose, with no build step and no node_modules.
 //
@@ -44,6 +47,7 @@ const DFL = window.DFL;
 const getStatus = callable("get_status");
 const applyPercent = callable("set_percent");
 const resetKargs = callable("reset");
+const applyCarveout = callable("set_carveout");
 
 const GiB = 1024 * 1024 * 1024;
 const gib = (bytes) => (bytes / GiB).toFixed(1) + " GiB";
@@ -68,6 +72,7 @@ function Row(label, value, accent) {
 function Content() {
   const [status, setStatus] = useState(null);
   const [percent, setPercent] = useState(50);
+  const [umaIndex, setUmaIndex] = useState(null);
   const [busy, setBusy] = useState(false);
   // The slider must not fight the user: only seed it from the device on the
   // first load, never on later refreshes.
@@ -81,6 +86,9 @@ function Content() {
         setPercent(s.percent);
         seeded.current = true;
       }
+      // The dropdown seeds off the firmware's own answer, so an untouched
+      // panel always shows what the machine will actually boot with.
+      setUmaIndex((prev) => (prev === null && s && s.uma_current >= 0 ? s.uma_current : prev));
     } catch (e) {
       console.error("[yaguarete-vram]", e);
     }
@@ -134,7 +142,40 @@ function Content() {
     );
   }
 
-  return h(
+  const umaOptions = status.uma_options || [];
+  const carveout = umaOptions.length
+    ? h(
+        DFL.PanelSection,
+        { title: "VRAM de firmware" },
+        h(
+          DFL.PanelSectionRow,
+          null,
+          h(DFL.DropdownItem, {
+            label: "Reservar",
+            description: "Lo que el firmware le entrega fijo a la GPU",
+            rgOptions: umaOptions.map((o) => ({ data: o.index, label: o.label })),
+            selectedOption: umaIndex,
+            disabled: busy,
+            onChange: (o) => setUmaIndex(o.data),
+          })
+        ),
+        h(
+          DFL.PanelSectionRow,
+          null,
+          h(
+            DFL.ButtonItem,
+            {
+              layout: "below",
+              disabled: busy || umaIndex === null || umaIndex === status.uma_current,
+              onClick: () => act(() => applyCarveout(umaIndex)),
+            },
+            umaIndex === status.uma_current ? "Ya aplicado" : "Aplicar y reiniciar despues"
+          )
+        )
+      )
+    : null;
+
+  const gtt = h(
     DFL.PanelSection,
     { title: "Memoria grafica (GTT)" },
     h(DFL.PanelSectionRow, null, h("div", { style: { width: "100%" } }, rows)),
@@ -183,6 +224,8 @@ function Content() {
       )
     )
   );
+
+  return h(React.Fragment, null, carveout, gtt);
 }
 
 function Icon() {

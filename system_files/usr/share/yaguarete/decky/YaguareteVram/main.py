@@ -1,9 +1,13 @@
-"""GTT ceiling control for AMD APUs, exposed in Game Mode through Decky.
+"""Graphics memory control for AMD APUs, exposed in Game Mode through Decky.
 
 The GTT pool is system RAM the GPU may map as graphics memory. Its ceiling is
 the `ttm.pages_limit` kernel argument, one page being 4 KiB. On a unified-memory
 APU the GTT lives in the same DDR banks as the firmware's UMA carveout and runs
 at the same bandwidth, so this is the pool that moves without a firmware trip.
+
+The firmware carveout -- the fixed slice reported as VRAM -- is the other
+half, and amdgpu now exposes it at `<card>/device/uma/carveout`. Decky runs
+this plugin as root, so both knobs are a plain write from here.
 
 Same logic as `ujust yaguarete-vram`, reachable without leaving the game.
 """
@@ -102,6 +106,50 @@ async def _staged(key):
     return int(m.group(1)) if m else None
 
 
+_OPTION_PAT = re.compile(r"^\s*(\d+)\s*:\s*(.*?)\s*\(([^)]*)\)\s*$")
+
+
+def _uma_dir(gpu):
+    """sysfs directory of the firmware carveout controls, or None.
+
+    amdgpu only creates it when the platform answers the ACPI method, so its
+    absence is the honest signal that this machine cannot move the carveout --
+    not a reason to fall back to poking the firmware by hand (#267).
+    """
+    if not gpu:
+        return None
+    uma = os.path.join(gpu, "uma")
+    return uma if os.path.exists(os.path.join(uma, "carveout")) else None
+
+
+def _option_mib(size):
+    """'512 MB' -> 512, '8 GB' -> 8192. Unparseable -> None."""
+    m = re.search(r"\d+", size)
+    if not m:
+        return None
+    n = int(m.group())
+    return n if "m" in size.lower() else n * 1024
+
+
+def _uma_options(uma):
+    """The sizes the firmware accepts, in the order it lists them."""
+    options = []
+    with open(os.path.join(uma, "carveout_options")) as f:
+        for line in f:
+            m = _OPTION_PAT.match(line)
+            if not m:
+                continue
+            index, word, size = int(m.group(1)), m.group(2), m.group(3)
+            mib = _option_mib(size)
+            if mib is None:
+                continue
+            # The firmware labels only three of them; the rest carry the size
+            # alone, so the size is what the panel always shows.
+            options.append({"index": index, "mib": mib,
+                            "label": f"{size} ({word})" if word else size})
+    return options
+
+
 class Plugin:
     async def _main(self):
         decky.logger.info("Yaguarete VRAM loaded")
@@ -112,6 +160,7 @@ class Plugin:
     async def get_status(self):
         """Everything the panel needs, in one call."""
         gpu = _find_gpu()
+        uma = _uma_dir(gpu)
         ram = _ram_bytes()
         active = _active_pages()
         staged = await _staged("ttm.pages_limit")
@@ -130,6 +179,8 @@ class Plugin:
             "percent": round(active * PAGE_SIZE * 100 / ram) if active else 0,
             "floor": MIN_OS_BYTES,
             "has_gpu": bool(gpu),
+            "uma_options": _uma_options(uma) if uma else [],
+            "uma_current": _read_int(os.path.join(uma, "carveout")) if uma else -1,
         }
 
     async def set_percent(self, percent: int):
@@ -178,6 +229,39 @@ class Plugin:
         if clamped:
             msg = f"Recortado a {gib:.1f} GiB para dejar 6 GiB al sistema. Reinicia."
         return {"ok": True, "message": msg, "pending": True}
+
+    async def set_carveout(self, index: int):
+        """Ask the firmware for carveout option `index`. Applied on next boot.
+
+        The kernel validates the index against what the platform offers, so a
+        rejected write fails here with EINVAL instead of turning into a bad
+        value that only shows up after a reboot.
+        """
+        decky.logger.info("set_carveout(%r) requested", index)
+        uma = _uma_dir(_find_gpu())
+        if not uma:
+            return {"ok": False, "message": "Este equipo no expone el carveout."}
+
+        options = {o["index"]: o for o in _uma_options(uma)}
+        if index not in options:
+            return {"ok": False, "message": "Esa opcion no la ofrece el firmware."}
+
+        current = _read_int(os.path.join(uma, "carveout"))
+        if index == current:
+            decky.logger.info("set_carveout(%s): already current, nothing written", index)
+            return {"ok": True, "message": "Ya estaba en ese valor.", "pending": False}
+
+        try:
+            with open(os.path.join(uma, "carveout"), "w") as f:
+                f.write(str(index))
+        except OSError as err:
+            decky.logger.error("carveout write failed: %s", err)
+            return {"ok": False, "message": f"El firmware rechazo el cambio: {err}"}
+
+        decky.logger.info("set_carveout(%s): %s written", index, options[index]["label"])
+        return {"ok": True,
+                "message": f"{options[index]['label']} pedidos. Reinicia para aplicar.",
+                "pending": True}
 
     async def reset(self):
         """Drop our kargs and go back to the kernel default."""
