@@ -10,12 +10,21 @@
 #      calls "KB" is the orange button here, and what it calls "Orange Button"
 #      is the small one.
 #
-#   2. Turbo lands on `QuickAccess`, which nothing consumes. OpenGamepadUI's
-#      per-device profile maps `LeftTop`, `RightTop`, `Keyboard` and
-#      `QuickAccess2`, but not `QuickAccess`, and an Xbox target has no such
-#      button either -- so the event is produced and then dropped. Sending
-#      Turbo to `QuickAccess2` reaches OGUI's `Guide`+`East`, which is Steam's
-#      Quick Access Menu. That is what Turbo did before Bazzite 44.
+#   2. Turbo had nowhere to land. It goes to `QuickAccess` -- the Steam Deck's
+#      "..." button -- and the composite device now targets `deck-uhid`, a real
+#      Valve Steam Deck Controller, so there is a genuine button to press.
+#
+#      An earlier revision sent it to `QuickAccess2` instead, which
+#      OpenGamepadUI translates to `Guide`+`East`. That was measured on the
+#      device and the chord is emitted perfectly -- seven presses out of seven,
+#      80 ms apart. It just never reaches Steam: the `ogui-steam` session calls
+#      itself "Gamescope Steam session with OpenGamepadUI QAM", and OGUI treats
+#      `Guide`+`East` as its own quick-bar gesture. It answers first, by design.
+#
+#      Reaching Steam's own QAM therefore takes both halves: this map, and
+#      `ujust configure-opengamepadui disable` to make that session plain
+#      Steam. Without the second, Turbo opens OGUI's panel no matter what is
+#      written here.
 #
 # `Orange Button (Long Press)` is gone: it emits nothing on this unit. The long
 # press is not an input event at all -- the firmware re-enumerates the device
@@ -38,7 +47,7 @@ mapping:
       - keyboard: KeyLeftMeta
     target_event:
       gamepad:
-        button: QuickAccess2
+        button: QuickAccess
 
   - name: Orange Button (Short Press)
     source_events:

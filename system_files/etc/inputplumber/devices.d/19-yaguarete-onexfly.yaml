@@ -46,12 +46,24 @@ source_devices:
 options:
   auto_manage: true
 
-# Left as upstream has it. OpenGamepadUI reasserts the target list from its own
-# per-game profiles roughly 47 s after boot, so anything we put here that OGUI
-# disagrees with does not survive; the mapping is done in the capability map
-# instead, where OGUI has no say.
+# A Steam Deck controller, because an Xbox pad has no Quick Access button and
+# the chord that stands in for one never reaches Steam.
+#
+# The `ogui-steam` session -- "Steam Big Picture Plus", the default on this
+# hardware -- describes itself as "Gamescope Steam session with OpenGamepadUI
+# QAM". It means it: OGUI treats `Guide`+`East` as its own quick-bar gesture
+# and answers it before Steam ever sees it. Measured on the device: the chord
+# is emitted cleanly, seven presses out of seven, and opens OGUI's panel.
+#
+# So reaching Steam's own QAM needs two things together, and this file is one
+# of them. The other is `ujust configure-opengamepadui disable`, which turns
+# that session into plain Steam. With OGUI gone nothing reasserts the target
+# list any more, which is why this now sticks where it previously did not.
+#
+# `deck-uhid` presents "Valve Steam Deck Controller", which has a real
+# QuickAccess button for the capability map to aim at.
 target_devices:
-  - xbox-series
+  - deck-uhid
   - mouse
   - keyboard
 
