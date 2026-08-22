@@ -403,43 +403,18 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # the skip used to be indistinguishable from success in a green build.
 /ctx/patch-hhd-ui.sh
 
-### HHD plugin: hhd-vram — GTT (graphics memory) allocation slider for AMD APUs.
-# Adds a slider to the HHD overlay that maps a chosen % of system RAM as GPU
-# graphics memory (GTT) via the ttm.pages_limit kernel argument, applied with
-# rpm-ostree kargs + reboot. On unified-memory APUs GTT shares the same DDR as
-# the BIOS UMA carveout at full bandwidth, so this is the Linux-native
-# equivalent of OneXConsole's VRAM tuning on Windows — no BIOS trip required.
+### Graphics memory (GTT) ceiling: shipped as `ujust yaguarete-vram`.
+# This used to be `hhd-vram`, a vendored Handheld Daemon plugin that put the
+# GTT percentage behind a slider in the HHD overlay. Bazzite 44 retired HHD,
+# so the plugin stopped being installed on every variant and the knob went
+# with it. Rebuilding the slider on OpenGamepadUI would cost a privileged
+# D-Bus daemon to expose one integer that is set once every few months and
+# needs a reboot regardless, so the function moved to a recipe and the
+# vendored plugin is gone (#269).
 #
-# Source is vendored under build_files/hhd-vram/ (self-contained with its own
-# pyproject; extract to a standalone repo later if it ever ships to the wider
-# handheld community). Gated on Handheld Daemon being present so it only lands
-# on the deck variant and no-ops on desktop/nvidia. --no-deps because hhd is
-# already in the deck base; without it pip rebuilds pycairo (needs cairo/cmake)
-# and fails. Installs to /usr site-packages so HHD discovers it by entry point
-# with no drop-in or PYTHONPATH.
-#
-# Bazzite 44 retired HHD on the deck image, so `import hhd` now fails there and
-# this block is skipped. A skipped feature must not read like a built one: the
-# else branch prints a banner so the loss is visible in the build log instead
-# of being inferred later from a device that no longer has the slider.
-if python3 -c "import hhd" 2>/dev/null; then
-    # /ctx is a read-only bind mount; setuptools writes .egg-info in-tree
-    # while building, so copy the source to writable tmpfs (/tmp) first.
-    cp -r /ctx/hhd-vram /tmp/hhd-vram-src
-    # --prefix=/usr so pip lands in /usr/lib/pythonX.Y/site-packages (where HHD
-    # discovers plugins, next to adjustor) instead of Fedora pip's default
-    # /usr/local, which does not exist in the image and is off HHD's path.
-    python3 -m pip install --no-deps --break-system-packages --prefix=/usr /tmp/hhd-vram-src
-    rm -rf /tmp/hhd-vram-src
-    echo "[hhd-vram] installed: Handheld Daemon present in this base"
-else
-    echo "======================================================================"
-    echo "[hhd-vram] NOT INSTALLED — Handheld Daemon is absent from this base."
-    echo "[hhd-vram] The GTT/VRAM slider does not exist on the resulting image."
-    echo "[hhd-vram] Expected on Bazzite >= 44 deck, which replaced HHD with"
-    echo "[hhd-vram] InputPlumber + OpenGamepadUI. Port the plugin or drop it."
-    echo "======================================================================"
-fi
+# Nothing to install here -- the recipe is a plain file under
+# system_files/usr/share/ublue-os/just/. This comment stays as the pointer
+# for anyone looking for where the slider went.
 
 ### Plymouth: set yaguarete as the default theme and regenerate the
 # initramfs so it reaches early boot.
