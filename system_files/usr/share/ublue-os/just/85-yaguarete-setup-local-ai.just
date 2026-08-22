@@ -61,7 +61,9 @@ yaguarete-setup-local-ai ACTION="":
         ctx="{{ _local_ai_ctx_desktop }}"; klass="desktop"
     fi
 
-    action="$ACTION"
+    # `just` substitutes {{ ACTION }} at render time; $ACTION is a shell
+    # variable that was never assigned, and `set -u` makes that fatal.
+    action="{{ ACTION }}"
     if [[ -z "$action" ]]; then
         echo "Usage: ujust yaguarete-setup-local-ai [install|status|remove]"
         exit 0
