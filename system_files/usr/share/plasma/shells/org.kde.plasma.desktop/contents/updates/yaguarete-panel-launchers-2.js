@@ -54,6 +54,18 @@ for (let i = 0; i < allPanels.length; ++i) {
         }
 
         widget.writeConfig("launchers", after);
+
+        // reloadConfig() reloads the data; it does not rebuild the widget.
+        // Running this against a live plasmashell left the panel drawing an
+        // empty launcher strip until the shell was restarted -- the config was
+        // correct on disk and in memory the whole time.
+        //
+        // Harmless here, because Plasma runs update scripts during startup,
+        // before the panel is drawn. Recorded so nobody reuses this snippet
+        // interactively and wonders where the icons went. To apply the same
+        // change to a running session:
+        //
+        //   systemctl --user restart plasma-plasmashell.service
         widget.reloadConfig();
     }
 }
