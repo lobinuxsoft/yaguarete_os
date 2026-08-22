@@ -72,7 +72,6 @@ function Row(label, value, accent) {
 function Content() {
   const [status, setStatus] = useState(null);
   const [percent, setPercent] = useState(50);
-  const [umaIndex, setUmaIndex] = useState(null);
   const [busy, setBusy] = useState(false);
   // The slider must not fight the user: only seed it from the device on the
   // first load, never on later refreshes.
@@ -86,9 +85,6 @@ function Content() {
         setPercent(s.percent);
         seeded.current = true;
       }
-      // The dropdown seeds off the firmware's own answer, so an untouched
-      // panel always shows what the machine will actually boot with.
-      setUmaIndex((prev) => (prev === null && s && s.uma_current >= 0 ? s.uma_current : prev));
     } catch (e) {
       console.error("[yaguarete-vram]", e);
     }
@@ -142,6 +138,15 @@ function Content() {
     );
   }
 
+  // Steam's Dropdown is uncontrolled unless told otherwise: it seeds its value
+  // in the constructor and then ignores the prop. Opening its context menu can
+  // unmount the whole Quick Access panel, so a selection parked in React state
+  // does not survive long enough to be applied by a second button press -- the
+  // panel comes back mounted from scratch, showing the device value again.
+  //
+  // So there is no staged selection at all. `controlled` makes the widget a
+  // mirror of what the device reports, and picking a size writes it. Nothing
+  // is lost to a remount because nothing was being held.
   const umaOptions = status.uma_options || [];
   const carveout = umaOptions.length
     ? h(
@@ -152,25 +157,14 @@ function Content() {
           null,
           h(DFL.DropdownItem, {
             label: "Reservar",
-            description: "Lo que el firmware le entrega fijo a la GPU",
+            description: "Se aplica al reiniciar",
+            menuLabel: "VRAM de firmware",
             rgOptions: umaOptions.map((o) => ({ data: o.index, label: o.label })),
-            selectedOption: umaIndex,
+            selectedOption: status.uma_current,
+            controlled: true,
             disabled: busy,
-            onChange: (o) => setUmaIndex(o.data),
+            onChange: (o) => act(() => applyCarveout(o.data)),
           })
-        ),
-        h(
-          DFL.PanelSectionRow,
-          null,
-          h(
-            DFL.ButtonItem,
-            {
-              layout: "below",
-              disabled: busy || umaIndex === null || umaIndex === status.uma_current,
-              onClick: () => act(() => applyCarveout(umaIndex)),
-            },
-            umaIndex === status.uma_current ? "Ya aplicado" : "Aplicar y reiniciar despues"
-          )
         )
       )
     : null;
