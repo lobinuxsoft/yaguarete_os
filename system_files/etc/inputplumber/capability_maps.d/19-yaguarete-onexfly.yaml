@@ -27,17 +27,24 @@
 #      Steam. Without the second, Turbo opens OGUI's panel no matter what is
 #      written here.
 #
-#   3. The keyboard button aims at `RightPaddle1`, not `Keyboard`. Measured in
-#      Game Mode with the deck-uhid target: Turbo (`QuickAccess`) opens Steam's
-#      QAM and the small button (`Guide`) opens the Steam menu -- both pass
-#      straight through to the controller. `Keyboard` is the only one of the
-#      three that needs OpenGamepadUI to act on a `ui_osk` D-Bus event, and it
-#      is the only one that does nothing.
+#   3. The keyboard button aims at `QuickAccess2`, not `Keyboard`, and that
+#      gives the unit both panels at once -- one per button:
 #
-#      A Steam Deck controller has no keyboard button, so there is nothing for
-#      that capability to become. `RightPaddle1` is a real one: it reaches
-#      Steam, and Steam Input can bind it to the on-screen keyboard -- or to
-#      anything else -- from its own settings, with no dependency on OGUI.
+#        Turbo          -> QuickAccess  -> passes through -> Steam's QAM
+#        Keyboard       -> QuickAccess2 -> OGUI answers   -> OGUI's panel
+#        Small button   -> Guide        -> passes through -> Steam menu
+#
+#      All three measured in Game Mode on the deck-uhid target. `QuickAccess`
+#      has no entry in OGUI's per-device profile, so it reaches the controller;
+#      `QuickAccess2` is mapped to `Guide`+`East`, which OGUI treats as its own
+#      quick-bar gesture and answers before Steam sees it. Two independent
+#      paths, so neither costs the other.
+#
+#      `Keyboard` was the original target and does nothing: a Steam Deck
+#      controller has no keyboard button, so the capability has nothing to
+#      become, and OGUI's `ui_osk` never fires. Proven by remapping and
+#      measuring /dev/hidraw9 -- zero report changes as `Keyboard`, a clean
+#      `byte13: 00 -> 04` as `RightPaddle1`. The chord was never the problem.
 #
 # `Orange Button (Long Press)` is gone: it emits nothing on this unit. The long
 # press is not an input event at all -- the firmware re-enumerates the device
@@ -69,7 +76,7 @@ mapping:
       - keyboard: KeyO
     target_event:
       gamepad:
-        button: RightPaddle1
+        button: QuickAccess2
 
   - name: Small Button
     source_events:
