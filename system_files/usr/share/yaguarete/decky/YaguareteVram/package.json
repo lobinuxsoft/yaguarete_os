@@ -1,0 +1,7 @@
+{
+  "name": "yaguarete-vram",
+  "version": "1.0.0",
+  "description": "GTT ceiling control for AMD APUs, from Game Mode",
+  "type": "module",
+  "license": "MIT"
+}

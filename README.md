@@ -20,13 +20,14 @@ Production. Four image variants live on `ghcr.io/lobinuxsoft/yaguarete_os{,-deck
 
 Beyond the Bazzite-inherited gaming stack, YaguareteOS ships:
 
-- **`hhd-vram`** — our own [Handheld Daemon](https://github.com/hhd-dev/hhd) plugin (vendored in `build_files/hhd-vram/`, installed only where HHD is present). Adds a slider to the HHD overlay that assigns a percentage of system RAM as GPU graphics memory (GTT) via the `ttm.pages_limit` kernel argument, with a 6 GiB OS floor, applied through `rpm-ostree kargs` and persisted across reboots. On unified-memory APUs the BIOS UMA carveout is immutable at runtime; GTT is the knob that actually moves. No handheld distribution exposes this as a percentage control.
+- **`ujust yaguarete-vram`** — assign a percentage of system RAM as GPU graphics memory (GTT) on AMD APUs, via the `ttm.pages_limit` kernel argument, with a 6 GiB floor always left to the OS, applied through `rpm-ostree kargs` and persisted across reboots. On a unified-memory APU the GTT shares the same DDR banks as the firmware's UMA carveout and runs at the same bandwidth, so this is the pool that actually moves without a firmware trip. This shipped as `hhd-vram`, a Handheld Daemon plugin, until Bazzite 44 retired HHD; the slider is gone, the function is not. No handheld distribution exposes this as a percentage control.
+- **Yaguarete VRAM (Decky plugin)** — the same GTT knob, reachable from **Game Mode** without leaving the game. Vendored under `system_files/usr/share/yaguarete/decky/`, installed with `ujust yaguarete-decky-vram install` or from the Portal. Its frontend is hand-written with **no npm dependencies and no build step**: a Decky bundle does not embed the UI library, it resolves `DFL` and `SP_REACT` from globals the loader injects, so the whole toolchain is unnecessary. Decky's backend runs as root, which is what lets it stage a kernel argument at all.
 - **Portal yafti** — first-boot welcome wizard (run-once gated) plus an Apps page with install/update/uninstall for every component below. 77 items across 8 tabs, all normalised to `install/update/uninstall` with status badges where the underlying recipe supports it. All 182 actions and 43 status probes run through `/usr/libexec/yaguarete/portal-run`, which keeps `SUDO_ASKPASS` alive, holds the terminal open on failure and appends to `~/.local/state/yaguarete/portal.log` — upstream yafti drops both the environment and the output.
 - **Yaguareté Apps suite** — custom installers for our own apps, [Yryvu](https://github.com/lobinuxsoft/yryvu) (Tauri 2 Git client) and [Tatu](https://github.com/lobinuxsoft/tatu) (Steam backlog tracker), plus curated recipes for third-party software: [Eden](https://eden-emu.dev) (Switch emulator with firmware + checksum-verified prod.keys + EmuDeck SRM integration), [Antigravity IDE](https://antigravity.google/) (Google Gemini, APT repo with SHA256 verify), Antigravity CLI, and [Claude Code](https://claude.com/claude-code) (Anthropic, official per-user installer — needs a Claude subscription or API key to be usable). Every third-party bootstrap script is run inspect-then-run: downloaded, its head shown, confirmed, and only then executed — never `curl | bash`.
-- **Terminal and shell** — `kitty` with a config matched to the KDE colour scheme, `zsh` as the login shell for new accounts, and FiraCode Nerd Font (pinned + SHA256-verified from [nerd-fonts](https://github.com/ryanoasis/nerd-fonts), because Fedora does not package the patched build). `ujust yaguarete-setup-shell` fills in the part that lives in `$HOME` — oh-my-zsh, the Powerlevel10k prompt, autosuggestions and syntax highlighting — backing up any dotfile it would replace and leaving identical ones untouched, so re-running it is safe. Ligatures land in kitty; Konsole is Qt and renders none, which is why it gets the `Mono` face instead.
+- **Terminal and shell** — `kitty` is the **default terminal**, wired through all three surfaces that decide one: `/etc/xdg/xdg-terminals.list` (every helper that goes through `xdg-terminal-exec`), `TerminalApplication` in `kdeglobals` (KDE's own "open a terminal" actions) and the `x-scheme-handler/terminal` association. It renders images inline (`kitten icat picture.png`), ligatures and true colour. Its config is installed both to `/etc/skel` and to `/etc/xdg/kitty/`, so accounts that predate the image — or never ran the recipe — still get the theme; a personal `~/.config/kitty/kitty.conf` still wins. Konsole stays installed as the fallback, since KDE code paths and third-party apps may call it by name. `zsh` is the login shell for new accounts, and FiraCode Nerd Font is pinned + SHA256-verified from [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) because Fedora does not package the patched build. `ujust yaguarete-setup-shell` fills in the part that lives in `$HOME` — oh-my-zsh, the Powerlevel10k prompt, autosuggestions and syntax highlighting — backing up any dotfile it would replace and leaving identical ones untouched, so re-running it is safe.
 - **`ujust yaguarete-setup-decky`** — hardened [Decky Loader](https://decky.xyz) installer. The upstream script deletes `~/homebrew/services` *before* querying the GitHub API, so a failed query leaves the user without the binary they already had and still exits `0`. Ours resolves version and URL and verifies `HEAD 200` before anything is removed, backs up and restores the binary, then checks size, version, SELinux `bin_t` context and service state, with an honest exit code.
 - **`ujust yaguarete-fsr4`** — auto-detect GPU (RDNA 3 / RDNA 4) and wire FSR4 upgrade with the correct Proton fork. Useful upgrade path for OneXFly / RDNA 3 handhelds.
-- **`ujust yaguarete-*` helpers** — `yaguarete-welcome` (command reference), `yaguarete-rescue` (detects the right variant by DMI and rebases back after an accidental `bootc switch`), `yaguarete-install-gaming` and `yaguarete-install-dev` (per-app opt-in Flatpak pickers).
+- **`ujust yaguarete-*` helpers** — `yaguarete-welcome` (command reference), `yaguarete-rebase` (switch between our `stable` / `testing` / `unstable` channels — resolves the image from `image-info.json`, vendor included, and keeps the verification mode the booted deployment uses; `brh rebase` hardcodes `ghcr.io/ublue-os` and cannot reach our registry), `yaguarete-rescue` (detects the right variant by DMI and rebases back after an accidental `bootc switch`), `yaguarete-install-gaming` and `yaguarete-install-dev` (per-app opt-in Flatpak pickers).
 - **Aurora-style image versioning** — `rpm-ostree status` reports a human-readable `<fedora>.<YYYYMMDD>` so users can correlate updates with the release calendar.
 - **LACT integration** — manual AMDGPU control (fan curve, OC/UV, live metrics) via Flathub, one-click from the Portal.
 - **Multi-device target** — desktop AMD (RX 9070 XT class), handhelds (Steam Deck, OneXFly, ROG Ally), NVIDIA proprietary and open kernel module variants — single source tree, one Containerfile, matrix CI across the four.
@@ -205,6 +206,37 @@ This swaps the boot order back to your previous image (e.g. Bazzite). The Yaguar
 
 To pin yourself permanently back to the source image, run `bootc switch` against its registry URL (e.g. `ghcr.io/ublue-os/bazzite:stable`) and reboot.
 
+#### Crossing the Fedora 43 -> 44 boundary
+
+`bootc rollback` moves between deployments you already have on disk, and that
+keeps working. **Rebasing back to a Fedora 43 image is different**: Bazzite 44
+crossed a Fedora major version *and* replaced the whole handheld stack, and
+upstream states plainly that going backwards between 43 and 44 needs manual
+intervention because session management changed underneath.
+
+What that means in practice, before you rebase to anything F43-based:
+
+- **Pin the current deployment first.** `sudo ostree admin pin booted` keeps a
+  known-good entry that a later update cannot garbage-collect. Do it *before*
+  the rebase, not after it fails; `sudo ostree admin pin --unpin booted`
+  releases it later. (`bootc` has no pin subcommand -- `bootc image` only
+  handles the image store.)
+- **Expect the session, not the boot, to be what breaks.** The machine will
+  reach a login screen; what may not come back is the gamescope session or the
+  desktop session, because 44 replaced Handheld Daemon with InputPlumber,
+  SteamOS-Manager, PowerStation and OpenGamepadUI. A black screen after login
+  is the expected failure mode, not a bricked system.
+- **Keep a TTY reachable.** `Ctrl`+`Alt`+`F3` gets you a console, and
+  `sudo bootc rollback && sudo systemctl reboot` from there undoes it.
+- **Anything you set with `ujust yaguarete-vram` survives the rebase**, because
+  kernel arguments live in the deployment, not the image. If an older image
+  behaves badly with a raised GTT ceiling, `ujust yaguarete-vram reset` and
+  reboot.
+
+None of this applies to moving between our own channels -- `stable`, `testing`
+and `unstable` are all built on the same Fedora major at any given time, which
+is what `ujust yaguarete-rebase` is for.
+
 **If you changed your login shell to zsh**, undo that before rolling back to an image older than the release that introduced it:
 
 ```bash
@@ -229,6 +261,14 @@ ujust yaguarete-rescue unstable   # rolling
 ```
 
 If you're already on YaguareteOS, the command is a no-op and points you at `sudo bootc upgrade` instead.
+
+## Updating by hand
+
+The launcher entry **Yaguareté Updater** (category *System*) is the graphical way to update: it runs the same `uupd-manual.service` the timer uses, and it also offers a rollback to the previous deployment and the release notes of each version.
+
+It is the upstream [`bazzite-updater`](https://github.com/rfrench3/bazzite-updater) — a Qt frontend explicitly written to be configurable for any distro — rebranded in place through `system_files/overrides/etc/bazzite-updater/`: `KAboutData_OS.json` carries our name, links and credits, and `config.ini` points the release feed at this repository. No fork, no patched binary.
+
+The console path still exists (`ujust update`); its launcher entry is hidden so the menu shows a single updater. On a variant that ships without `bazzite-updater`, the Containerfile drops the rebrand and leaves the console entry visible instead, so no image is left without a way to update from the menu.
 
 ## Automatic updates
 

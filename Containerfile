@@ -67,6 +67,25 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 # packages installed in build.sh.
 COPY system_files/overrides /
 
+### Updater: commit to one entry in the menu, but only if there is one to
+# commit to. `bazzite-updater` (Terra repo, pulled in by the Bazzite base)
+# is a Qt GUI that runs the same update via uupd-manual.service and adds
+# rollback plus a release-notes feed; system_files/overrides/ rebrands it
+# to "Yaguarete Updater" and repoints its RSS feed and About data at us.
+# This has to run AFTER the overrides COPY above -- that is when both the
+# package and our rebrand are on disk. If a variant ever ships without the
+# package, hiding our console entry would leave the image with NO updater
+# in the menu and a launcher pointing at a missing binary, so in that case
+# the rebrand is removed and the console entry stays visible instead.
+RUN if rpm -q bazzite-updater >/dev/null 2>&1; then \
+        printf 'NoDisplay=true\n' >> /usr/share/applications/system-update.desktop && \
+        echo "[updater] bazzite-updater present -> Yaguarete Updater shipped, console entry hidden"; \
+    else \
+        rm -f /usr/share/applications/io.github.rfrench3.bazzite-updater.desktop && \
+        rm -rf /etc/bazzite-updater && \
+        echo "[updater] bazzite-updater ABSENT -> rebrand dropped, console entry stays visible"; \
+    fi
+
 ### LINTING
 ## Verify final image and contents are correct.
 RUN bootc container lint

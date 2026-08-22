@@ -329,8 +329,9 @@ Items in `yafti.yml` that do NOT call `ujust` — they invoke `flatpak`, `brew`,
 | JetBrains Toolbox | brew cask | `TODO` | |
 | VSCodium | brew cask | `TODO` | |
 | Android Platform Tools | brew cask | `TODO` | |
-| `brh rebase stable` | shell | `TODO` | Channel switch. |
-| `brh rebase testing` | shell | `TODO` | |
+| `ujust yaguarete-rebase stable` | shell | `TODO` | Channel switch. Was `brh rebase`, which hardcodes ghcr.io/ublue-os. |
+| `ujust yaguarete-rebase testing` | shell | `TODO` | |
+| `ujust yaguarete-rebase unstable` | shell | `TODO` | New: the channel where merges land first. |
 | `brh rollback` | shell | `TODO` | |
 | `reset-bazzite` | shell? | `TODO` | Confirm replacement (likely `yaguarete-rescue`). |
 

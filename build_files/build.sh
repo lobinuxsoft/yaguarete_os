@@ -75,6 +75,16 @@ install -Dm0644 /usr/share/yaguarete/shell/zshrc /etc/skel/.zshrc
 install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
     /etc/skel/.config/kitty/kitty.conf
 
+# Same file again as the system-wide default. kitty searches
+# $XDG_CONFIG_HOME/kitty/kitty.conf, ~/.config/kitty/kitty.conf and then
+# $XDG_CONFIG_DIRS/kitty/kitty.conf (`kitty --help`), so /etc/xdg covers the
+# accounts /etc/skel never touched -- anyone who existed before this image,
+# or who never ran `ujust yaguarete-setup-shell`. Without it, promoting kitty
+# to default terminal would open an unthemed kitty for exactly those users.
+# A personal ~/.config/kitty/kitty.conf still wins.
+install -Dm0644 /usr/share/yaguarete/shell/kitty.conf \
+    /etc/xdg/kitty/kitty.conf
+
 ### Custom apps installed from GitHub Releases (yryvu, capydeploy, godots, ...)
 # Pinned versions + checksums live in install-custom-apps.sh. Bumping any of
 # them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
@@ -182,10 +192,67 @@ for variant in bazzite-logo.svg bazzite-logo-white.svg bazzite-logo-le.svg \
         "/usr/share/icons/hicolor/scalable/places/$variant"
 done
 
-### Branding: keep /usr/share/ublue-os/motd/bazzite.md path alive as a
-# symlink to the YaguareteOS-named file. Reason: /usr/libexec/ublue-motd
-# hardcodes the bazzite.md path; renaming the file alone breaks login MOTD.
-ln -sf yaguarete.md /usr/share/ublue-os/motd/bazzite.md
+### Branding: the login MOTD.
+# ublue-motd stopped reading a distro-named file. It now renders
+# /usr/share/ublue-os/motd/template.md, expanding shell variables exported
+# by env.sh (${MOTD_IMAGE_NAME}, ${MOTD_GREENBOOT}, ${MOTD_TIP}) instead of
+# the old %PLACEHOLDER% syntax, and pulls one random line out of tips/*.md.
+#
+# We ship our own template.md through system_files/, so the banner itself is
+# already ours by the time this runs. What is left is the tips directory:
+# every upstream file there is Bazzite-branded prose ("Bazzite uses ZSTD
+# compression", "rolling back to older Bazzite builds") with docs.bazzite.gg
+# links, and one of them is picked at random on every login. Remove them by
+# name -- never with a glob, which would take our own tips with them.
+for upstream_tip in 10-ublue.md 15-ublue-config.md 20-bazzite.md \
+                    25-bazzite-deck.md 30-kde.md; do
+    rm -f "/usr/share/ublue-os/motd/tips/$upstream_tip"
+done
+rm -f /usr/share/ublue-os/motd/bazzite.md
+
+# Fail loudly rather than shipping a Bazzite-branded banner: the previous
+# override went stale for months precisely because nothing checked it.
+#
+# The predicate is the support links and the title, NOT the word "bazzite".
+# The banner deliberately keeps a lineage line pointing at https://bazzite.gg/
+# (README, "Lineage and upstream attribution"), and tips legitimately name
+# `bazzite-rollback-helper`, which is what the command is actually called.
+# Grepping the bare word fails the build on our own attribution.
+if grep -qE '(issues|docs|discord|bluesky)\.bazzite\.gg' \
+        /usr/share/ublue-os/motd/template.md; then
+    echo "[motd] FATAL: template.md still carries Bazzite support links" >&2
+    exit 1
+fi
+if ! grep -q "Welcome to YaguareteOS" /usr/share/ublue-os/motd/template.md; then
+    echo "[motd] FATAL: template.md is not ours -- upstream's copy won" >&2
+    exit 1
+fi
+if ! ls /usr/share/ublue-os/motd/tips/*.md >/dev/null 2>&1; then
+    echo "[motd] FATAL: no tips left, the banner would render an empty line" >&2
+    exit 1
+fi
+echo "[motd] template.md is ours, $(ls /usr/share/ublue-os/motd/tips/*.md | wc -l) tip file(s) kept"
+
+### Default terminal: kitty (#254).
+# /etc/xdg/xdg-terminals.list (shipped via system_files/) covers every helper
+# that goes through xdg-terminal-exec, and kdeglobals covers KDE's own
+# actions. This third path is the `x-scheme-handler/terminal` association.
+#
+# The file is edited in place instead of shipped: the base image already
+# writes /etc/xdg/mimeapps.list with the Bazaar association for
+# application/vnd.flatpak.ref, and dropping our own copy on top would
+# silently take that with it.
+if ! grep -q "^x-scheme-handler/terminal=" /etc/xdg/mimeapps.list 2>/dev/null; then
+    if grep -q "^\[Default Applications\]" /etc/xdg/mimeapps.list 2>/dev/null; then
+        sed -i '/^\[Default Applications\]/a x-scheme-handler/terminal=kitty.desktop' \
+            /etc/xdg/mimeapps.list
+    else
+        printf '[Default Applications]\nx-scheme-handler/terminal=kitty.desktop\n' \
+            >> /etc/xdg/mimeapps.list
+    fi
+fi
+echo "[terminal] default terminal is kitty; mimeapps.list now:"
+cat /etc/xdg/mimeapps.list
 
 ### Branding: privatize Bazzite-named ujust recipes so they no longer
 # appear in `ujust --list`. The YaguareteOS-named wrappers in
@@ -223,6 +290,59 @@ for just_file in /usr/share/ublue-os/just/*yaguarete*.just; do
     [ -e "$just_file" ] || continue
     echo "import \"$just_file\"" >> /usr/share/ublue-os/justfile
 done
+
+### Portal guard: every `ujust` the Portal calls must resolve to a recipe.
+#
+# Thirteen entries shipped calling recipes Bazzite 44 had renamed
+# (toggle-ssh -> ssh, install-openrgb -> openrgb, ...). Nothing failed: the
+# buttons were there, they just did nothing. Three of those renames were even
+# written down in docs/qa/upstream-issues.md and never applied.
+#
+# This runs after the recipe registration above, so `just --summary` sees
+# everything the image will actually have, ours included.
+#
+# Fatal on the deck variant only. The deck base is the superset -- it carries
+# the handheld recipes (steam-icons, steamos-automount, the Decky family) on
+# top of everything the desktop base has -- so a name missing there is missing
+# everywhere. On the other variants a handheld-only recipe is legitimately
+# absent, so the same check would fail for the wrong reason; there it prints a
+# banner instead. A banner nobody reads is still better than silence.
+portal_yaml=/usr/share/yafti/yafti.yml
+if [ -r "$portal_yaml" ]; then
+    have=$(just --justfile /usr/share/ublue-os/justfile --summary 2>/dev/null | tr ' ' '\n' | sort -u)
+    want=$(grep -oE "ujust [a-zA-Z0-9._-]+" "$portal_yaml" | awk '{print $2}' | sort -u)
+    dead=$(comm -23 <(echo "$want") <(echo "$have"))
+
+    if [ -n "$dead" ]; then
+        echo "======================================================================"
+        echo "[portal] recipes the Portal calls that this image does not have:"
+        echo "$dead" | sed 's/^/[portal]   - /'
+        echo "======================================================================"
+        case "${YAGUARETE_IMAGE_NAME:-}" in
+            *-deck)
+                echo "[portal] FATAL: the deck image is the superset -- these exist nowhere." >&2
+                exit 1
+                ;;
+            *)
+                echo "[portal] Not fatal on this variant: handheld-only recipes are"
+                echo "[portal] legitimately absent here. The deck build is the gate."
+                ;;
+        esac
+    else
+        echo "[portal] all $(echo "$want" | wc -l) recipes the Portal calls resolve"
+    fi
+
+    # The Portal reaches every recipe through this one wrapper. If it is
+    # missing, all 240 actions fail at once and every one of them looks like
+    # its own bug.
+    for helper in $(grep -oE "/usr/libexec/[a-zA-Z0-9/_-]+" "$portal_yaml" | sort -u); do
+        if [ ! -x "$helper" ]; then
+            echo "[portal] FATAL: $helper is referenced but not executable" >&2
+            exit 1
+        fi
+    done
+    echo "[portal] helpers referenced by the Portal are present and executable"
+fi
 
 ### Branding: yafti_gtk.py hardcodes APP_TITLE = 'Bazzite Portal' at line 18.
 # It is used both for the window title (Gtk.Window) and the
@@ -336,43 +456,18 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # the skip used to be indistinguishable from success in a green build.
 /ctx/patch-hhd-ui.sh
 
-### HHD plugin: hhd-vram — GTT (graphics memory) allocation slider for AMD APUs.
-# Adds a slider to the HHD overlay that maps a chosen % of system RAM as GPU
-# graphics memory (GTT) via the ttm.pages_limit kernel argument, applied with
-# rpm-ostree kargs + reboot. On unified-memory APUs GTT shares the same DDR as
-# the BIOS UMA carveout at full bandwidth, so this is the Linux-native
-# equivalent of OneXConsole's VRAM tuning on Windows — no BIOS trip required.
+### Graphics memory (GTT) ceiling: shipped as `ujust yaguarete-vram`.
+# This used to be `hhd-vram`, a vendored Handheld Daemon plugin that put the
+# GTT percentage behind a slider in the HHD overlay. Bazzite 44 retired HHD,
+# so the plugin stopped being installed on every variant and the knob went
+# with it. Rebuilding the slider on OpenGamepadUI would cost a privileged
+# D-Bus daemon to expose one integer that is set once every few months and
+# needs a reboot regardless, so the function moved to a recipe and the
+# vendored plugin is gone (#269).
 #
-# Source is vendored under build_files/hhd-vram/ (self-contained with its own
-# pyproject; extract to a standalone repo later if it ever ships to the wider
-# handheld community). Gated on Handheld Daemon being present so it only lands
-# on the deck variant and no-ops on desktop/nvidia. --no-deps because hhd is
-# already in the deck base; without it pip rebuilds pycairo (needs cairo/cmake)
-# and fails. Installs to /usr site-packages so HHD discovers it by entry point
-# with no drop-in or PYTHONPATH.
-#
-# Bazzite 44 retired HHD on the deck image, so `import hhd` now fails there and
-# this block is skipped. A skipped feature must not read like a built one: the
-# else branch prints a banner so the loss is visible in the build log instead
-# of being inferred later from a device that no longer has the slider.
-if python3 -c "import hhd" 2>/dev/null; then
-    # /ctx is a read-only bind mount; setuptools writes .egg-info in-tree
-    # while building, so copy the source to writable tmpfs (/tmp) first.
-    cp -r /ctx/hhd-vram /tmp/hhd-vram-src
-    # --prefix=/usr so pip lands in /usr/lib/pythonX.Y/site-packages (where HHD
-    # discovers plugins, next to adjustor) instead of Fedora pip's default
-    # /usr/local, which does not exist in the image and is off HHD's path.
-    python3 -m pip install --no-deps --break-system-packages --prefix=/usr /tmp/hhd-vram-src
-    rm -rf /tmp/hhd-vram-src
-    echo "[hhd-vram] installed: Handheld Daemon present in this base"
-else
-    echo "======================================================================"
-    echo "[hhd-vram] NOT INSTALLED — Handheld Daemon is absent from this base."
-    echo "[hhd-vram] The GTT/VRAM slider does not exist on the resulting image."
-    echo "[hhd-vram] Expected on Bazzite >= 44 deck, which replaced HHD with"
-    echo "[hhd-vram] InputPlumber + OpenGamepadUI. Port the plugin or drop it."
-    echo "======================================================================"
-fi
+# Nothing to install here -- the recipe is a plain file under
+# system_files/usr/share/ublue-os/just/. This comment stays as the pointer
+# for anyone looking for where the slider went.
 
 ### Plymouth: set yaguarete as the default theme and regenerate the
 # initramfs so it reaches early boot.

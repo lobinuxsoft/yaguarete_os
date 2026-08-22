@@ -1,0 +1,10 @@
+{
+  "name": "Yaguarete VRAM",
+  "author": "lobinuxsoft",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["utility", "performance"],
+    "description": "Choose how much system RAM the GPU may map as graphics memory (GTT) on AMD APUs, from Game Mode. Staged with rpm-ostree kargs, applied on the next reboot."
+  }
+}

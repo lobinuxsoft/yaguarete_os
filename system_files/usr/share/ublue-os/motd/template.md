@@ -1,6 +1,6 @@
 # Welcome to YaguareteOS 󰊴
-󱋩 `%IMAGE_NAME%:%IMAGE_BRANCH%`
-󰟀 `%GREENBOOT%`
+󱋩 `${MOTD_IMAGE_NAME}:${MOTD_IMAGE_BRANCH}`
+󰟀 `${MOTD_GREENBOOT}`
 
 |  Command | Description |
 | ------- | ----------- |
@@ -9,7 +9,7 @@
 | `fastfetch` | View system information |
 | `brew help` | Manage command line packages |
 
-%TIP%
+${MOTD_TIP}
 - **** [Report an issue](https://github.com/lobinuxsoft/yaguarete_os/issues)
 - **󰈙** [Documentation](https://github.com/lobinuxsoft/yaguarete_os/wiki)
 - **󰓎** [Discussions](https://github.com/lobinuxsoft/yaguarete_os/discussions)
