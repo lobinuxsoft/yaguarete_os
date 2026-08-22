@@ -160,15 +160,13 @@ These recipes ship with the Bazzite base image (`/usr/share/ublue-os/just/80-baz
 | `setup-decky install` | `-deck` | `TODO` | Installs Decky Loader systemd unit. **Issue body uses old name `setup-decky` — confirmed still exists upstream.** |
 | `setup-decky uninstall` | `-deck` | `TODO` | |
 | `setup-decky status` | `-deck` | `TODO` | |
-| `get-decky-lossless-scaling install` | `-deck` | `TODO` | Decky plugin. |
-| `get-decky-lossless-scaling uninstall` | `-deck` | `TODO` | |
-| `get-decky-lossless-scaling status` | `-deck` | `TODO` | |
 | `get-framegen install` | `-deck` | `TODO` | **Renamed upstream** — issue body says `get-decky-framegen`. Verify wrapper aligned. |
 | `get-framegen uninstall` | `-deck` | `TODO` | |
 | `get-framegen status` | `-deck` | `TODO` | |
-| `get-lsfg install` | all | `TODO` | **Renamed upstream** — issue body says `setup-lsfg-vk`. Lossless Scaling Vulkan layer. |
-| `get-lsfg uninstall` | all | `TODO` | |
-| `get-lsfg status` | all | `TODO` | |
+| `yaguarete-mako install` | all | `TODO` | Replaced `get-decky-lossless-scaling` + `get-lsfg`: upstream folded both into MAKO. Needs Lossless Scaling bought on Steam. |
+| `yaguarete-mako update` | all | `TODO` | Same path as install; re-resolves the latest plugin release. |
+| `yaguarete-mako remove` | all | `TODO` | |
+| `yaguarete-mako status` | all | `TODO` | Reports the installed plugin version. |
 | `get-emudeck install` | all | `TODO` | **Renamed upstream** — issue body says `install-emudeck`. |
 | `get-emudeck uninstall` | all | `TODO` | |
 | `get-emudeck status` | all | `TODO` | |

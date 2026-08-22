@@ -131,6 +131,28 @@ yaguarete-setup-shell ACTION="":
         yg_ok "oh-my-zsh installed."
     }
 
+    # Write the login shell with whichever tool this image actually has.
+    #
+    # `chsh` is not installed. It comes from util-linux-user, which this image
+    # does not layer -- verified on the device: `chsh` and `lchsh` are both
+    # absent, `usermod` (shadow-utils) is present. The recipe called `chsh`
+    # unconditionally, so every run printed "chsh failed" while everything else
+    # succeeded and it still exited 0.
+    #
+    # `usermod -s` writes the same /etc/passwd field. `chsh` stays first in line
+    # for the day the image does ship it.
+    write_login_shell() {
+        local target="$1"
+        if command -v chsh >/dev/null 2>&1; then
+            yg_sudo chsh -s "$target" "$USER"
+        elif command -v usermod >/dev/null 2>&1; then
+            yg_sudo usermod -s "$target" "$USER"
+        else
+            yg_err "Neither chsh nor usermod is available on this image."
+            return 127
+        fi
+    }
+
     set_login_shell() {
         local current
         current=$(getent passwd "$USER" | cut -d: -f7)
@@ -142,7 +164,7 @@ yaguarete-setup-shell ACTION="":
 
         # Guards, in order of how badly each one breaks a login:
         #   - the binary has to exist, or the account cannot start a shell
-        #   - /etc/shells has to list it, or chsh refuses anyway
+        #   - /etc/shells has to list it, or the change is refused anyway
         #   - ~/.zshrc has to be there, or the first login is a bare prompt
         if [[ ! -x "$ZSH_BIN" ]]; then
             yg_err "$ZSH_BIN is missing. Not touching your login shell."
@@ -158,8 +180,8 @@ yaguarete-setup-shell ACTION="":
         fi
 
         yg_info "Changing your login shell from ${current} to ${ZSH_BIN}..."
-        if ! yg_sudo chsh -s "$ZSH_BIN" "$USER"; then
-            yg_err "chsh failed. Your login shell is unchanged (${current})."
+        if ! write_login_shell "$ZSH_BIN"; then
+            yg_err "Could not change the login shell. It is unchanged (${current})."
             return 1
         fi
         yg_ok "Login shell set to $ZSH_BIN (takes effect on your next login)."
@@ -217,7 +239,7 @@ yaguarete-setup-shell ACTION="":
     report_rollback() {
         printf '\n'
         yg_info "If you ever want bash back:"
-        printf '  chsh -s /bin/bash "$USER"\n'
+        printf '  sudo usermod -s /bin/bash "$USER"\n'
         printf '\n'
         yg_warn "One thing worth knowing about rollbacks:"
         printf '  /etc/passwd persists across deployments, but zsh only exists in\n'
@@ -303,9 +325,9 @@ yaguarete-setup-shell ACTION="":
             # login shell would leave the user on the fallback prompt with
             # no obvious way back.
             if [[ "$(getent passwd "$USER" | cut -d: -f7)" == "$ZSH_BIN" ]]; then
-                yg_sudo chsh -s /bin/bash "$USER" && \
+                write_login_shell /bin/bash && \
                     yg_ok "Login shell back to /bin/bash." || \
-                    yg_warn "Could not change the login shell — do it with: chsh -s /bin/bash"
+                    yg_warn "Could not change the login shell — do it with: sudo usermod -s /bin/bash \"$USER\""
             fi
 
             rm -rf "$OMZ_CUSTOM/themes/powerlevel10k"

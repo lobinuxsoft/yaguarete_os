@@ -150,8 +150,15 @@ yaguarete-setup-local-ai ACTION="":
         # Zed's settings are the user's: merge our provider in, never overwrite
         # the file. A first-run Zed has themes and keymaps in here already.
         mkdir -p "$(dirname "$zed_settings")"
-        # just keeps the heredoc indented; strip it before Python sees it.
-        sed 's/^    //' <<'PY' | python3 - "$zed_settings" "$ctx"
+        # `just` already strips the recipe body's common indentation, so the
+        # heredoc reaches Python with its relative indentation intact. An
+        # earlier revision piped it through `sed 's/^    //'` first, which took
+        # a second level off and flattened every nested block:
+        #
+        #   IndentationError: expected an indented block after 'if' statement
+        #
+        # Reproduced with a two-line justfile before removing it.
+        python3 - "$zed_settings" "$ctx" <<'PY'
     import json, sys, os
     path, ctx = sys.argv[1], int(sys.argv[2])
     data = {}
