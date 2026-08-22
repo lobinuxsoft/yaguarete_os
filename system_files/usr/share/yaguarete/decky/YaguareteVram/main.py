@@ -59,9 +59,35 @@ def _active_pages():
     return int(m.group(1)) if m else None
 
 
+def _clean_env():
+    """Undo PyInstaller's library path before spawning a system binary.
+
+    Decky Loader is a PyInstaller bundle. It unpacks to /tmp/_MEIxxxxxx and
+    points LD_LIBRARY_PATH there, so anything this plugin spawns inherits it
+    and loads Decky's bundled OpenSSL instead of the system one:
+
+        rpm-ostree: /tmp/_MEIX9zhqD/libcrypto.so.3: version `OPENSSL_3.4.0'
+        not found (required by /usr/lib64/libostree-1.so.1)
+
+    rpm-ostree never even starts. PyInstaller saves the original value as
+    LD_LIBRARY_PATH_ORIG for exactly this, so restore it -- or drop the
+    variable entirely when there was nothing there to begin with.
+    """
+    env = dict(os.environ)
+    original = env.pop("LD_LIBRARY_PATH_ORIG", None)
+    if original:
+        env["LD_LIBRARY_PATH"] = original
+    else:
+        env.pop("LD_LIBRARY_PATH", None)
+    return env
+
+
 async def _run(*args):
     proc = await asyncio.create_subprocess_exec(
-        *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+        env=_clean_env(),
     )
     out, _ = await proc.communicate()
     return proc.returncode, out.decode(errors="replace")
