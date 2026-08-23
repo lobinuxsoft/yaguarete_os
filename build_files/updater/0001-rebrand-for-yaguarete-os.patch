@@ -1,3 +1,24 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 692f81e..7629496 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17,7 +17,15 @@ endif()
+ 
+ ### Install SDL3 ###
+ 
+-find_package(SDL3 REQUIRED)
++# Only the controllable submodule uses SDL3, and it is not compiled here --
++# _INCLUDE_SUBMODULES is off and the runtime comes from qt6-controllable.
++# Requiring it unconditionally makes the build depend on SDL3-devel, which
++# pulls pkgconfig(glu) -> mesa-libGLU-devel, and mesa is excluded from the
++# Fedora repos on a Bazzite base (they ship terra-mesa instead). Nothing
++# links SDL3 in this configuration, so the find moves under the option.
++if(_INCLUDE_SUBMODULES)
++  find_package(SDL3 REQUIRED)
++endif()
+ 
+ ### Set up and install Qt/KDE dependencies ###
+ 
 diff --git a/src/pages/AboutDataApp.qml b/src/pages/AboutDataApp.qml
 index 7491f84..c06df96 100644
 --- a/src/pages/AboutDataApp.qml

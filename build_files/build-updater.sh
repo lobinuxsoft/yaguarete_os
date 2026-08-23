@@ -47,8 +47,7 @@ dnf5 install -y \
     'cmake(Qt6QuickControls2)' \
     'cmake(Qt6Svg)' \
     'cmake(Qt6Test)' \
-    'cmake(Qt6Widgets)' \
-    'cmake(SDL3)'
+    'cmake(Qt6Widgets)'
 
 rpmdev-setuptree
 src=$(rpm --eval '%{_sourcedir}')

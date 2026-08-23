@@ -45,7 +45,11 @@ BuildRequires:  systemd-rpm-macros
 BuildRequires:  cmake
 BuildRequires:  extra-cmake-modules
 BuildRequires:  kf6-rpm-macros
-BuildRequires:  cmake(SDL3)
+# No cmake(SDL3): the patch moves upstream's unconditional find_package
+# under _INCLUDE_SUBMODULES, which is off. SDL3-devel drags in
+# pkgconfig(glu) -> mesa-libGLU-devel, and mesa is excluded from the
+# Fedora repos on a Bazzite base -- the build died there on all four
+# variants. Nothing links SDL3 in this configuration.
 BuildRequires:  cmake(Qt6Core)
 BuildRequires:  cmake(Qt6Gui)
 BuildRequires:  cmake(Qt6Qml)
