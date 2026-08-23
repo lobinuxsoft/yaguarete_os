@@ -77,12 +77,20 @@ if [[ $iface == no ]]; then
         log "  arreglo. Esperado en:"
         log "    /usr/lib/systemd/system/powerstation.service.d/10-yaguarete-tdp-class.conf"
     else
-        log "  El quirk SI corrio:"
+        log "  El quirk SI corrio, y PowerStation la rechazo igual:"
         sed 's/^/    /' <<<"$quirk"
-        log "  Corrio y PowerStation la rechazo igual: lo mas probable es que"
-        log "  hayan arreglado el mapeo upstream y ahora el quirk sobre --"
-        log "  peor, la invierte. Borrar tdp-class-quirk y su drop-in."
-        log "  Ver PowerStation#39."
+        log "  Dos causas posibles, en orden de probabilidad:"
+        log "   1. El montaje no le llega a PowerStation. Comproba si lo ve el"
+        log "      sistema; si el quirk dice que monto y aca sale 0x038000,"
+        log "      esta montado en otro namespace:"
+        for dev in /sys/class/drm/card*/device; do
+            [[ -r $dev/class && -r $dev/vendor ]] || continue
+            [[ "$(cat "$dev/vendor")" == "0x1002" ]] || continue
+            log "        $(readlink -f "$dev")/class = $(cat "$dev/class")"
+        done
+        log "   2. Arreglaron el mapeo upstream y ahora el quirk sobra -- peor,"
+        log "      lo invierte. En ese caso borrar tdp-class-quirk y su"
+        log "      drop-in. Ver PowerStation#39."
     fi
 else
     log "  La interfaz esta, asi que el quirk anda y falta el RANGO:"
