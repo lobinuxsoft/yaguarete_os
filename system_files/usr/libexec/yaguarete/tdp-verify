@@ -1,0 +1,97 @@
+#!/usr/bin/bash
+# Say out loud whether Steam ended up with a TDP slider.
+#
+# The whole TDP chain fails silently. When it breaks, the only symptom is a
+# control that is not in the Quick Access Menu, which nobody notices for
+# weeks. That is exactly the failure mode this image keeps collecting, so it
+# gets a check.
+#
+# It will break, and we know when: `tdp-class-quirk` hands PowerStation a
+# 030000 PCI class because PowerStation's mapping is inverted. The day
+# upstream corrects that mapping (ShadowBlip/PowerStation#39), our 030000
+# starts reading as *discrete* and the slider disappears again. This turns
+# that into a line in the journal instead of a surprise.
+#
+# Quiet when everything works: one line. Loud only when it does not.
+#
+# Runs as a user unit because the property Steam actually reads lives on the
+# session bus -- the system steamos-manager does not carry it.
+
+set -uo pipefail
+
+readonly BUS_NAME=com.steampowered.SteamOSManager1
+readonly BUS_PATH=/com/steampowered/SteamOSManager1
+readonly TDP_IFACE=com.steampowered.SteamOSManager1.TdpLimit1
+
+log() { echo "$*"; }
+
+# The value is read once at steamos-manager startup, and this unit can win the
+# race against it on a cold boot. A few tries beat an arbitrary sleep.
+limit() {
+    busctl --user get-property "$BUS_NAME" "$BUS_PATH" "$TDP_IFACE" "$1" 2>/dev/null |
+        awk '{print $2}'
+}
+
+max=""
+for _ in 1 2 3 4 5; do
+    max=$(limit TdpLimitMax)
+    [[ -n $max && $max != 0 ]] && break
+    sleep 3
+done
+
+if [[ -n $max && $max != 0 ]]; then
+    log "TDP disponible en el QAM: $(limit TdpLimitMin)-${max} W"
+    exit 0
+fi
+
+# From here on we are explaining a failure, so spend the words.
+log "SIN slider de TDP en el QAM: TdpLimitMax=${max:-sin respuesta}"
+
+# Which of the two known defects is it? The class quirk is ours; the missing
+# database entry is upstream data. They fail differently and the fix differs.
+iface=no
+for card in $(busctl --system tree org.shadowblip.PowerStation 2>/dev/null |
+    grep -oE '/org/shadowblip/Performance/GPU/card[0-9]+$'); do
+    if busctl --system introspect org.shadowblip.PowerStation "$card" 2>/dev/null |
+        grep -q 'org.shadowblip.GPU.Card.TDP'; then
+        log "  PowerStation SI expone TDP en $card"
+        iface=yes
+    fi
+done
+
+if [[ $iface == no ]]; then
+    log "  PowerStation no expone ninguna interfaz de TDP."
+
+    # Reading the PCI class from here proves nothing: the quirk mounts it
+    # inside PowerStation's own namespace (PrivateMounts=yes), so from
+    # outside the class always looks untouched. What the quirk did is in
+    # PowerStation's journal, because ExecStartPre output lands there.
+    journal=$(journalctl -u powerstation -b --no-pager 2>/dev/null)
+    quirk=$(grep -F '[tdp-class-quirk]' <<<"$journal" | tail -3)
+    if [[ -z $journal ]]; then
+        log "  No pude leer el journal de powerstation (hace falta estar en"
+        log "  wheel, adm o systemd-journal), asi que no se si el quirk corrio."
+    elif [[ -z $quirk ]]; then
+        log "  El quirk NO corrio: no hay lineas suyas en el journal de"
+        log "  powerstation. Falta el drop-in, o esta imagen es anterior al"
+        log "  arreglo. Esperado en:"
+        log "    /usr/lib/systemd/system/powerstation.service.d/10-yaguarete-tdp-class.conf"
+    else
+        log "  El quirk SI corrio:"
+        sed 's/^/    /' <<<"$quirk"
+        log "  Corrio y PowerStation la rechazo igual: lo mas probable es que"
+        log "  hayan arreglado el mapeo upstream y ahora el quirk sobre --"
+        log "  peor, la invierte. Borrar tdp-class-quirk y su drop-in."
+        log "  Ver PowerStation#39."
+    fi
+else
+    log "  La interfaz esta, asi que el quirk anda y falta el RANGO:"
+    log "  este equipo no figura en las bases de datos de PowerStation."
+    log "    producto: $(tr -d '\n' </sys/class/dmi/id/product_name 2>/dev/null)"
+    log "    CPU     : $(awk -F': ' '/model name/ {print $2; exit}' /proc/cpuinfo)"
+    log "  Agregar la entrada en"
+    log "  system_files/overrides/usr/share/powerstation/platform/."
+fi
+
+# Never fail the unit: this reports, it does not gate anything.
+exit 0
