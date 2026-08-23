@@ -8,7 +8,7 @@ export const SITE = {
   description_short:
     'Bootc-based KDE distribution built on Bazzite — gaming-ready, atomic, signed in our own CI.',
   url: 'https://lobinuxsoft.github.io/yaguarete_os/',
-  author: 'Matías Galarza',
+  author: 'Lobinux',
 };
 
 export const SEO = {
