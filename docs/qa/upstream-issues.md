@@ -4,6 +4,31 @@ Companion to `yafti-recipes-matrix.md`. Tracks recipes from the Bazzite base ima
 
 Policy: do **not** open PRs upstream without explicit user consent ([feedback_no_upstream_prs_without_consent]). Document the gap, link the upstream issue if one already exists, and apply a downstream override only if necessary.
 
+## Checking what upstream changed
+
+    just upstream-report            # since the last review
+    just upstream-report --pending  # plus what is on main, not yet in :stable
+    just upstream-report --write    # mark the current base as reviewed
+
+The base image records the ublue-os/bazzite commit it was built from in
+`org.opencontainers.image.revision`, so the range is the exact commit range
+rather than a guess from dates. `upstream-base.txt` in this directory holds
+the last revision reviewed.
+
+The report sorts changes by how much they can hurt us:
+
+1. **Recipes we call that upstream removed or un-aliased** — the failure mode
+   in the table below, caught before it ships instead of during QA.
+2. **Files we land on top of theirs** — `system_files/overrides/` replaces
+   assets in place, `system_files/usr` and `system_files/etc` are COPYed over
+   the base. Our copy keeps serving old content and nothing fails.
+3. **Everything else**, counted by area.
+
+Bucket 2 is where "what do we delete, what do we integrate" gets answered: if
+upstream deleted a file we still ship, ours is now carrying a feature they
+dropped; if they edited one we replaced wholesale, we are a fork of a moving
+target and the diff says by how much.
+
 ## Confirmed renames (silent breakage source)
 
 These upstream recipes changed name without a release note. Our wrappers must follow the rename or break silently. Re-check whenever a Bazzite rebase is pulled.
