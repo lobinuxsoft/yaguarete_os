@@ -428,3 +428,15 @@ format:
     fi
     # Run shfmt on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'
+
+# What changed in the Bazzite base since we last looked
+[group('Upstream')]
+upstream-report *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Ranges come from the OCI label the base image carries
+    # (org.opencontainers.image.revision), so the diff is the exact commit
+    # range, not a guess from dates. `--write` marks the current base as
+    # reviewed; `--pending` also shows what is on upstream main and not yet
+    # published to :stable.
+    exec ./scripts/upstream-report.py {{ args }}
