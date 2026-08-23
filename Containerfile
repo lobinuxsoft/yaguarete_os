@@ -22,6 +22,22 @@ ARG IMAGE_NAME=yaguarete_os
 FROM scratch AS ctx
 COPY build_files /
 
+### Updater built from source.
+# Terra's `bazzite-updater` says "Bazzite" on every screen and none of it is
+# reachable from /etc: the strings are compiled into the executable as UTF-16
+# inside the precompiled QML. This stage rebuilds the same upstream release
+# with the product name changed. See build_files/updater/.
+#
+# It builds FROM the image base rather than a plain Fedora so the app links
+# against exactly the Qt6/KF6 that ships in the final image -- a mismatch
+# here does not fail the build, it fails at startup with a QML module that
+# will not load.
+FROM ${BASE_IMAGE} AS updater
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build-updater.sh
+
 FROM ${BASE_IMAGE}
 
 # Persist the build-time image name so /ctx/build.sh can read it.
@@ -53,6 +69,7 @@ COPY system_files/usr /usr
 ## the following RUN directive does all the things required to run "build.sh" as recommended.
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=bind,from=updater,source=/out,target=/rpms \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
@@ -67,24 +84,17 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 # packages installed in build.sh.
 COPY system_files/overrides /
 
-### Updater: commit to one entry in the menu, but only if there is one to
-# commit to. `bazzite-updater` (Terra repo, pulled in by the Bazzite base)
-# is a Qt GUI that runs the same update via uupd-manual.service and adds
-# rollback plus a release-notes feed; system_files/overrides/ rebrands it
-# to "Yaguarete Updater" and repoints its RSS feed and About data at us.
-# This has to run AFTER the overrides COPY above -- that is when both the
-# package and our rebrand are on disk. If a variant ever ships without the
-# package, hiding our console entry would leave the image with NO updater
-# in the menu and a launcher pointing at a missing binary, so in that case
-# the rebrand is removed and the console entry stays visible instead.
-RUN if rpm -q bazzite-updater >/dev/null 2>&1; then \
-        printf 'NoDisplay=true\n' >> /usr/share/applications/system-update.desktop && \
-        echo "[updater] bazzite-updater present -> Yaguarete Updater shipped, console entry hidden"; \
-    else \
-        rm -f /usr/share/applications/io.github.rfrench3.bazzite-updater.desktop && \
-        rm -rf /etc/bazzite-updater && \
-        echo "[updater] bazzite-updater ABSENT -> rebrand dropped, console entry stays visible"; \
-    fi
+### Updater: commit to one entry in the menu.
+# `yaguarete-updater` is our build of rfrench3/bazzite-updater -- a Qt GUI
+# that runs the same update through uupd-manual.service and adds rollback
+# plus a release-notes feed. build.sh installs it and fails the build if the
+# swap against Terra's package does not take, so by this point the package
+# is guaranteed present and the old "is it installed?" fallback is gone.
+#
+# This still has to run AFTER the overrides COPY above: that is when the
+# .desktop rebrand and the icon are on disk.
+RUN printf 'NoDisplay=true\n' >> /usr/share/applications/system-update.desktop && \
+    echo "[updater] console entry hidden, Yaguarete Updater is the menu entry"
 
 ### LINTING
 ## Verify final image and contents are correct.

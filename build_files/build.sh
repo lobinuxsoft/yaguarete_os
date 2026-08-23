@@ -123,6 +123,25 @@ echo "[shell] zsh defaults reach pre-existing accounts via /etc/zshrc"
 # them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
 /ctx/install-custom-apps.sh
 
+### Updater: swap Terra's bazzite-updater for our build of the same release.
+# The RPM comes from the `updater` stage through a bind mount on /rpms; the
+# rebrand and the reason for the package rename live in
+# build_files/updater/yaguarete-updater.spec.
+#
+# `Obsoletes: bazzite-updater` is what performs the swap, so a plain install
+# is enough -- no --allowerasing, which would let dnf solve an unrelated
+# conflict by deleting something we wanted.
+dnf5 install -y /rpms/yaguarete-updater-*.rpm
+
+# The swap is the whole point; if the base ever stops shipping the Terra
+# package, or ships one our Obsoletes does not cover, fail here rather than
+# leaving two updaters installed and one of them saying Bazzite.
+rpm -q yaguarete-updater
+if rpm -q bazzite-updater >/dev/null 2>&1; then
+    echo "[updater] bazzite-updater survived the swap" >&2
+    exit 1
+fi
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
