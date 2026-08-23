@@ -1,0 +1,83 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 692f81e..7629496 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17,7 +17,15 @@ endif()
+ 
+ ### Install SDL3 ###
+ 
+-find_package(SDL3 REQUIRED)
++# Only the controllable submodule uses SDL3, and it is not compiled here --
++# _INCLUDE_SUBMODULES is off and the runtime comes from qt6-controllable.
++# Requiring it unconditionally makes the build depend on SDL3-devel, which
++# pulls pkgconfig(glu) -> mesa-libGLU-devel, and mesa is excluded from the
++# Fedora repos on a Bazzite base (they ship terra-mesa instead). Nothing
++# links SDL3 in this configuration, so the find moves under the option.
++if(_INCLUDE_SUBMODULES)
++  find_package(SDL3 REQUIRED)
++endif()
+ 
+ ### Set up and install Qt/KDE dependencies ###
+ 
+diff --git a/src/pages/AboutDataApp.qml b/src/pages/AboutDataApp.qml
+index 7491f84..c06df96 100644
+--- a/src/pages/AboutDataApp.qml
++++ b/src/pages/AboutDataApp.qml
+@@ -29,13 +29,13 @@ FormCard.AboutPage {
+     }
+ 
+     aboutData: {
+-        "displayName": i18nc("@title:window", "Bazzite Updater"),
++        "displayName": i18nc("@title:window", "Yaguareté Updater"),
+         "componentName": "bazzite_updater",
+-        "shortDescription": "Updating and rebasing utility for Bazzite",
++        "shortDescription": "Updating and rebasing utility for YaguareteOS",
+         "homepage": "https://github.com/rfrench3/bazzite_updater",
+         "bugAddress": "https://github.com/rfrench3/bazzite_updater/issues",
+         "version": "@PROJECT_VERSION@",
+-        "otherText": i18n("This interface can be used to update Bazzite, rollback from a bad update, and rebase to entirely separate versions of Bazzite!"),
++        "otherText": i18n("This interface can be used to update YaguareteOS, rollback from a bad update, and rebase to entirely separate versions of YaguareteOS!"),
+         "authors": [
+             {
+                 "name": "Robert French",
+@@ -50,7 +50,14 @@ FormCard.AboutPage {
+                 "webAddress": "https://github.com/gerblesh"
+             }
+         ],
+-        "credits": [],
++        "credits": [
++            {
++                "name": "YaguareteOS",
++                "task": "Rebranded this build",
++                "emailAddress": "",
++                "webAddress": "https://github.com/lobinuxsoft/yaguarete_os"
++            }
++        ],
+         "translators": [],
+         "licenses": [
+             {
+diff --git a/src/pages/Main.qml b/src/pages/Main.qml
+index 5b5462a..a68f1b5 100644
+--- a/src/pages/Main.qml
++++ b/src/pages/Main.qml
+@@ -17,9 +17,9 @@ import io.github.rfrench3.controllable as GP
+ StatefulApp.StatefulWindow {
+     id: root
+ 
+-    title: i18nc("@title:window", "Bazzite Updater")
++    title: i18nc("@title:window", "Yaguareté Updater")
+ 
+-    windowName: "Bazzite Updater"
++    windowName: "Yaguareté Updater"
+ 
+     minimumWidth: Kirigami.Units.gridUnit * 20
+     minimumHeight: Kirigami.Units.gridUnit * 20
+@@ -144,7 +144,7 @@ StatefulApp.StatefulWindow {
+                 onTriggered: pageStack.initialPage = Qt.resolvedUrl("AboutDataOS.qml")
+             },
+             Kirigami.Action {
+-                text: i18n("About Bazzite Updater")
++                text: i18n("About Yaguareté Updater")
+                 icon.name: "help-about-symbolic"
+ 
+                 checkable: true

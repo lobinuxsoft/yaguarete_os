@@ -269,9 +269,14 @@ If you're already on YaguareteOS, the command is a no-op and points you at `sudo
 
 The launcher entry **Yaguareté Updater** (category *System*) is the graphical way to update: it runs the same `uupd-manual.service` the timer uses, and it also offers a rollback to the previous deployment and the release notes of each version.
 
-It is the upstream [`bazzite-updater`](https://github.com/rfrench3/bazzite-updater) — a Qt frontend explicitly written to be configurable for any distro — rebranded in place through `system_files/overrides/etc/bazzite-updater/`: `KAboutData_OS.json` carries our name, links and credits, and `config.ini` points the release feed at this repository. No fork, no patched binary.
+It is [`bazzite-updater`](https://github.com/rfrench3/bazzite-updater) by Robert French — a Qt frontend explicitly written to be configurable for any distro. Two layers of rebranding sit on top:
 
-The console path still exists (`ujust update`); its launcher entry is hidden so the menu shows a single updater. On a variant that ships without `bazzite-updater`, the Containerfile drops the rebrand and leaves the console entry visible instead, so no image is left without a way to update from the menu.
+- **Configuration**, in `system_files/overrides/etc/bazzite-updater/`: `KAboutData_OS.json` carries our name, links and credits, and `config.ini` points the release feed at this repository.
+- **A rebuild**, in `build_files/updater/`. The product name is compiled into the executable as UTF-16 inside the precompiled QML, so configuration cannot reach it — the window title and the About page said *Bazzite Updater* on every screen. A `Containerfile` stage rebuilds the same upstream release (tag `0.9.4`, pinned by commit) with a patch that changes those five strings and nothing else. Authorship, homepage and bug tracker still point upstream, where they belong.
+
+The rebuilt package is named `yaguarete-updater` and `Obsoletes: bazzite-updater`. Keeping upstream's name would let the next Terra release win the version comparison and replace it on a rebuild, reverting the rebrand with nothing in the build log to show for it.
+
+The console path still exists (`ujust update`); its launcher entry is hidden so the menu shows a single updater.
 
 ## Automatic updates
 
@@ -292,6 +297,17 @@ sudo systemctl enable --now uupd.timer
 ```
 
 You can still pull on demand with `sudo bootc upgrade` or `uupd` regardless of the timer state.
+
+## TDP slider in Steam's Quick Access Menu
+
+On the OneXFly F1 Pro the slider was missing, and it took two fixes because there were two defects.
+
+Steam draws the control only when `steamos-manager` reports a non-zero `TdpLimitMax`. That number comes from PowerStation, and PowerStation was refusing the machine twice over:
+
+1. **It classified the iGPU as discrete.** PowerStation reads the card's PCI class and maps `030000` to integrated and `038000` to dedicated — backwards for every modern handheld, since `030000` is what discrete desktop GPUs report and `038000` is what Strix and Phoenix iGPUs report. Only "integrated" cards get a TDP interface, so the machine got none. Worked around in `system_files/usr/libexec/yaguarete/tdp-class-quirk`, which hands PowerStation the class it expects inside the service's own mount namespace. Reported upstream; delete the script and its drop-in once the fix reaches us.
+2. **The device is in none of its three databases.** PowerStation matches on the DMI product name and falls back to the CPU model; `ONEXPLAYER F1Pro` and `AMD Ryzen AI 9 HX 370 w/ Radeon 890M` are both absent, so the range came out `0.0`. The entry lives in `system_files/overrides/usr/share/powerstation/platform/`.
+
+There is no generic way to read a handheld's TDP range on Linux. On this APU the limit is firmware policy in the SMU: it can be written, never queried. `amdgpu` exposes `power1_average` and `power1_input` but no `power1_cap`; there are no RAPL constraints, no `platform_profile`, no firmware attributes, and the `oxpec` EC driver offers fans and nothing else. That is why HHD, PowerStation, steamos-manager and Valve all ship hand-maintained tables keyed by DMI, and why this one does too.
 
 ## Verifying image signatures
 

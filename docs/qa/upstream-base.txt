@@ -1,0 +1,5 @@
+# Last Bazzite base reviewed. Move it forward with:
+#     just upstream-report --write
+revision: 5b70abe3146bd2e4b5144b02a32f710eaa539a20
+version:  44.20260820
+reviewed: 2026-08-22
