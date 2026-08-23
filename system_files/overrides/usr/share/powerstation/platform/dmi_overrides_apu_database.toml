@@ -113,13 +113,16 @@ max_boost = 5.0
 #     safe max 30, max 40
 #   - OneXConsole and every review: 4-30 W, chassis maximum 30
 #
-# max_tdp is 40, not 30: 30 is what ONE-NETBOOK validated for this chassis,
-# 40 is HHD's unlocked ceiling for the same silicon. Set here to be measured.
-# Sustained above 30 costs battery, skin temperature and fan noise for very
-# little frame rate -- drop this to 30.0 if the numbers do not justify it.
-# The SMU still enforces THM LIMIT CORE = 100C regardless of what we ask for.
+# max_tdp is 30: what ONE-NETBOOK validated for this chassis, and where both
+# OneXConsole and HHD's safe ceiling stop. HHD does expose 40 as an unlocked
+# maximum for the same silicon, and nothing breaks at that number -- the SMU
+# keeps enforcing THM LIMIT CORE = 100C whatever we ask for -- but sustaining
+# above 30 spends battery, skin temperature and fan noise on frames that the
+# benchmarks say are already flattening out between 25 and 30. A shipped
+# default should not hand every user of this device a setting the chassis was
+# not designed around.
 [[models]]
 model_name = "ONEXPLAYER F1Pro"
 min_tdp = 4.0
-max_tdp = 40.0
+max_tdp = 30.0
 max_boost = 10.0
