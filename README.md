@@ -298,6 +298,17 @@ sudo systemctl enable --now uupd.timer
 
 You can still pull on demand with `sudo bootc upgrade` or `uupd` regardless of the timer state.
 
+## TDP slider in Steam's Quick Access Menu
+
+On the OneXFly F1 Pro the slider was missing, and it took two fixes because there were two defects.
+
+Steam draws the control only when `steamos-manager` reports a non-zero `TdpLimitMax`. That number comes from PowerStation, and PowerStation was refusing the machine twice over:
+
+1. **It classified the iGPU as discrete.** PowerStation reads the card's PCI class and maps `030000` to integrated and `038000` to dedicated — backwards for every modern handheld, since `030000` is what discrete desktop GPUs report and `038000` is what Strix and Phoenix iGPUs report. Only "integrated" cards get a TDP interface, so the machine got none. Worked around in `system_files/usr/libexec/yaguarete/tdp-class-quirk`, which hands PowerStation the class it expects inside the service's own mount namespace. Reported upstream; delete the script and its drop-in once the fix reaches us.
+2. **The device is in none of its three databases.** PowerStation matches on the DMI product name and falls back to the CPU model; `ONEXPLAYER F1Pro` and `AMD Ryzen AI 9 HX 370 w/ Radeon 890M` are both absent, so the range came out `0.0`. The entry lives in `system_files/overrides/usr/share/powerstation/platform/`.
+
+There is no generic way to read a handheld's TDP range on Linux. On this APU the limit is firmware policy in the SMU: it can be written, never queried. `amdgpu` exposes `power1_average` and `power1_input` but no `power1_cap`; there are no RAPL constraints, no `platform_profile`, no firmware attributes, and the `oxpec` EC driver offers fans and nothing else. That is why HHD, PowerStation, steamos-manager and Valve all ship hand-maintained tables keyed by DMI, and why this one does too.
+
 ## Verifying image signatures
 
 All images published to `ghcr.io/lobinuxsoft/yaguarete_os` are signed with [`cosign`](https://github.com/sigstore/cosign). The public key (`cosign.pub`) lives at the root of this repository, and is also reachable at `https://raw.githubusercontent.com/lobinuxsoft/yaguarete_os/testing/cosign.pub`.
