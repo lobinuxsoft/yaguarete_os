@@ -1,0 +1,125 @@
+[[models]]
+model_name = "NEO-01"
+min_tdp = 8.0
+max_tdp = 28.0
+max_boost = 4.0
+
+[[models]]
+model_name = "AIR"
+min_tdp = 5.0
+max_tdp = 15.0
+max_boost = 0.0
+
+[[models]]
+model_name = "AIR Pro"
+min_tdp = 5.0
+max_tdp = 18.0
+max_boost = 0.0
+
+[[models]]
+model_name = "AIR 1S"
+min_tdp = 5.0
+max_tdp = 25.0
+max_boost = 0.0
+
+[[models]]
+model_name = "AIR 1S Limited"
+min_tdp = 5.0
+max_tdp = 25.0
+max_boost = 0.0
+
+[[models]]
+model_name = "AIR Plus"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "AYANEO 2S"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "GEEK 1S"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "SuiPlay0X1"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "ROG Ally RC71L_RC71L"
+min_tdp = 5.0
+max_tdp = 30.0
+max_boost = 10.0
+
+[[models]]
+model_name = "ROG Ally RC71L"
+min_tdp = 5.0
+max_tdp = 30.0
+max_boost = 10.0
+
+[[models]]
+model_name = "ROG Ally X RC72LA_RC72LA"
+min_tdp = 5.0
+max_tdp = 30.0
+max_boost = 10.0
+
+
+[[models]]
+model_name = "G1617-01"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "G1617-02"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "G1618-03"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "G1618-04"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 0.0
+
+[[models]]
+model_name = "Claw A1M"
+min_tdp = 5.0
+max_tdp = 28.0
+max_boost = 5.0
+
+# YaguareteOS: OneXFly F1 Pro. PowerStation has no entry for it under either
+# key it matches on -- neither the DMI product name nor the CPU model -- so
+# min_tdp and max_tdp came out 0.0 and Steam hid the TDP slider.
+#
+# Where the numbers come from, since no kernel interface reports them on this
+# APU (the limit is firmware policy in the SMU, write-only):
+#   - the SMU's own live readout: STAPM 15 / PPT SLOW 20 / PPT FAST 25, which
+#     matches HHD's table for "ONEXPLAYER F1Pro" default column exactly
+#   - HHD's stapm_limit row for this device: min 0, safe 4, default 15,
+#     safe max 30, max 40
+#   - OneXConsole and every review: 4-30 W, chassis maximum 30
+#
+# max_tdp is 40, not 30: 30 is what ONE-NETBOOK validated for this chassis,
+# 40 is HHD's unlocked ceiling for the same silicon. Set here to be measured.
+# Sustained above 30 costs battery, skin temperature and fan noise for very
+# little frame rate -- drop this to 30.0 if the numbers do not justify it.
+# The SMU still enforces THM LIMIT CORE = 100C regardless of what we ask for.
+[[models]]
+model_name = "ONEXPLAYER F1Pro"
+min_tdp = 4.0
+max_tdp = 40.0
+max_boost = 10.0

@@ -1,0 +1,64 @@
+#!/usr/bin/bash
+# Make PowerStation see this machine's iGPU as integrated.
+#
+# PowerStation decides whether a card gets a TDP interface from its PCI class,
+# and the mapping is inverted for every modern handheld
+# (src/performance/gpu/dbus/gpu.rs, still on main as of 0.8.1):
+#
+#     "030000" => "integrated"    <- what discrete desktop GPUs report
+#     "038000" => "dedicated"     <- what Strix/Phoenix iGPUs report
+#
+# `get_tdp_interface()` only returns something for "integrated", so on the
+# F1 Pro PowerStation logs "Card Card1 does not have a TDP interface",
+# steamos-manager reports TdpLimitMin = TdpLimitMax = 0, and Steam hides the
+# TDP slider in the QAM. Reported upstream; until it lands, we hand
+# PowerStation the class it expects.
+#
+# Scope: the drop-in that calls this sets PrivateMounts=yes, so the bind mount
+# lives in PowerStation's own mount namespace. Nothing else on the system sees
+# a different PCI class, and the mount dies with the service.
+#
+# When upstream fixes the mapping this becomes wrong rather than redundant --
+# a corrected PowerStation would read our 030000 and classify it as discrete.
+# The failure mode is the symptom we started from (no slider), not damage, and
+# it goes away by deleting this file and its drop-in. Do that when the fix
+# reaches us.
+#
+# Exits 0 no matter what: this runs as ExecStartPre, and a non-zero exit here
+# would keep PowerStation from starting at all on every machine that does not
+# need the quirk.
+
+set -uo pipefail
+
+readonly WANTED=0x038000
+readonly EXPECTED=0x030000
+readonly RUNDIR=/run/yaguarete/tdp
+
+log() { echo "[tdp-class-quirk] $*"; }
+
+# Only AMD cards, and only the ones reporting the class PowerStation gets
+# wrong. A discrete Radeon reports 0x030000 and is left alone.
+patched=0
+for dev in /sys/class/drm/card*/device; do
+    [[ -r $dev/class && -r $dev/vendor ]] || continue
+    [[ "$(cat "$dev/vendor")" == "0x1002" ]] || continue
+    [[ "$(cat "$dev/class")" == "$WANTED" ]] || continue
+
+    real=$(readlink -f "$dev") || continue
+    if mountpoint -q "$real/class"; then
+        log "$real/class ya estaba montado, no toco nada"
+        continue
+    fi
+
+    mkdir -p "$RUNDIR" || continue
+    printf '%s\n' "$EXPECTED" >"$RUNDIR/class" || continue
+    if mount --bind "$RUNDIR/class" "$real/class"; then
+        log "$real: $WANTED -> $EXPECTED"
+        patched=$((patched + 1))
+    else
+        log "no pude montar sobre $real/class, sigo sin el quirk"
+    fi
+done
+
+(( patched == 0 )) && log "ninguna GPU necesita el quirk"
+exit 0
