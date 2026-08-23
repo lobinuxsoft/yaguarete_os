@@ -29,7 +29,6 @@ dnf5 install -y \
     git-core \
     libappstream-glib \
     rpm-build \
-    rpmdevtools \
     systemd-rpm-macros \
     kf6-rpm-macros
 
@@ -49,8 +48,14 @@ dnf5 install -y \
     'cmake(Qt6Test)' \
     'cmake(Qt6Widgets)'
 
-rpmdev-setuptree
-src=$(rpm --eval '%{_sourcedir}')
+# Not rpmdev-setuptree: it resolves the build root through the invoking
+# user's home directory, and a bootc base image has no root entry in
+# /etc/passwd -- that file is generated when the image is deployed, not when
+# it is built. It fails with "Home directory for user root not found". An
+# explicit _topdir needs neither passwd nor HOME.
+topdir=/build/rpmbuild
+mkdir -p "$topdir"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+src="$topdir/SOURCES"
 
 # Clone at the tag, then assert the commit. A tag can be moved; a commit
 # hash cannot, so this is the part that actually pins the source. Fetching
@@ -71,9 +76,9 @@ fi
 tar -C "$work" --exclude-vcs -czf "${src}/${upname}-${version}.tar.gz" "${upname}-${version}"
 cp /ctx/updater/*.patch "$src/"
 
-rpmbuild -bb "$SPEC"
+rpmbuild --define "_topdir $topdir" -bb "$SPEC"
 
 mkdir -p "$OUT"
-find "$(rpm --eval '%{_rpmdir}')" -name '*.rpm' -exec cp -v {} "$OUT/" \;
+find "$topdir/RPMS" -name '*.rpm' -exec cp -v {} "$OUT/" \;
 
 test -n "$(find "$OUT" -name 'yaguarete-updater-*.rpm' -print -quit)"
