@@ -4,31 +4,13 @@
     "homepage": "https://lobinuxsoft.github.io/yaguarete_os/",
     "bugAddress": "https://github.com/lobinuxsoft/yaguarete_os/issues",
     "version": "@VERSION@",
-    "otherText": "YaguareteOS es una distribución atómica construida sobre Universal Blue y Bazzite, pensada para PCs de escritorio y consolas portátiles, con el escritorio en castellano de fábrica.",
+    "otherText": "YaguareteOS es una distribución atómica pensada para PCs de escritorio y consolas portátiles, con el escritorio en castellano de fábrica.",
     "authors": [
         {
-            "name": "Matias Galarza",
+            "name": "Lobinux",
             "task": "Maintainer",
             "emailAddress": "",
             "webAddress": "https://github.com/lobinuxsoft"
-        },
-        {
-            "name": "Bazzite",
-            "task": "Base upstream",
-            "emailAddress": "",
-            "webAddress": "https://bazzite.gg/"
-        },
-        {
-            "name": "Universal Blue",
-            "task": "Base upstream",
-            "emailAddress": "",
-            "webAddress": "https://universal-blue.org/"
-        },
-        {
-            "name": "Robert French",
-            "task": "Autor de este actualizador",
-            "emailAddress": "",
-            "webAddress": "https://github.com/rfrench3/bazzite-updater"
         }
     ],
     "credits": [],
