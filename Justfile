@@ -439,4 +439,4 @@ upstream-report *args:
     # range, not a guess from dates. `--write` marks the current base as
     # reviewed; `--pending` also shows what is on upstream main and not yet
     # published to :stable.
-    exec ./scripts/upstream-report.py {{ args }}
+    exec python3 ./scripts/upstream-report.py {{ args }}
