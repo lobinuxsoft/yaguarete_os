@@ -123,6 +123,25 @@ echo "[shell] zsh defaults reach pre-existing accounts via /etc/zshrc"
 # them requires a `chore(apps): bump <app> X -> Y` commit in this repo.
 /ctx/install-custom-apps.sh
 
+### Updater: swap Terra's bazzite-updater for our build of the same release.
+# The RPM comes from the `updater` stage through a bind mount on /rpms; the
+# rebrand and the reason for the package rename live in
+# build_files/updater/yaguarete-updater.spec.
+#
+# `Obsoletes: bazzite-updater` is what performs the swap, so a plain install
+# is enough -- no --allowerasing, which would let dnf solve an unrelated
+# conflict by deleting something we wanted.
+dnf5 install -y /rpms/yaguarete-updater-*.rpm
+
+# The swap is the whole point; if the base ever stops shipping the Terra
+# package, or ships one our Obsoletes does not cover, fail here rather than
+# leaving two updaters installed and one of them saying Bazzite.
+rpm -q yaguarete-updater
+if rpm -q bazzite-updater >/dev/null 2>&1; then
+    echo "[updater] bazzite-updater survived the swap" >&2
+    exit 1
+fi
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
@@ -496,18 +515,20 @@ gtk-update-icon-cache -f -t /usr/share/icons/hicolor
 # the skip used to be indistinguishable from success in a green build.
 /ctx/patch-hhd-ui.sh
 
-### Graphics memory (GTT) ceiling: shipped as `ujust yaguarete-vram`.
-# This used to be `hhd-vram`, a vendored Handheld Daemon plugin that put the
-# GTT percentage behind a slider in the HHD overlay. Bazzite 44 retired HHD,
-# so the plugin stopped being installed on every variant and the knob went
-# with it. Rebuilding the slider on OpenGamepadUI would cost a privileged
-# D-Bus daemon to expose one integer that is set once every few months and
-# needs a reboot regardless, so the function moved to a recipe and the
-# vendored plugin is gone (#269).
+### Graphics memory: shipped as `ujust yaguarete-vram` plus a Decky plugin.
+# What this sets is the firmware UMA carveout, which amdgpu exposes at
+# <card>/device/uma/carveout -- an index into carveout_options, applied at
+# the next POST. That is the real VRAM split; the GTT ceiling this section
+# used to raise (ttm.pages_limit) was the workaround from when the carveout
+# looked unreachable, and it is gone (#267).
 #
-# Nothing to install here -- the recipe is a plain file under
-# system_files/usr/share/ublue-os/just/. This comment stays as the pointer
-# for anyone looking for where the slider went.
+# The knob started as `hhd-vram`, a vendored Handheld Daemon plugin with a
+# slider in the HHD overlay. Bazzite 44 retired HHD and the plugin went with
+# it (#269); the slider came back as a Decky plugin instead.
+#
+# Nothing to install here -- the recipe and the plugin are plain files under
+# system_files/usr/share/. This comment stays as the pointer for anyone
+# looking for where the slider went.
 
 ### Plymouth: set yaguarete as the default theme and regenerate the
 # initramfs so it reaches early boot.

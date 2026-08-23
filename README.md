@@ -269,9 +269,14 @@ If you're already on YaguareteOS, the command is a no-op and points you at `sudo
 
 The launcher entry **Yaguareté Updater** (category *System*) is the graphical way to update: it runs the same `uupd-manual.service` the timer uses, and it also offers a rollback to the previous deployment and the release notes of each version.
 
-It is the upstream [`bazzite-updater`](https://github.com/rfrench3/bazzite-updater) — a Qt frontend explicitly written to be configurable for any distro — rebranded in place through `system_files/overrides/etc/bazzite-updater/`: `KAboutData_OS.json` carries our name, links and credits, and `config.ini` points the release feed at this repository. No fork, no patched binary.
+It is [`bazzite-updater`](https://github.com/rfrench3/bazzite-updater) by Robert French — a Qt frontend explicitly written to be configurable for any distro. Two layers of rebranding sit on top:
 
-The console path still exists (`ujust update`); its launcher entry is hidden so the menu shows a single updater. On a variant that ships without `bazzite-updater`, the Containerfile drops the rebrand and leaves the console entry visible instead, so no image is left without a way to update from the menu.
+- **Configuration**, in `system_files/overrides/etc/bazzite-updater/`: `KAboutData_OS.json` carries our name, links and credits, and `config.ini` points the release feed at this repository.
+- **A rebuild**, in `build_files/updater/`. The product name is compiled into the executable as UTF-16 inside the precompiled QML, so configuration cannot reach it — the window title and the About page said *Bazzite Updater* on every screen. A `Containerfile` stage rebuilds the same upstream release (tag `0.9.4`, pinned by commit) with a patch that changes those five strings and nothing else. Authorship, homepage and bug tracker still point upstream, where they belong.
+
+The rebuilt package is named `yaguarete-updater` and `Obsoletes: bazzite-updater`. Keeping upstream's name would let the next Terra release win the version comparison and replace it on a rebuild, reverting the rebrand with nothing in the build log to show for it.
+
+The console path still exists (`ujust update`); its launcher entry is hidden so the menu shows a single updater.
 
 ## Automatic updates
 
