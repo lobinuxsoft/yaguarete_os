@@ -1,0 +1,15 @@
+[Unit]
+Description=Check that Steam ended up with a TDP slider
+Documentation=https://github.com/ShadowBlip/PowerStation/issues/39
+# PowerStation is what feeds the value; on a machine without it there is
+# nothing to verify and the unit stays out of the way.
+ConditionPathExists=/usr/bin/powerstation
+After=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/yaguarete/tdp-verify
+RemainAfterExit=no
+
+[Install]
+WantedBy=default.target
