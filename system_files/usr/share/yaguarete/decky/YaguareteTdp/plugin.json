@@ -1,0 +1,10 @@
+{
+  "name": "Yaguarete TDP",
+  "author": "lobinuxsoft",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["utility", "performance"],
+    "description": "Set the sustained power budget on AMD APUs from Game Mode, while PowerStation's own control (ShadowBlip/PowerStation#41) does not work on this silicon."
+  }
+}
