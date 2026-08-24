@@ -14,9 +14,16 @@
 # TDP slider in the QAM. Reported upstream; until it lands, we hand
 # PowerStation the class it expects.
 #
-# Scope: the drop-in that calls this sets PrivateMounts=yes, so the bind mount
-# lives in PowerStation's own mount namespace. Nothing else on the system sees
-# a different PCI class, and the mount dies with the service.
+# Scope: the drop-in sets PrivateMounts=yes and makes this the ExecStart, so
+# the bind mount lives in PowerStation's own mount namespace. Nothing else on
+# the system sees a different PCI class, and the mount dies with the service.
+#
+# This has to `exec` PowerStation itself rather than run as an ExecStartPre.
+# PrivateMounts gives *every* Exec* invocation its own mount namespace, not one
+# shared by the unit: a mount made in ExecStartPre is gone by the time
+# ExecStart runs. Shipped that way once and the quirk was inert -- it logged
+# success, the mount was real, and PowerStation still read 0x038000 because it
+# was looking at a different namespace.
 #
 # When upstream fixes the mapping this becomes wrong rather than redundant --
 # a corrected PowerStation would read our 030000 and classify it as discrete.
@@ -24,9 +31,9 @@
 # it goes away by deleting this file and its drop-in. Do that when the fix
 # reaches us.
 #
-# Exits 0 no matter what: this runs as ExecStartPre, and a non-zero exit here
-# would keep PowerStation from starting at all on every machine that does not
-# need the quirk.
+# Failing to quirk is never fatal: PowerStation must start either way, on every
+# machine that does not need this. The last line of the script is the exec, so
+# the service runs whether or not the mount happened.
 
 set -uo pipefail
 
@@ -61,4 +68,6 @@ for dev in /sys/class/drm/card*/device; do
 done
 
 (( patched == 0 )) && log "ninguna GPU necesita el quirk"
-exit 0
+
+# Hand the namespace, mount and all, to the real service.
+exec "$@"
