@@ -2,16 +2,31 @@
 #
 # Tatu is a Tauri 2 frontend + Aurora-style Win32 bridge backend maintained
 # at lobinuxsoft/tatu. The repo was renamed from game-progress-tracker on
-# 2026-05-20 (PR #107) but the release asset filenames still carry the
-# legacy slug — these recipes rename them to "Tatu" at install time so the
-# user-visible launcher matches the project's current identity.
+# 2026-05-20 (PR #107); the release asset filenames caught up to that name
+# starting with v0.8.0 (2026-08-23) — that release and every one after it
+# ship "Tatu.AppImage" with a properly Tatu-branded .desktop baked in
+# (Name=Tatu, Icon=com.lobinux.tatu-tracker, verified by extracting v0.9.0).
+# Only v0.7.0 and earlier still carry the legacy Game_Progress_Tracker name.
+#
+# This recipe was written against that older name, before the asset rename
+# landed. Filtering "the newest release that ships $ASSET_NAME" against a
+# name upstream stopped publishing meant every install silently settled on
+# v0.7.0 while v0.8.0 and v0.9.0 sat right above it -- the fallback in this
+# recipe existed for a tag published with no assets at all (v0.6.0), not for
+# an asset that upstream deliberately renamed. Read the actual releases API
+# before touching this again; do not assume the filename is stable.
+#
+# The extract-and-rewrite step below (Name=/Icon=/Exec=) is redundant now
+# that upstream's own .desktop already says "Tatu" -- kept anyway, since it
+# is harmless and self-heals if a future release ever regresses the
+# branding, rather than something this recipe needs to keep working today.
 #
 # Release naming (lobinuxsoft/tatu releases):
-#   - Tag pattern:  v<MAJOR>.<MINOR>.<PATCH>   (no `tatu-` prefix yet)
-#   - Linux asset:  Game_Progress_Tracker.AppImage   (frontend only; the
-#                   Win32 cheats bridge ships as game-progress-tracker-
-#                   linux-amd64.tar.gz and is configured separately via
-#                   Steam compat tool — out of scope for this recipe)
+#   - Tag pattern:  v<MAJOR>.<MINOR>.<PATCH>   (no `tatu-` prefix)
+#   - Linux asset:  Tatu.AppImage   (frontend only; the Win32 cheats bridge
+#                   ships as tatu-tracker-linux-amd64.tar.gz and is
+#                   configured separately via Steam compat tool — out of
+#                   scope for this recipe)
 #   - Sidecar:      checksums-sha256.txt
 #
 # Override knobs:
@@ -28,7 +43,7 @@ install-tatu:
 
     mkdir -p "$YG_APPS_DIR"
     TATU_BIN="$YG_APPS_DIR/Tatu.AppImage"
-    ASSET_NAME="Game_Progress_Tracker.AppImage"
+    ASSET_NAME="Tatu.AppImage"
 
     # Pick the newest release that actually ships the AppImage, not simply
     # the newest release. A tag published without assets — v0.6.0 went out
@@ -76,9 +91,10 @@ install-tatu:
     chmod +x "$TATU_BIN"
     yg_ok "Tatu $tag installed at $TATU_BIN"
 
-    # Extract .desktop + icon. The AppImage still bakes the legacy
-    # "Game Progress Tracker" name and app id; rewrite Name= / Icon= /
-    # Exec= so the KDE launcher reads "Tatu" with our installed path.
+    # Extract .desktop + icon. Upstream's own entry already says "Tatu" as
+    # of v0.8.0; rewritten anyway so Exec= points at our installed path
+    # rather than the AppImage's self-reference, and so an older release
+    # still installable by hand does not regress to the legacy branding.
     extract_dir=$(mktemp -d)
     pushd "$extract_dir" >/dev/null
     "$TATU_BIN" --appimage-extract >/dev/null 2>&1
@@ -121,7 +137,7 @@ update-tatu:
     yg_check_internet
 
     TATU_BIN="$YG_APPS_DIR/Tatu.AppImage"
-    ASSET_NAME="Game_Progress_Tracker.AppImage"
+    ASSET_NAME="Tatu.AppImage"
     release=$(gh api repos/lobinuxsoft/tatu/releases/latest 2>/dev/null \
         || curl -fsSL https://api.github.com/repos/lobinuxsoft/tatu/releases/latest)
     tag=$(echo "$release" | jq -r '.tag_name')
