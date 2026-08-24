@@ -1,0 +1,7 @@
+{
+  "name": "yaguarete-tdp",
+  "version": "1.0.0",
+  "description": "TDP control for AMD APUs, from Game Mode",
+  "type": "module",
+  "license": "MIT"
+}
