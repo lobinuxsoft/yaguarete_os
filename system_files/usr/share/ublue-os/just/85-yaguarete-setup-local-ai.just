@@ -1,8 +1,8 @@
-# YaguareteOS — local AI for Zed: inference server, model and editor wiring.
+# YaguareteOS — local AI for VSCode: inference server, model and editor wiring.
 #
-# Zed's AI panel speaks to any OpenAI-compatible endpoint. This recipe puts
-# one on 127.0.0.1, so the assistant answers from the user's own GPU with
-# nothing leaving the machine.
+# Continue.dev (VSCode extension) speaks to any OpenAI-compatible endpoint.
+# This recipe puts one on 127.0.0.1, so the assistant answers from the
+# user's own GPU with nothing leaving the machine.
 #
 # Why a container and not a binary: llama.cpp ships no RPM and the image is
 # immutable, so layering it would mean rebuilding on every upstream release.
@@ -28,8 +28,8 @@
 # token budget deliberating before it writes anything.
 #
 # Everything lands in $HOME: model under ~/.local/share/yaguarete/models,
-# a systemd --user unit, and a merge into Zed's settings. No image layer,
-# no root, no reboot.
+# a systemd --user unit, and the Continue.dev extension + config. No image
+# layer, no root, no reboot.
 
 _local_ai_image := "ghcr.io/ggml-org/llama.cpp:server-vulkan"
 _local_ai_port := "8100"
@@ -41,7 +41,7 @@ _local_ai_repo_handheld := "unsloth/Qwen3.5-4B-GGUF"
 _local_ai_file_handheld := "Qwen3.5-4B-UD-Q4_K_XL.gguf"
 _local_ai_ctx_handheld := "16384"
 
-# Local AI for Zed — llama.cpp server + model, per-user (install | status | remove)
+# Local AI for VSCode — llama.cpp server + model, per-user (install | status | remove)
 [group("yaguarete")]
 yaguarete-setup-local-ai ACTION="":
     #!/usr/bin/bash
@@ -51,7 +51,7 @@ yaguarete-setup-local-ai ACTION="":
     model_dir="$HOME/.local/share/yaguarete/models"
     unit_dir="$HOME/.config/systemd/user"
     unit="$unit_dir/yaguarete-local-ai.service"
-    zed_settings="$HOME/.var/app/dev.zed.Zed/config/zed/settings.json"
+    continue_config="$HOME/.continue/config.yaml"
 
     if yg_is_handheld; then
         repo="{{ _local_ai_repo_handheld }}"; file="{{ _local_ai_file_handheld }}"
@@ -93,10 +93,14 @@ yaguarete-setup-local-ai ACTION="":
         fi
         yg_check_internet
 
-        if ! flatpak info --system dev.zed.Zed >/dev/null 2>&1 \
-           && ! flatpak info --user dev.zed.Zed >/dev/null 2>&1; then
-            yg_warn "Zed is not installed. The server will still work for any"
-            yg_warn "OpenAI-compatible client; install Zed from the Portal to use it there."
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null || true
+        have_code=0
+        if command -v code >/dev/null 2>&1; then
+            have_code=1
+        else
+            yg_warn "Visual Studio Code is not installed. The server will still work"
+            yg_warn "for any OpenAI-compatible client; install VS Code from the Portal"
+            yg_warn "(Brew section) to get the Continue.dev wiring below."
         fi
 
         if [[ ! -e /dev/dri/renderD128 ]]; then
@@ -124,7 +128,7 @@ yaguarete-setup-local-ai ACTION="":
         mkdir -p "$unit_dir"
         cat > "$unit" <<UNIT
     [Unit]
-    Description=YaguareteOS local AI (llama.cpp, Vulkan) for Zed
+    Description=YaguareteOS local AI (llama.cpp, Vulkan)
     After=network-online.target
 
     [Service]
@@ -147,50 +151,48 @@ yaguarete-setup-local-ai ACTION="":
         systemctl --user daemon-reload
         systemctl --user enable --now yaguarete-local-ai.service
 
-        # Zed's settings are the user's: merge our provider in, never overwrite
-        # the file. A first-run Zed has themes and keymaps in here already.
-        mkdir -p "$(dirname "$zed_settings")"
-        # `just` already strips the recipe body's common indentation, so the
-        # heredoc reaches Python with its relative indentation intact. An
-        # earlier revision piped it through `sed 's/^    //'` first, which took
-        # a second level off and flattened every nested block:
-        #
-        #   IndentationError: expected an indented block after 'if' statement
-        #
-        # Reproduced with a two-line justfile before removing it.
-        python3 - "$zed_settings" "$ctx" <<'PY'
-    import json, sys, os
-    path, ctx = sys.argv[1], int(sys.argv[2])
-    data = {}
-    if os.path.exists(path):
-        try:
-            data = json.load(open(path))
-        except ValueError:
-            os.replace(path, path + ".bak")
-            print("  existing settings.json was not valid JSON — kept as settings.json.bak")
-    lm = data.setdefault("language_models", {}).setdefault("llama.cpp", {})
-    lm["api_url"] = "http://127.0.0.1:8100"
-    lm["auto_discover"] = False
-    lm["available_models"] = [{
-        "name": "yaguarete-local",
-        "display_name": "YaguareteOS local",
-        "max_tokens": ctx,
-        "supports_tools": True,
-        "supports_images": False,
-    }]
-    # Only claim the default when the user has not picked one: a returning
-    # user's choice outranks ours.
-    agent = data.setdefault("agent", {})
-    if not agent.get("default_model"):
-        agent["default_model"] = {"provider": "llama.cpp", "model": "yaguarete-local"}
-        print("  set as the default model")
-    json.dump(data, open(path, "w"), indent=2)
-    print("  Zed provider merged into", path)
-    PY
+        if [[ "$have_code" -eq 1 ]]; then
+            yg_info "Installing the Continue.dev extension."
+            code --install-extension continue.continue --force >/dev/null 2>&1 \
+                && yg_ok "Continue.dev installed." \
+                || yg_warn "Could not install Continue.dev automatically — add it from the Extensions view."
+
+            # config.yaml is YAML, not JSON: there is no stdlib parser, and
+            # PyYAML round-trips strip every comment the user wrote (same
+            # trap as yafti.yml itself, see reference_yafti_portal_action_env).
+            # A text-based merge is just as fragile against a hand-edited
+            # file. So: write ours only on a clean slate, and never touch an
+            # existing config.yaml — a returning user's setup outranks ours.
+            if [[ -f "$continue_config" ]]; then
+                yg_warn "$continue_config already exists — left untouched."
+                yg_warn "Add this model by hand if you want it:"
+                yg_warn "  provider: llama.cpp, model: {{ _local_ai_alias }}, apiBase: http://127.0.0.1:{{ _local_ai_port }}"
+            else
+                mkdir -p "$(dirname "$continue_config")"
+                cat > "$continue_config" <<YAML
+    name: YaguareteOS local
+    version: 1.0.0
+    schema: v1
+    models:
+      - name: YaguareteOS local (llama.cpp)
+        provider: llama.cpp
+        model: {{ _local_ai_alias }}
+        apiBase: http://127.0.0.1:{{ _local_ai_port }}
+        roles:
+          - chat
+          - edit
+          - apply
+          - autocomplete
+    YAML
+                yg_ok "Continue.dev config written to $continue_config"
+            fi
+        fi
 
         echo
         yg_ok "Local AI ready on http://127.0.0.1:{{ _local_ai_port }} (model: $file)."
-        yg_info "In Zed, pick 'YaguareteOS local' from the model selector."
+        if [[ "$have_code" -eq 1 ]]; then
+            yg_info "In VSCode, open Continue and pick 'YaguareteOS local'."
+        fi
         yg_info "First load takes a moment while the weights reach the GPU."
         ;;
 
@@ -204,7 +206,7 @@ yaguarete-setup-local-ai ACTION="":
             yg_warn "The model file is kept: $model_dir/$file"
             yg_warn "Delete it by hand if you want the disk space back."
         fi
-        yg_info "Zed's settings were left untouched; remove the llama.cpp provider there if you want it gone."
+        yg_info "$HOME/.continue/config.yaml was left untouched; remove the llama.cpp model there if you want it gone."
         yg_ok "Removed."
         ;;
 
