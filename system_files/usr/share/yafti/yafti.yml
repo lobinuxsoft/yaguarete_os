@@ -901,7 +901,7 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux'"
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew trust --tap ublue-os/tap && brew install --cask jetbrains-toolbox-linux'"
           - id: "update"
             label: "Update"
             script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask jetbrains-toolbox-linux'"
@@ -916,7 +916,7 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew install --cask visual-studio-code-linux'"
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew trust --tap ublue-os/tap && brew install --cask visual-studio-code-linux'"
           - id: "update"
             label: "Update"
             script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask visual-studio-code-linux'"
@@ -931,7 +931,7 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew install --cask vscodium-linux'"
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew trust --tap ublue-os/tap && brew install --cask vscodium-linux'"
           - id: "update"
             label: "Update"
             script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask vscodium-linux'"
@@ -946,7 +946,7 @@ screens:
         options:
           - id: "install"
             label: "Install"
-            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew install --cask android-platform-tools'"
+            script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew tap ublue-os/tap && brew trust --tap ublue-os/tap && brew install --cask android-platform-tools'"
           - id: "update"
             label: "Update"
             script: "/usr/libexec/yaguarete/portal-run 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\" && brew upgrade --cask android-platform-tools'"
