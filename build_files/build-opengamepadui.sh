@@ -43,13 +43,17 @@ topdir=/build/rpmbuild
 mkdir -p "$topdir"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 src="$topdir/SOURCES"
 
-# /root/.cargo exists as something other than a directory on this base
-# image (cargo's own default CARGO_HOME) -- live-caught: `cargo build`
-# failed trying to mkdir it with "File exists". Pointing CARGO_HOME
-# somewhere this script controls sidesteps whatever put it there instead
-# of fighting it.
+# /root is a dangling symlink at this build stage (bootc/ostree's usual
+# /root -> /var/roothome, with /var not yet populated in a transient
+# Containerfile RUN layer) -- live-caught: `cargo build`'s own default
+# CARGO_HOME under /root failed to mkdir with "File exists" (the symlink
+# node itself exists, its target does not), and the Makefile's own
+# $(HOME)-relative export-template cache path failed the same way one
+# step later. Redirecting both away from /root sidesteps this instead of
+# fighting the base image's own layout.
+export HOME=/build
 export CARGO_HOME=/build/cargo-home
-mkdir -p "$CARGO_HOME"
+mkdir -p "$HOME" "$CARGO_HOME"
 
 godot_dir=$(mktemp -d)
 wget -q -O "$godot_dir/godot.zip" \
