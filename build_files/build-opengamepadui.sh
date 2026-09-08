@@ -43,6 +43,14 @@ topdir=/build/rpmbuild
 mkdir -p "$topdir"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 src="$topdir/SOURCES"
 
+# /root/.cargo exists as something other than a directory on this base
+# image (cargo's own default CARGO_HOME) -- live-caught: `cargo build`
+# failed trying to mkdir it with "File exists". Pointing CARGO_HOME
+# somewhere this script controls sidesteps whatever put it there instead
+# of fighting it.
+export CARGO_HOME=/build/cargo-home
+mkdir -p "$CARGO_HOME"
+
 godot_dir=$(mktemp -d)
 wget -q -O "$godot_dir/godot.zip" \
     "https://github.com/godotengine/godot/releases/download/${GODOT_PIN_VERSION}/Godot_v${GODOT_PIN_VERSION}_linux.x86_64.zip"
