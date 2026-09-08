@@ -142,6 +142,21 @@ if rpm -q bazzite-updater >/dev/null 2>&1; then
     exit 1
 fi
 
+### OpenGamepadUI: swap the base image's own opengamepadui for our fork.
+# The RPM comes from the `opengamepadui` stage through a bind mount on
+# /rpms-ogui; the fork itself and the reason for the package rename live in
+# build_files/opengamepadui/yaguarete-ui.spec.
+dnf5 install -y /rpms-ogui/yaguarete-ui-*.rpm
+
+# Same reasoning as the updater swap above: fail loudly here rather than
+# ship an image with two opengamepaduis and no way to tell which one a
+# session actually launched.
+rpm -q yaguarete-ui
+if rpm -q opengamepadui >/dev/null 2>&1; then
+    echo "[opengamepadui] opengamepadui survived the swap" >&2
+    exit 1
+fi
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
