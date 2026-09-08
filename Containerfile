@@ -38,6 +38,22 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build-updater.sh
 
+### OpenGamepadUI built from source, from lobinuxsoft/yaguarete-ui.
+# That fork adds Steam session switching (overlay mode <-> standalone) and
+# Goldberg/Aurelia-based standalone launching on top of unmodified upstream
+# OGUI -- everything else, including the install layout, is identical to
+# what the base image's own opengamepadui package ships. See
+# build_files/opengamepadui/.
+#
+# Same reasoning as the updater stage for building FROM the image base
+# rather than plain Fedora: the Rust GDExtension core this produces has to
+# link against exactly what is on the image, not a foreign glibc/libc++.
+FROM ${BASE_IMAGE} AS opengamepadui
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build-opengamepadui.sh
+
 FROM ${BASE_IMAGE}
 
 # Persist the build-time image name so /ctx/build.sh can read it.
@@ -70,6 +86,7 @@ COPY system_files/usr /usr
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=bind,from=updater,source=/out,target=/rpms \
+    --mount=type=bind,from=opengamepadui,source=/out,target=/rpms-ogui \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
